@@ -51,4 +51,18 @@ export const styles = StyleSheet.create({
     color: "#ffffff",
     fontWeight: "600",
   },
+    saveButton: {
+    marginTop: -16,
+    backgroundColor: "#007bff", // niebieski przycisk
+    paddingVertical: 12,
+    borderRadius: 8,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  saveButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+  },
 });

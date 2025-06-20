@@ -11,6 +11,7 @@ import {
 import styles from "../styles/Login.styles";
 import { useRouter } from "expo-router";
 import { useAuth } from "../context/AuthContext";
+import { loadActivities } from "../utilis/activityStoarage";
 
 interface FormData {
   userName: string;
@@ -29,15 +30,19 @@ const Login = () => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(dataLog), // Przekazanie danych logowania
+        body: JSON.stringify(dataLog),
       });
 
-      if (res.status === 200) {
-        const data = await res.json();
-        setUserName(data.userName);
-        router.replace({
-          pathname: "/(auth)/DrawerWrapper",
-        });
+   if (res.status === 200) {
+    const data = await res.json();
+    setUserName(data.userName);
+    const storedActivities = await loadActivities(data.userName); 
+
+    if (storedActivities.length > 0 ) {
+      router.replace("/(auth)/Event");
+    } else {
+      router.replace("/(main)/HomeScreen");
+    }
       } else if (res.status === 422) {
         Alert.alert("Błąd");
       } else {
