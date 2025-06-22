@@ -1,27 +1,27 @@
+import { loadActivities } from "@/utilis/activityStoarage";
+import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  TouchableOpacity,
   FlatList,
   ImageBackground,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import { styles } from "../styles/CreateEvent.styles";
-import { router } from "expo-router";
 import { useActivity } from "../context/ActivityContext";
 import { useAuth } from "../context/AuthContext";
-import { loadActivities } from "@/utilis/activityStoarage";
+import { styles } from "../styles/CreateEvent.styles";
 
 const imageMap: Record<string, any> = {
   "Gry planszowe": require("../../assets/images/gry-planszowe.png"),
   "Escape room": require("../../assets/images/Escape-room.png"),
-  "Kręgle": require("../../assets/images/kregle.png"),
-  "Bilard": require("../../assets/images/bilard.png"),
+  "kregle": require("../../assets/images/kregle.png"),
+ "bilard": require("../../assets/images/bilard.png"),
 };
 
 export default function CreateEvent() {
   const [events, setEvents] = useState<any[]>([]);
-  const [selectedActivity, setSelectedActivity] = useState<string | null>(null); // ⬅️ dodajemy
+  const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
   const [error, setError] = useState("");
   const { userName } = useAuth();
   const { activities, setActivities } = useActivity();
@@ -72,14 +72,20 @@ export default function CreateEvent() {
       setError("Najpierw wybierz aktywność!");
       return;
     }
-
+    router.push({
+      pathname: "/CreateEvent/form",
+      params: { activity: selectedActivity },
+    });
+    console.log("wybrana aktywnosc",selectedActivity)
     setError("");
     router.push("/CreateEvent/form");
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>Wybierz aktywność aby stworzyć wydarzenie</Text>
+      <Text style={styles.sectionTitle}>
+        Wybierz aktywność aby stworzyć wydarzenie
+      </Text>
       <FlatList
         data={activities}
         renderItem={renderActivityTile}
@@ -99,7 +105,9 @@ export default function CreateEvent() {
         <Text style={styles.createButtonText}>Stwórz swoje wydarzenie</Text>
       </TouchableOpacity>
 
-      {error !== "" && <Text style={{ color: "red", marginTop: 10 }}>{error}</Text>}
+      {error !== "" && (
+        <Text style={{ color: "red", marginTop: 10 }}>{error}</Text>
+      )}
 
       {events.length === 0 ? (
         <Text style={styles.emptyText}>Brak Twoich wydarzeń</Text>

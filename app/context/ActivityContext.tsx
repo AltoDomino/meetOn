@@ -8,7 +8,7 @@ type ActivityContextType = {
 const ActivityContext = createContext<ActivityContextType | undefined>(undefined);
 
 export const ActivityProvider = ({ children }: { children: ReactNode }) => {
-  const [activities, setActivities] = useState<string[]>([]);
+  const [activities, setActivities] = useState<string[] >([]);
 
   return (
     <ActivityContext.Provider value={{ activities, setActivities }}>

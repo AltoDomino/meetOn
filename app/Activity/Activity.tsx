@@ -7,6 +7,7 @@ import { useActivity } from "../context/ActivityContext";
 import { loadActivities, saveActivities } from "@/utilis/activityStoarage";
 import { useAuth } from "../context/AuthContext";
 import { ImageBackground } from "react-native";
+import { activityImages } from "./Activities";
 
 
 export default function Activity() {
@@ -14,15 +15,6 @@ export default function Activity() {
   const { userName } = useAuth();
   const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
 
-  const activities: Record<string, any> = {
-  "Gry planszowe": require("../../assets/images/gry-planszowe.png"),
-  "Escape room": require("../../assets/images/Escape-room.png"),
-  "Kręgle": require("../../assets/images/kregle.png"),
-  // "Laser tag": require("../../assets/images/laser-tag.png"),
-  // "Karaoke": require("../../assets/images/karaoke.png"),
-  "Bilard": require("../../assets/images/bilard.png"),
-  // "Paintball": require("../../assets/images/paintball.png"),
-};
 
 const handleSaveActivity = async () => {
   await saveActivities(userName, selectedActivities);
@@ -54,7 +46,7 @@ const renderItem = ({ item }: { item: string }) => {
   return (
     <TouchableOpacity onPress={() => toggleActivity(item)} style={styles.tileWrapper}>
       <ImageBackground
-        source={activities[item]}
+        source={activityImages[item]}
         style={styles.tile}
         imageStyle={{ borderRadius: 12, opacity: isSelected ? 0.8 : 1 }}
       >
@@ -84,7 +76,7 @@ const renderItem = ({ item }: { item: string }) => {
       <View style={styles.container}>
         <Text style={styles.title}>Wybierz formę aktywności</Text>
         <FlatList
-          data={Object.keys(activities)} 
+          data={Object.keys(activityImages)} 
           keyExtractor={(item) => item}
           renderItem={renderItem}
           numColumns={2}

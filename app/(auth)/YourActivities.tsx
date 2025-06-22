@@ -12,13 +12,7 @@ import { useActivity } from "../context/ActivityContext";
 import { loadActivities, saveActivities } from "@/utilis/activityStoarage";
 import { styles } from "../styles/YourActivites.styles";
 import { router } from "expo-router";
-
-const activityImages: Record<string, any> = {
-  "Gry planszowe": require("../../assets/images/gry-planszowe.png"),
-  "Escape room": require("../../assets/images/Escape-room.png"),
-  "Kręgle": require("../../assets/images/kregle.png"),
-  "Bilard": require("../../assets/images/bilard.png"),
-};
+import { activityImages } from "../Activity/Activities";
 
 export default function YourActivities() {
   const { userName } = useAuth();
