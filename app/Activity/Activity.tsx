@@ -4,22 +4,25 @@ import { router, Stack } from "expo-router";
 import { styles } from "../styles/Activity.styles";
 import { Ionicons } from "@expo/vector-icons";
 import { useActivity } from "../context/ActivityContext";
-import { loadActivities, saveActivities } from "../utilis/activityStoarage";
+import { loadActivities, saveActivities } from "@/utilis/activityStoarage";
 import { useAuth } from "../context/AuthContext";
+import { ImageBackground } from "react-native";
 
-const activities = [
-  "Gry planszowe",
-  "Tenis stołowy",
-  "Escape room",
-  "Kręgle",
-  "Laser tag",
-  "Karaoke",
-];
 
 export default function Activity() {
   const { setActivities } = useActivity();
   const { userName } = useAuth();
   const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
+
+  const activities: Record<string, any> = {
+  "Gry planszowe": require("../../assets/images/gry-planszowe.png"),
+  "Escape room": require("../../assets/images/Escape-room.png"),
+  "Kręgle": require("../../assets/images/kregle.png"),
+  // "Laser tag": require("../../assets/images/laser-tag.png"),
+  // "Karaoke": require("../../assets/images/karaoke.png"),
+  "Bilard": require("../../assets/images/bilard.png"),
+  // "Paintball": require("../../assets/images/paintball.png"),
+};
 
 const handleSaveActivity = async () => {
   await saveActivities(userName, selectedActivities);
@@ -46,19 +49,22 @@ useEffect(() => {
   fetchActivities();
 }, [userName]);
 
-  const renderItem = ({ item }: { item: string }) => {
-    const isSelected = selectedActivities.includes(item);
-    return (
-      <TouchableOpacity
-        onPress={() => toggleActivity(item)}
-        style={[styles.tile, isSelected && styles.tileSelected]}
+const renderItem = ({ item }: { item: string }) => {
+  const isSelected = selectedActivities.includes(item);
+  return (
+    <TouchableOpacity onPress={() => toggleActivity(item)} style={styles.tileWrapper}>
+      <ImageBackground
+        source={activities[item]}
+        style={styles.tile}
+        imageStyle={{ borderRadius: 12, opacity: isSelected ? 0.8 : 1 }}
       >
         <Text style={[styles.tileText, isSelected && styles.tileTextSelected]}>
           {item}
         </Text>
-      </TouchableOpacity>
-    );
-  };
+      </ImageBackground>
+    </TouchableOpacity>
+  );
+};
 
   return (
     <>
@@ -78,7 +84,7 @@ useEffect(() => {
       <View style={styles.container}>
         <Text style={styles.title}>Wybierz formę aktywności</Text>
         <FlatList
-          data={activities}
+          data={Object.keys(activities)} 
           keyExtractor={(item) => item}
           renderItem={renderItem}
           numColumns={2}

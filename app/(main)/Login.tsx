@@ -11,7 +11,7 @@ import {
 import styles from "../styles/Login.styles";
 import { useRouter } from "expo-router";
 import { useAuth } from "../context/AuthContext";
-import { loadActivities } from "../utilis/activityStoarage";
+import { loadActivities } from "@/utilis/activityStoarage";
 
 interface FormData {
   userName: string;

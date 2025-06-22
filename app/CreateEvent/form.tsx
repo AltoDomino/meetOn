@@ -1,60 +1,89 @@
-import React, { useState } from "react";
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  TouchableOpacity,
-  StyleSheet,
-} from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { router, Stack } from "expo-router";
-import { Ionicons } from "@expo/vector-icons";
+import React, { useState } from "react";
+import * as Location from "expo-location"; 
+import { useEffect } from "react";
+import fetchPlaces from "@/utilis/FetchActivityPlaces";
 
-const mockActivities = ["Gry planszowe", "Tenis stołowy", "Escape room"];
+import {
+  Button,
+  FlatList,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { useActivity } from "../context/ActivityContext";
 
 export default function CreateEventForm() {
-  const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
   const [location, setLocation] = useState("");
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [spots, setSpots] = useState("");
+  const [places, setPlaces] = useState<any[]>([]);
+  const [activity,setSelectedActivity] =useState("")
+const { activities }:any = useActivity();
 
-  const handleCreateEvent = () => {
-    const newEvent = {
-      activity: selectedActivity,
-      location,
-      date: date.toLocaleString(),
-      spots,
-    };
 
-    // Tu zapis do stanu globalnego, API lub local storage
+useEffect(() => {
+  const fetchNearbyPlaces = async () => {
+    if (!activity) return; 
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    if (status !== "granted") {
+      console.log("Brak dostępu do lokalizacji");
+      return;
+    }
 
-    router.replace("/(auth)/CreateEvent");
+    try {
+      const userLocation = await Location.getCurrentPositionAsync({});
+      const lat = userLocation.coords.latitude;
+      const lng = userLocation.coords.longitude;
+
+      const result = await fetchPlaces(activity, lat, lng);
+      setPlaces(result);
+      console.log(result)
+    } catch (error) {
+      console.error(error);
+    }
   };
+
+  fetchNearbyPlaces();
+}, [activity]);
+console.log("lol",activities)
+  // const handleCreateEvent = () => {
+  //   const newEvent = {
+  //     activity: selectedActivity,
+  //     location,
+  //     date: date.toLocaleString(),
+  //     spots,
+  //   };
+  //   router.replace("/(auth)/CreateEvent");
+  // };
 
   return (
     <>
-            <Stack.Screen
-              options={{
-                headerShown: true,
-                title: "Nowe wydarzenie",
-                headerLeft: () => (
-                  <TouchableOpacity onPress={() => router.back()}>
-                    <Ionicons name="arrow-back" size={24} color="#fff" />
-                  </TouchableOpacity>
-                ),
-                headerStyle: {
-                  backgroundColor: "#121212",
-                },
-                headerTintColor: "#ffffff",
-              }}
-            />
+      <Stack.Screen
+        options={{
+          headerShown: true,
+          title: "Nowe wydarzenie",
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()}>
+              <Ionicons name="arrow-back" size={24} color="#fff" />
+            </TouchableOpacity>
+          ),
+          headerStyle: {
+            backgroundColor: "#121212",
+          },
+          headerTintColor: "#ffffff",
+        }}
+      />
       <View style={styles.container}>
-        {!selectedActivity ? (
+        {!activities ? (
           <>
             <Text style={styles.label}>Wybierz aktywność:</Text>
-            {mockActivities.map((activity) => (
+            {activities && activities.map((activity:string) => (
               <TouchableOpacity
                 key={activity}
                 style={styles.optionButton}
@@ -67,7 +96,7 @@ export default function CreateEventForm() {
         ) : (
           <>
             <Text style={styles.label}>
-              Wybrana aktywność: {selectedActivity}
+              {/* Wybrana aktywność: {setSelectedActivity} */}
             </Text>
             <TextInput
               style={styles.input}
@@ -75,6 +104,13 @@ export default function CreateEventForm() {
               value={location}
               onChangeText={setLocation}
             />
+               <View>
+      <FlatList
+        data={places}
+        keyExtractor={(item) => item}
+        renderItem={({ item }) => <Text>{item}</Text>}
+      />
+    </View>
             <TouchableOpacity onPress={() => setShowDatePicker(true)}>
               <Text style={styles.input}>
                 Wybierz datę: {date.toLocaleDateString()}{" "}
@@ -100,10 +136,7 @@ export default function CreateEventForm() {
               value={spots}
               onChangeText={setSpots}
             />
-            <Button
-              title="Zatwierdź wydarzenie"
-              onPress={handleCreateEvent}
-            />
+            {/* <Button title="Zatwierdź wydarzenie" onPress={handleCreateEvent} /> */}
           </>
         )}
       </View>

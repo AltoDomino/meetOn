@@ -1,51 +1,54 @@
 import { StyleSheet } from "react-native";
+
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#fff",
+    backgroundColor: "#121212",
     padding: 16,
   },
   title: {
-    fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 16,
+    fontSize: 22,
+    fontWeight: "600",
+    color: "#fff",
+    marginBottom: 12,
   },
   tilesContainer: {
     gap: 12,
   },
-  tileWrapper: {
+  tile: {
     flex: 1,
     margin: 6,
-    height: 120,
+    borderRadius: 12,
+    overflow: "hidden",
+    height: 140,
   },
-  tile: {
+  imageBackground: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
-    borderRadius: 12,
-    overflow: "hidden",
+    padding: 12,
   },
   tileText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
-    textShadowColor: "rgba(0, 0, 0, 0.7)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 4,
+    textAlign: "center",
+    backgroundColor: "rgba(0,0,0,0.5)",
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
   },
-  tileTextSelected: {
-    textDecorationLine: "underline",
-  },
-  saveButton: {
-    backgroundColor: "#121212",
-    padding: 16,
+    addButton: {
+    backgroundColor: "#1e90ff",
+    padding: 14,
     borderRadius: 12,
     marginTop: 20,
     alignItems: "center",
   },
-  saveButtonText: {
+  addButtonText: {
     color: "#fff",
     fontSize: 16,
-    fontWeight: "600",
+    fontWeight: "bold",
   },
+
 });
