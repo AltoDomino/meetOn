@@ -1,9 +1,10 @@
+import { Ionicons } from "@expo/vector-icons";
+import Slider from "@react-native-community/slider";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import { Alert, Switch, Text, TouchableOpacity, View } from "react-native";
 import { styles } from "../styles/form.styles";
-import Slider from "@react-native-community/slider";
-import { Ionicons } from "@expo/vector-icons";
-import { router, useLocalSearchParams } from "expo-router";
+import FormDataSend from "./SendDataform";
 
 const DetailsForm = () => {
   const [GenderSplit, setGenderSplit] = useState(false);
@@ -11,13 +12,8 @@ const DetailsForm = () => {
   const [maxAge, setMaxAge] = useState(40);
   const [spots, setSpots] = useState("");
 
-  const {
-    location,
-    address,
-    startDate,
-    endDate,
-    activity,
-  } = useLocalSearchParams();
+  const { location, address, startDate, endDate, activity } =
+    useLocalSearchParams();
 
   const parsedStartDate = new Date(startDate as string);
   const parsedEndDate = new Date(endDate as string);
@@ -26,8 +22,46 @@ const DetailsForm = () => {
     setGenderSplit(value);
   };
 
+  const handleSubmit = async () => {
+    if (!spots) {
+      alert("Uzupełnij wszystkie wymagane pola");
+      return;
+    }
+
+    const eventData = {
+      location: location?.toString() ?? "",
+      address: address?.toString() ?? "",
+      startDate: parsedStartDate.toISOString(),
+      endDate: parsedEndDate.toISOString(),
+      activity: activity?.toString() ?? "",
+      spots,
+      genderSplit: GenderSplit,
+      minAge,
+      maxAge,
+    };
+
+    try {
+      await FormDataSend(eventData);
+
+      router.push({
+        pathname: "/Event",
+        params: {
+          location: eventData.location,
+          address: eventData.address,
+          startDate: eventData.startDate,
+          endDate: eventData.endDate,
+          activity: eventData.activity,
+          spots: eventData.spots,
+        },
+      });
+    } catch (error) {
+      Alert.alert("Błąd", "Nie udało się zapisać wydarzenia");
+    }
+  };
+
   return (
     <>
+      {/* Ilość miejsc */}
       <View style={styles.counterContainer}>
         <Text style={styles.label}>Ilość miejsc</Text>
         <View style={styles.counterButtons}>
@@ -57,6 +91,7 @@ const DetailsForm = () => {
         </View>
       </View>
 
+      {/* Podział na płeć */}
       <View style={styles.switchContainer}>
         <View style={styles.switchLabelRow}>
           <Text style={styles.label}>Podział na płeć</Text>
@@ -64,7 +99,7 @@ const DetailsForm = () => {
             onPress={() =>
               Alert.alert(
                 "Co to znaczy?",
-                "Jeżeli chcesz, aby na wydarzenie przyszła podobna ilość kobiet jak i mężczyzn, zaznacz tę opcję. Aplikacja postara się to wyegzekwować."
+                "Jeżeli chcesz, aby na wydarzenie przyszła podobna ilość kobiet jak i mężczyzn, zaznacz tę opcję."
               )
             }
           >
@@ -85,6 +120,7 @@ const DetailsForm = () => {
         />
       </View>
 
+      {/* Preferowany wiek */}
       <Text style={styles.label}>Preferowany wiek uczestników</Text>
       <View style={{ marginVertical: 16 }}>
         <Text style={{ textAlign: "center", marginBottom: 8 }}>
@@ -114,26 +150,8 @@ const DetailsForm = () => {
         />
       </View>
 
-      <TouchableOpacity
-        style={styles.submitButton}
-        onPress={() => {
-          if (!spots) {
-            alert("Uzupełnij wszystkie wymagane pola");
-            return;
-          }
-
-          router.push({
-            pathname: "/Event",
-            params: {
-              location: location?.toString() ?? "",
-              address: address?.toString() ?? "",
-              startDate: parsedStartDate.toISOString(),
-              endDate: parsedEndDate.toISOString(),
-              spots,
-            },
-          });
-        }}
-      >
+      {/* Zatwierdzenie */}
+      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
         <Text style={styles.submitButtonText}>Zatwierdź wydarzenie</Text>
       </TouchableOpacity>
     </>

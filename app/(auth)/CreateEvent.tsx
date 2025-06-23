@@ -8,14 +8,16 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { activityImages } from "../Activity/Activities";
 import { useActivity } from "../context/ActivityContext";
 import { useAuth } from "../context/AuthContext";
 import { styles } from "../styles/CreateEvent.styles";
-import { activityImages } from "../Activity/Activities";
 
 export default function CreateEvent() {
   const [events, setEvents] = useState<any[]>([]);
-  const [choosenActivity, setChoosenSelectedActivity] = useState<string | null>(null);
+  const [choosenActivity, setChoosenSelectedActivity] = useState<string | null>(
+    null
+  );
   const [error, setError] = useState("");
   const { userName } = useAuth();
   const { activities, setActivities } = useActivity();
@@ -62,11 +64,26 @@ export default function CreateEvent() {
   };
 
   const handleCreateEvent = () => {
+    if (!choosenActivity) return;
+
+    const mosirActivities = [
+      "Tenis ziemny",
+      "Piłka nożna",
+      "Koszykówka",
+      "Tenis stołowy",
+    ];
+    const finalActivity = mosirActivities.includes(choosenActivity)
+      ? "mosir"
+      : choosenActivity;
+
     router.push({
       pathname: "/CreateEvent/PlaceDateform",
-      params: { activity: choosenActivity },
+      params: {
+        activity: finalActivity,
+      },
     });
-    console.log("wybrana aktywnosc w createevent",choosenActivity)
+
+    console.log("wybrana aktywność (przekazywana):", finalActivity);
   };
 
   return (

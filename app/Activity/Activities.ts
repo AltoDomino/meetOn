@@ -21,3 +21,13 @@ export const activityImages: Record<string, any> = {
 "Stwórz własne": require("../../assets/images/wlasne.png"),
 
 };
+export const getDefaultLocation = (activity: string): string | null => {
+  const mosirActivities = [
+    "Tenis ziemny",
+    "Piłka nożna",
+    "Koszykówka",
+    "Tenis stołowy"
+  ];
+
+  return mosirActivities.includes(activity) ? "mosir" : null;
+};
