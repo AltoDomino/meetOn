@@ -7,15 +7,31 @@ export default function FormLayout() {
   return (
     <Stack>
       <Stack.Screen
-        name="form"
+        name="PlaceDateform"
         options={{
-          title: "Nowe wydarzenie",
+          title: "Lokalizacja i czas",
           headerStyle: {
-            backgroundColor: "#00A9F4"
+            backgroundColor: "#00A9F4",
           },
-          headerTintColor: "#fff", 
+          headerTintColor: "#fff",
           headerLeft: () => (
-            <TouchableOpacity onPress={() => router.replace("/(auth)/CreateEvent")} style={{ paddingHorizontal: 10 }}>
+            <TouchableOpacity onPress={() => router.back()} style={{ paddingHorizontal: 10 }}>
+              <Ionicons name="arrow-back" size={24} color="#fff" />
+            </TouchableOpacity>
+          ),
+        }}
+      />
+
+      <Stack.Screen
+        name="DetailsForm"
+        options={{
+          title: "Szczegóły wydarzenia",
+          headerStyle: {
+            backgroundColor: "#00A9F4",
+          },
+          headerTintColor: "#fff",
+          headerLeft: () => (
+            <TouchableOpacity onPress={() => router.back()} style={{ paddingHorizontal: 10 }}>
               <Ionicons name="arrow-back" size={24} color="#fff" />
             </TouchableOpacity>
           ),

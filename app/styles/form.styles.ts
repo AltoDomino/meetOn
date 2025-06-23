@@ -1,8 +1,8 @@
 import { Dimensions, StyleSheet } from "react-native";
 
-// Obliczamy dynamiczną szerokość kafelka (np. 2 kafelki na szerokość ekranu z marginesami)
+
 const screenWidth = Dimensions.get("window").width;
-const tileSize = (screenWidth - 60) / 2; // 2 kafelki + padding
+const tileSize = (screenWidth - 60) / 2; 
 
 export const styles = StyleSheet.create({
   container: {

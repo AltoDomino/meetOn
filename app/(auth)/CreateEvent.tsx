@@ -63,7 +63,7 @@ export default function CreateEvent() {
 
   const handleCreateEvent = () => {
     router.push({
-      pathname: "/CreateEvent/form",
+      pathname: "/CreateEvent/PlaceDateform",
       params: { activity: choosenActivity },
     });
     console.log("wybrana aktywnosc w createevent",choosenActivity)

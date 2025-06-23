@@ -2,19 +2,17 @@ import fetchPlaces, { Place } from "@/utilis/FetchActivityPlaces";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Location from "expo-location";
-import { router, Stack, useLocalSearchParams } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
-
 import {
-  Alert,
-  Button,
   FlatList,
   Linking,
-  Switch,
   Text,
+  TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+
 import { styles } from "../styles/form.styles";
 
 export default function CreateEventForm() {
@@ -22,18 +20,16 @@ export default function CreateEventForm() {
   const newActivity = Array.isArray(choosenActivity)
     ? choosenActivity[0]
     : choosenActivity;
-  console.log("wybrana aktywność w formie", choosenActivity);
 
-  const [date, setDate] = useState(new Date());
-  const [showDatePicker, setShowDatePicker] = useState(false);
-  const [spots, setSpots] = useState("");
   const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(false);
-  const [GenderSplit, setGenderSplit] = useState(false);
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
   const [showStartPicker, setShowStartPicker] = useState(false);
   const [showEndPicker, setShowEndPicker] = useState(false);
+  const [customLocation, setCustomLocation] = useState("");
+  const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
+
   console.log("activiity", choosenActivity);
   useEffect(() => {
     if (choosenActivity) {
@@ -63,54 +59,56 @@ export default function CreateEventForm() {
     setLoading(false);
   };
 
-  // Opcjonalnie możesz automatycznie fetchować po zmianie activity
   useEffect(() => {
     fetchNearbyPlaces();
   }, [choosenActivity]);
 
-  const renderPlaceTile = ({ item }: { item: Place }) => (
-    <View style={styles.placeTileContainer}>
-      <View style={styles.placeTile}>
-        <Text style={styles.placeText}>{item.name}</Text>
-        {item.address && (
-          <Text style={styles.placeAddress}>{item.address}</Text>
-        )}
-      </View>
+  const renderPlaceTile = ({ item }: { item: Place }) => {
+    const isSelected = selectedPlaceId === item.placeId;
 
-      {/* Ikony poniżej kafelka */}
-      <View style={styles.iconRowBottom}>
-        {item.phone && (
-          <TouchableOpacity
-            onPress={() => Linking.openURL(`tel:${item.phone}`)}
-            style={styles.iconButton}
-          >
-            <Ionicons name="call-outline" size={20} color="#fff" />
-          </TouchableOpacity>
-        )}
+    return (
+      <TouchableOpacity
+        onPress={() => {
+          setCustomLocation("");
+          setSelectedPlaceId(item.placeId);
+        }}
+        style={[
+          styles.placeTileContainer,
+          isSelected && { backgroundColor: "#D6F6FF" },
+        ]}
+      >
+        <View
+          style={[
+            styles.placeTile,
+            isSelected && { backgroundColor: "#C0F0FF" },
+          ]}
+        >
+          <Text style={styles.placeText}>{item.name}</Text>
+          {item.address && (
+            <Text style={styles.placeAddress}>{item.address}</Text>
+          )}
+        </View>
 
-        {item.website && (
-          <TouchableOpacity
-            onPress={() => Linking.openURL(item.website!)}
-            style={styles.iconButton}
-          >
-            <Ionicons name="globe-outline" size={20} color="#fff" />
-          </TouchableOpacity>
-        )}
-      </View>
-    </View>
-  );
-
-  const handleGenderSwitchChange = (value: boolean) => {
-    setGenderSplit(value);
-
-    if (value) {
-      console.log("🔄 Włączono podział na płeć 50/50");
-      if (parseInt(spots) % 2 !== 0) {
-        console.warn("⚠️ Podział wymaga parzystej liczby miejsc!");
-      }
-    } else {
-      console.log("❌ Wyłączono podział na płeć");
-    }
+        <View style={styles.iconRowBottom}>
+          {item.phone && (
+            <TouchableOpacity
+              onPress={() => Linking.openURL(`tel:${item.phone}`)}
+              style={styles.iconButton}
+            >
+              <Ionicons name="call-outline" size={20} color="#fff" />
+            </TouchableOpacity>
+          )}
+          {item.website && (
+            <TouchableOpacity
+              onPress={() => Linking.openURL(item.website!)}
+              style={styles.iconButton}
+            >
+              <Ionicons name="globe-outline" size={20} color="#fff" />
+            </TouchableOpacity>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
   };
 
   return (
@@ -124,6 +122,21 @@ export default function CreateEventForm() {
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ paddingBottom: 20 }}
           ListEmptyComponent={<Text>Brak wyników</Text>}
+        />
+        <Text style={styles.label}>Lub wpisz własną lokalizację:</Text>
+        <TextInput
+          style={{
+            borderWidth: 1,
+            borderColor: "#ccc",
+            borderRadius: 8,
+            padding: 10,
+            marginTop: 8,
+            marginBottom: 16,
+            fontSize: 16,
+          }}
+          placeholder="Wpisz własną lokalizację"
+          value={customLocation}
+          onChangeText={setCustomLocation}
         />
 
         <Text style={styles.label}>Data i godzina wydarzenia:</Text>
@@ -171,86 +184,31 @@ export default function CreateEventForm() {
             }}
           />
         )}
-
-        <View style={styles.counterContainer}>
-          <Text style={styles.label}>Ilość miejsc</Text>
-          <View style={styles.counterButtons}>
-            <TouchableOpacity
-              style={styles.counterButton}
-              onPress={() =>
-                setSpots((prev) =>
-                  Math.max(1, parseInt(prev || "1") - 1).toString()
-                )
-              }
-            >
-              <Text style={styles.counterText}>−</Text>
-            </TouchableOpacity>
-
-            <Text style={styles.counterValue}>{spots || "1"}</Text>
-
-            <TouchableOpacity
-              style={styles.counterButton}
-              onPress={() =>
-                setSpots((prev) =>
-                  Math.min(6, parseInt(prev || "0") + 1).toString()
-                )
-              }
-            >
-              <Text style={styles.counterText}>+</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        <View style={styles.switchContainer}>
-          <View style={styles.switchLabelRow}>
-            <Text style={styles.label}>Podział na płeć</Text>
-            <TouchableOpacity
-              onPress={() =>
-                Alert.alert(
-                  "Co to znaczy?",
-                  "Jeżeli chcesz, aby na wydarzenie przyszła podobna ilość kobiet jak i mężczyzn, zaznacz tę opcję. Aplikacja postara się to wyegzekwować."
-                )
-              }
-            >
-              <Ionicons
-                name="help-circle-outline"
-                size={20}
-                color="#007AFF"
-                style={{ marginLeft: 6 }}
-              />
-            </TouchableOpacity>
-          </View>
-
-          <Switch
-            value={GenderSplit}
-            onValueChange={handleGenderSwitchChange}
-            trackColor={{ false: "#ccc", true: "#007AFF" }}
-            thumbColor={GenderSplit ? "#fff" : "#f4f3f4"}
-          />
-        </View>
-
         <TouchableOpacity
           style={styles.submitButton}
           onPress={() => {
-            if (!spots || !date || !places[0]) {
-              alert("Uzupełnij wszystkie wymagane pola");
+            if (!selectedPlaceId && !customLocation) {
+              alert("Musisz wybrać miejsce lub wpisać własną lokalizację");
               return;
             }
+
+            const selectedPlace = places.find(
+              (p) => p.placeId === selectedPlaceId
+            );
+
             router.push({
-              pathname: "/Event",
+              pathname: "/CreateEvent/DetailsForm",
               params: {
                 activity: newActivity,
-                location: places[0].name,
-                address: places[0].address ?? "",
-                spots,
+                location: customLocation || selectedPlace?.name || "",
+                address: customLocation || selectedPlace?.address || "",
                 startDate: startDate.toISOString(),
                 endDate: endDate.toISOString(),
-                genderSplit: GenderSplit.toString(),
               },
             });
           }}
         >
-          <Text style={styles.submitButtonText}>Zatwierdź wydarzenie</Text>
+          <Text style={styles.submitButtonText}>Szczegóły Wydarzenia</Text>
         </TouchableOpacity>
       </View>
     </>
