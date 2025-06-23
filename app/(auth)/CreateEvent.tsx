@@ -11,17 +11,11 @@ import {
 import { useActivity } from "../context/ActivityContext";
 import { useAuth } from "../context/AuthContext";
 import { styles } from "../styles/CreateEvent.styles";
-
-const imageMap: Record<string, any> = {
-  "Gry planszowe": require("../../assets/images/gry-planszowe.png"),
-  "Escape room": require("../../assets/images/Escape-room.png"),
-  "kregle": require("../../assets/images/kregle.png"),
- "bilard": require("../../assets/images/bilard.png"),
-};
+import { activityImages } from "../Activity/Activities";
 
 export default function CreateEvent() {
   const [events, setEvents] = useState<any[]>([]);
-  const [selectedActivity, setSelectedActivity] = useState<string | null>(null);
+  const [choosenActivity, setChoosenSelectedActivity] = useState<string | null>(null);
   const [error, setError] = useState("");
   const { userName } = useAuth();
   const { activities, setActivities } = useActivity();
@@ -46,7 +40,7 @@ export default function CreateEvent() {
   );
 
   const renderActivityTile = ({ item }: { item: string }) => {
-    const isSelected = selectedActivity === item;
+    const isSelected = choosenActivity === item;
 
     return (
       <TouchableOpacity
@@ -54,10 +48,10 @@ export default function CreateEvent() {
           styles.activityTileWrapper,
           isSelected && { borderWidth: 2, borderColor: "#007AFF" },
         ]}
-        onPress={() => setSelectedActivity(item)}
+        onPress={() => setChoosenSelectedActivity(item)}
       >
         <ImageBackground
-          source={imageMap[item]}
+          source={activityImages[item]}
           style={styles.activityTile}
           imageStyle={{ borderRadius: 12 }}
         >
@@ -68,17 +62,11 @@ export default function CreateEvent() {
   };
 
   const handleCreateEvent = () => {
-    if (!selectedActivity) {
-      setError("Najpierw wybierz aktywność!");
-      return;
-    }
     router.push({
       pathname: "/CreateEvent/form",
-      params: { activity: selectedActivity },
+      params: { activity: choosenActivity },
     });
-    console.log("wybrana aktywnosc",selectedActivity)
-    setError("");
-    router.push("/CreateEvent/form");
+    console.log("wybrana aktywnosc w createevent",choosenActivity)
   };
 
   return (
@@ -97,10 +85,10 @@ export default function CreateEvent() {
       <TouchableOpacity
         style={[
           styles.createButton,
-          !selectedActivity && { backgroundColor: "#ccc" },
+          !choosenActivity && { backgroundColor: "#ccc" },
         ]}
         onPress={handleCreateEvent}
-        disabled={!selectedActivity}
+        disabled={!choosenActivity}
       >
         <Text style={styles.createButtonText}>Stwórz swoje wydarzenie</Text>
       </TouchableOpacity>

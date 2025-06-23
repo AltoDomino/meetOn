@@ -33,16 +33,17 @@ export const styles = StyleSheet.create({
     textShadowOffset: { width: 1, height: 1 },
     textShadowRadius: 4,
   },
-  tileTextSelected: {
-    textDecorationLine: "underline",
-  },
-  saveButton: {
-    backgroundColor: "#121212",
-    padding: 16,
-    borderRadius: 12,
-    marginTop: 20,
-    alignItems: "center",
-  },
+tileTextSelected: {
+  textDecorationLine: "underline",
+  color: "#fff", 
+},
+saveButton: {
+  backgroundColor: "#007AFF", 
+  padding: 16,
+  borderRadius: 12,
+  marginTop: 20,
+  alignItems: "center",
+},
   saveButtonText: {
     color: "#fff",
     fontSize: 16,

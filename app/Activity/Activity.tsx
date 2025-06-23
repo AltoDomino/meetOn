@@ -60,19 +60,21 @@ const renderItem = ({ item }: { item: string }) => {
 
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.replace("/(auth)/Event")}>
-              <Ionicons name="arrow-back" size={24} color="#fff" />
-            </TouchableOpacity>
-          ),
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-          headerTintColor: "#ffffff",
-        }}
-      />
+<Stack.Screen
+  options={{
+    title: "Wybierz aktywność", 
+    headerLeft: () => (
+      <TouchableOpacity onPress={() => router.replace("/(auth)/Event")}>
+        <Ionicons name="arrow-back" size={24} color="#fff" />
+      </TouchableOpacity>
+    ),
+    headerStyle: {
+      backgroundColor: "#00A9F4"
+    },
+    headerTintColor: "#fff", // ikony i tekst nagłówka na biało
+  }}
+/>
+
       <View style={styles.container}>
         <Text style={styles.title}>Wybierz formę aktywności</Text>
         <FlatList

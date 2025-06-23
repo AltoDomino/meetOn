@@ -1,54 +1,62 @@
-import { StyleSheet } from "react-native";
+import { Dimensions, StyleSheet } from "react-native";
+
+const screenWidth = Dimensions.get("window").width;
+const tileSize = (screenWidth - 60) / 2;
 
 export const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: "#121212",
-    padding: 16,
-  },
+container: {
+  flex: 1,
+  padding: 20,
+  gap: 16,
+  backgroundColor: "transparent", 
+},
+
   title: {
     fontSize: 22,
-    fontWeight: "600",
-    color: "#fff",
+    fontWeight: "bold",
     marginBottom: 12,
+
+    textAlign: "center",
   },
+
   tilesContainer: {
-    gap: 12,
+    gap: 16,
+    justifyContent: "center",
   },
+
   tile: {
-    flex: 1,
-    margin: 6,
+    width: tileSize,
+    height: tileSize,
+    margin: 8,
     borderRadius: 12,
     overflow: "hidden",
-    height: 140,
+    elevation: 4,
   },
+
   imageBackground: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: "flex-end",
     padding: 12,
   },
+
   tileText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
     textAlign: "center",
-    backgroundColor: "rgba(0,0,0,0.5)",
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 6,
   },
-    addButton: {
-    backgroundColor: "#1e90ff",
-    padding: 14,
+
+  addButton: {
+    backgroundColor: "#007AFF", // spójny z niebieskim w CreateEvent
+    paddingVertical: 14,
     borderRadius: 12,
-    marginTop: 20,
+    marginTop: 24,
     alignItems: "center",
   },
+
   addButtonText: {
     color: "#fff",
     fontSize: 16,
     fontWeight: "bold",
   },
-
 });

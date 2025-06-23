@@ -1,5 +1,5 @@
-import { Drawer } from "expo-router/drawer";
 import { Ionicons } from "@expo/vector-icons";
+import { Drawer } from "expo-router/drawer";
 import { TouchableOpacity } from "react-native";
 
 export default function DrawerLayout() {
@@ -7,10 +7,16 @@ export default function DrawerLayout() {
     <Drawer
       screenOptions={({ navigation }) => ({
         headerLeft: () => (
-          <TouchableOpacity onPress={() => navigation.toggleDrawer()} style={{ marginLeft: 15 }}>
+          <TouchableOpacity
+            onPress={() => navigation.toggleDrawer()}
+            style={{ marginLeft: 15 }}
+          >
             <Ionicons name="menu" size={24} color="black" />
           </TouchableOpacity>
         ),
+        headerStyle: {
+          backgroundColor: "#00A9F4"
+        },
         headerTitleAlign: "center",
       })}
     >

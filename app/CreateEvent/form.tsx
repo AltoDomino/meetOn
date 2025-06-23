@@ -1,41 +1,49 @@
-import fetchPlaces from "@/utilis/FetchActivityPlaces";
+import fetchPlaces, { Place } from "@/utilis/FetchActivityPlaces";
 import { Ionicons } from "@expo/vector-icons";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import * as Location from "expo-location";
 import { router, Stack, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
+
 import {
+  Alert,
+  Button,
   FlatList,
-  StyleSheet,
+  Linking,
+  Switch,
   Text,
-  TextInput,
   TouchableOpacity,
   View,
-  Button,
 } from "react-native";
+import { styles } from "../styles/form.styles";
 
 export default function CreateEventForm() {
-  const { choosenActivity } = useLocalSearchParams();
-  console.log("wybrana aktywność w formie",choosenActivity)
-  const [activity, setActivity] = useState(choosenActivity as string);
+  const { activity: choosenActivity } = useLocalSearchParams();
+  const newActivity = Array.isArray(choosenActivity)
+    ? choosenActivity[0]
+    : choosenActivity;
+  console.log("wybrana aktywność w formie", choosenActivity);
+
   const [date, setDate] = useState(new Date());
   const [showDatePicker, setShowDatePicker] = useState(false);
   const [spots, setSpots] = useState("");
-  const [places, setPlaces] = useState<string[]>([]);
+  const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(false);
-
+  const [GenderSplit, setGenderSplit] = useState(false);
+  const [startDate, setStartDate] = useState(new Date());
+  const [endDate, setEndDate] = useState(new Date());
+  const [showStartPicker, setShowStartPicker] = useState(false);
+  const [showEndPicker, setShowEndPicker] = useState(false);
+  console.log("activiity", choosenActivity);
   useEffect(() => {
     if (choosenActivity) {
       console.log(choosenActivity, "chosen activity");
-      setActivity(choosenActivity as string);
     }
   }, [choosenActivity]);
 
-  // Wydzielona funkcja do fetchowania miejsc
   const fetchNearbyPlaces = async () => {
-    console.log("Aktywność:", activity);
     setLoading(true);
-  
+
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
       console.log("Brak dostępu do lokalizacji");
@@ -46,7 +54,7 @@ export default function CreateEventForm() {
       const userLocation = await Location.getCurrentPositionAsync({});
       const lat = userLocation.coords.latitude;
       const lng = userLocation.coords.longitude;
-      const result = await fetchPlaces("bilard", lat, lng);
+      const result = await fetchPlaces(newActivity, lat, lng);
       setPlaces(result || []);
       console.log("Wyniki wyszukiwania:", result);
     } catch (error) {
@@ -58,101 +66,193 @@ export default function CreateEventForm() {
   // Opcjonalnie możesz automatycznie fetchować po zmianie activity
   useEffect(() => {
     fetchNearbyPlaces();
-  }, [activity]);
+  }, [choosenActivity]);
 
-  const renderPlaceTile = ({ item }: { item: string }) => (
-    <View style={styles.placeTile}>
-      <Text style={styles.placeText}>{item}</Text>
+  const renderPlaceTile = ({ item }: { item: Place }) => (
+    <View style={styles.placeTileContainer}>
+      <View style={styles.placeTile}>
+        <Text style={styles.placeText}>{item.name}</Text>
+        {item.address && (
+          <Text style={styles.placeAddress}>{item.address}</Text>
+        )}
+      </View>
+
+      {/* Ikony poniżej kafelka */}
+      <View style={styles.iconRowBottom}>
+        {item.phone && (
+          <TouchableOpacity
+            onPress={() => Linking.openURL(`tel:${item.phone}`)}
+            style={styles.iconButton}
+          >
+            <Ionicons name="call-outline" size={20} color="#fff" />
+          </TouchableOpacity>
+        )}
+
+        {item.website && (
+          <TouchableOpacity
+            onPress={() => Linking.openURL(item.website!)}
+            style={styles.iconButton}
+          >
+            <Ionicons name="globe-outline" size={20} color="#fff" />
+          </TouchableOpacity>
+        )}
+      </View>
     </View>
   );
 
+  const handleGenderSwitchChange = (value: boolean) => {
+    setGenderSplit(value);
+
+    if (value) {
+      console.log("🔄 Włączono podział na płeć 50/50");
+      if (parseInt(spots) % 2 !== 0) {
+        console.warn("⚠️ Podział wymaga parzystej liczby miejsc!");
+      }
+    } else {
+      console.log("❌ Wyłączono podział na płeć");
+    }
+  };
+
   return (
     <>
-      <Stack.Screen
-        options={{
-          headerShown: true,
-          title: "Nowe wydarzenie",
-          headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()}>
-              <Ionicons name="arrow-back" size={24} color="#fff" />
-            </TouchableOpacity>
-          ),
-          headerStyle: {
-            backgroundColor: "#121212",
-          },
-          headerTintColor: "#ffffff",
-        }}
-      />
       <View style={styles.container}>
-        <Button
-          title={loading ? "Szukam miejsc..." : "Szukaj miejsc"}
-          onPress={fetchNearbyPlaces}
-          disabled={loading}
-        />
-
         <Text style={styles.label}>Sugerowane lokalizacje:</Text>
         <FlatList
           data={places}
-          keyExtractor={(item) => item}
+          keyExtractor={(item) => item.placeId}
           renderItem={renderPlaceTile}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={{ marginBottom: 16 }}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingBottom: 20 }}
           ListEmptyComponent={<Text>Brak wyników</Text>}
         />
 
-        <TouchableOpacity onPress={() => setShowDatePicker(true)}>
-          <Text style={styles.input}>
-            Wybierz datę: {date.toLocaleDateString()} {date.toLocaleTimeString()}
-          </Text>
-        </TouchableOpacity>
-        {showDatePicker && (
+        <Text style={styles.label}>Data i godzina wydarzenia:</Text>
+        <View style={styles.dateRow}>
+          <TouchableOpacity
+            style={styles.datePickerBox}
+            onPress={() => setShowStartPicker(true)}
+          >
+            <Text style={styles.datePickerLabel}>Start</Text>
+            <Text style={styles.datePickerText}>
+              {startDate.toLocaleDateString()} {startDate.toLocaleTimeString()}
+            </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.datePickerBox}
+            onPress={() => setShowEndPicker(true)}
+          >
+            <Text style={styles.datePickerLabel}>Koniec</Text>
+            <Text style={styles.datePickerText}>
+              {endDate.toLocaleDateString()} {endDate.toLocaleTimeString()}
+            </Text>
+          </TouchableOpacity>
+        </View>
+        {showStartPicker && (
           <DateTimePicker
-            value={date}
+            value={startDate}
             mode="datetime"
             display="default"
             onChange={(e, selectedDate) => {
-              const currentDate = selectedDate || date;
-              setShowDatePicker(false);
-              setDate(currentDate);
+              setShowStartPicker(false);
+              if (selectedDate) setStartDate(selectedDate);
             }}
           />
         )}
 
-        <TextInput
-          style={styles.input}
-          placeholder="Ilość miejsc"
-          keyboardType="numeric"
-          value={spots}
-          onChangeText={setSpots}
-        />
+        {showEndPicker && (
+          <DateTimePicker
+            value={endDate}
+            mode="datetime"
+            display="default"
+            onChange={(e, selectedDate) => {
+              setShowEndPicker(false);
+              if (selectedDate) setEndDate(selectedDate);
+            }}
+          />
+        )}
+
+        <View style={styles.counterContainer}>
+          <Text style={styles.label}>Ilość miejsc</Text>
+          <View style={styles.counterButtons}>
+            <TouchableOpacity
+              style={styles.counterButton}
+              onPress={() =>
+                setSpots((prev) =>
+                  Math.max(1, parseInt(prev || "1") - 1).toString()
+                )
+              }
+            >
+              <Text style={styles.counterText}>−</Text>
+            </TouchableOpacity>
+
+            <Text style={styles.counterValue}>{spots || "1"}</Text>
+
+            <TouchableOpacity
+              style={styles.counterButton}
+              onPress={() =>
+                setSpots((prev) =>
+                  Math.min(6, parseInt(prev || "0") + 1).toString()
+                )
+              }
+            >
+              <Text style={styles.counterText}>+</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.switchContainer}>
+          <View style={styles.switchLabelRow}>
+            <Text style={styles.label}>Podział na płeć</Text>
+            <TouchableOpacity
+              onPress={() =>
+                Alert.alert(
+                  "Co to znaczy?",
+                  "Jeżeli chcesz, aby na wydarzenie przyszła podobna ilość kobiet jak i mężczyzn, zaznacz tę opcję. Aplikacja postara się to wyegzekwować."
+                )
+              }
+            >
+              <Ionicons
+                name="help-circle-outline"
+                size={20}
+                color="#007AFF"
+                style={{ marginLeft: 6 }}
+              />
+            </TouchableOpacity>
+          </View>
+
+          <Switch
+            value={GenderSplit}
+            onValueChange={handleGenderSwitchChange}
+            trackColor={{ false: "#ccc", true: "#007AFF" }}
+            thumbColor={GenderSplit ? "#fff" : "#f4f3f4"}
+          />
+        </View>
+
+        <TouchableOpacity
+          style={styles.submitButton}
+          onPress={() => {
+            if (!spots || !date || !places[0]) {
+              alert("Uzupełnij wszystkie wymagane pola");
+              return;
+            }
+            router.push({
+              pathname: "/Event",
+              params: {
+                activity: newActivity,
+                location: places[0].name,
+                address: places[0].address ?? "",
+                spots,
+                startDate: startDate.toISOString(),
+                endDate: endDate.toISOString(),
+                genderSplit: GenderSplit.toString(),
+              },
+            });
+          }}
+        >
+          <Text style={styles.submitButtonText}>Zatwierdź wydarzenie</Text>
+        </TouchableOpacity>
       </View>
     </>
   );
 }
-
-const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
-  input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-  },
-  label: {
-    fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 8,
-  },
-  placeTile: {
-    backgroundColor: "#f0f0f0",
-    padding: 12,
-    borderRadius: 10,
-    marginRight: 10,
-  },
-  placeText: {
-    fontSize: 14,
-    color: "#333",
-  },
-});
