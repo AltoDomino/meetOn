@@ -20,7 +20,7 @@ interface FormData {
 }
 
 const Login = () => {
-  const { setUserName } = useAuth();
+  const { setUserName, setUserId  } = useAuth();
   const { control, handleSubmit } = useForm<FormData>();
   const router = useRouter();
   const onSubmit = async (dataLog: FormData) => {
@@ -36,6 +36,7 @@ const Login = () => {
    if (res.status === 200) {
     const data = await res.json();
     setUserName(data.userName);
+    setUserId(data.userId); 
     const storedActivities = await loadActivities(data.userName); 
 
     if (storedActivities.length > 0 ) {

@@ -5,13 +5,15 @@ import React, { useState } from "react";
 import { Alert, Switch, Text, TouchableOpacity, View } from "react-native";
 import { styles } from "../styles/form.styles";
 import FormDataSend from "./SendDataform";
+import { useAuth } from "../context/AuthContext";
+
 
 const DetailsForm = () => {
   const [GenderSplit, setGenderSplit] = useState(false);
   const [minAge, setMinAge] = useState(18);
   const [maxAge, setMaxAge] = useState(40);
   const [spots, setSpots] = useState("");
-
+const { userId } = useAuth()
   const { location, address, startDate, endDate, activity } =
     useLocalSearchParams();
 
@@ -38,6 +40,7 @@ const DetailsForm = () => {
       genderSplit: GenderSplit,
       minAge,
       maxAge,
+      creatorId: userId!
     };
 
     try {

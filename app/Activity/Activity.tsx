@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { View, Text, TouchableOpacity, FlatList } from "react-native";
+import { View, Text, TouchableOpacity, FlatList, Alert } from "react-native";
 import { router, Stack } from "expo-router";
 import { styles } from "../styles/Activity.styles";
 import { Ionicons } from "@expo/vector-icons";
@@ -8,6 +8,7 @@ import { loadActivities, saveActivities } from "@/utilis/activityStoarage";
 import { useAuth } from "../context/AuthContext";
 import { ImageBackground } from "react-native";
 import { activityImages } from "./Activities";
+import ActivityDataSend from "./SendActivity";
 
 
 export default function Activity() {
@@ -18,9 +19,21 @@ export default function Activity() {
 
 const handleSaveActivity = async () => {
   await saveActivities(userName, selectedActivities);
-  setActivities(selectedActivities)
-  router.replace("/(auth)/Event");
+  setActivities(selectedActivities);
+
+  try {
+    const userId = 1; // 🛑 Zmień na dynamiczne pobieranie z kontekstu, np. z useAuth()
+    await ActivityDataSend({
+      userId,
+      activities: selectedActivities,
+    });
+
+    router.replace("/(auth)/Event");
+  } catch (error) {
+    Alert.alert("Błąd", "Aktywności nie zostały dodane, spróbuj jeszcze raz");
+  }
 };
+
   const toggleActivity = (activity: string) => {
     setSelectedActivities((prev) =>
       prev.includes(activity)

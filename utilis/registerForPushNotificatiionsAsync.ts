@@ -1,0 +1,32 @@
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
+import { Platform } from "react-native";
+
+export async function registerForPushNotificationsAsync(userId: number) {
+  if (!Device.isDevice) {
+    alert("Push notifications działają tylko na urządzeniu fizycznym");
+    return;
+  }
+
+  const { status: existingStatus } = await Notifications.getPermissionsAsync();
+  let finalStatus = existingStatus;
+
+  if (existingStatus !== "granted") {
+    const { status } = await Notifications.requestPermissionsAsync();
+    finalStatus = status;
+  }
+
+  if (finalStatus !== "granted") {
+    alert("Brak zgody na powiadomienia");
+    return;
+  }
+
+  const token = (await Notifications.getExpoPushTokenAsync()).data;
+  console.log("🟢 Push token:", token);
+
+  await fetch("http://192.168.1.26:3000/api/push-token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ userId, token }),
+  });
+}
