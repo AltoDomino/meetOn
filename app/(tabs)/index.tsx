@@ -5,10 +5,10 @@ import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-
+import * as SplashScreen from "expo-splash-screen";
 
 export default function HomeScreen() {
-
+SplashScreen.preventAutoHideAsync().catch(() => {});
   return (
     <ParallaxScrollView
       headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}

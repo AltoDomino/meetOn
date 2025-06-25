@@ -17,22 +17,30 @@ export default function Activity() {
   const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
 
 
+const { userId } = useAuth();
+
 const handleSaveActivity = async () => {
+  if (!userId) {
+    Alert.alert("Błąd", "Nieprawidłowy identyfikator użytkownika");
+    return;
+  }
+
   await saveActivities(userName, selectedActivities);
   setActivities(selectedActivities);
 
   try {
-    const userId = 1; // 🛑 Zmień na dynamiczne pobieranie z kontekstu, np. z useAuth()
     await ActivityDataSend({
-      userId,
+      userId, 
       activities: selectedActivities,
     });
 
-    router.replace("/(auth)/Event");
+    Alert.alert("Sukces", "Aktywności zostały dodane pomyślnie!");
+    router.replace("/(auth)/YourActivities"); // przejście do widoku wydarzeń
   } catch (error) {
     Alert.alert("Błąd", "Aktywności nie zostały dodane, spróbuj jeszcze raz");
   }
 };
+
 
   const toggleActivity = (activity: string) => {
     setSelectedActivities((prev) =>
