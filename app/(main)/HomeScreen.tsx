@@ -4,10 +4,12 @@ import { styles } from "../styles/HomeScreen.styles";
 import { useRouter } from "expo-router";
 import { useAuth } from "../context/AuthContext";
 
+
 export default function Home() {
   const router = useRouter();
   const { userName } = useAuth();
   const handleActivity = () => router.push("/Activity/Activity");
+
   return (
     <ScrollView contentContainerStyle={styles.container}>
       <Text style={styles.emoji}>Cześć ! {userName}👋</Text>

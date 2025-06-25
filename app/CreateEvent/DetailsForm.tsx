@@ -24,43 +24,53 @@ const { userId } = useAuth()
     setGenderSplit(value);
   };
 
-  const handleSubmit = async () => {
-    if (!spots) {
-      alert("Uzupełnij wszystkie wymagane pola");
-      return;
-    }
+const handleSubmit = async () => {
+  if (!spots) {
+    alert("Uzupełnij wszystkie wymagane pola");
+    return;
+  }
 
-    const eventData = {
-      location: location?.toString() ?? "",
-      address: address?.toString() ?? "",
-      startDate: parsedStartDate.toISOString(),
-      endDate: parsedEndDate.toISOString(),
-      activity: activity?.toString() ?? "",
-      spots,
-      genderSplit: GenderSplit,
-      minAge,
-      maxAge,
-      creatorId: userId!
-    };
+  if (!userId) {
+    Alert.alert("Błąd", "Brak zalogowanego użytkownika");
+    console.log("❌ Brak userId w AuthContext");
+    return;
+  }
 
-    try {
-      await FormDataSend(eventData);
-
-      router.push({
-        pathname: "/Event",
-        params: {
-          location: eventData.location,
-          address: eventData.address,
-          startDate: eventData.startDate,
-          endDate: eventData.endDate,
-          activity: eventData.activity,
-          spots: eventData.spots,
-        },
-      });
-    } catch (error) {
-      Alert.alert("Błąd", "Nie udało się zapisać wydarzenia");
-    }
+  const eventData = {
+    location: location?.toString() ?? "",
+    address: address?.toString() ?? "",
+    startDate: parsedStartDate.toISOString(),
+    endDate: parsedEndDate.toISOString(),
+    activity: activity?.toString() ?? "",
+    spots,
+    genderSplit: GenderSplit,
+    minAge,
+    maxAge,
+    creatorId: userId,
   };
+
+  console.log("📤 Wysyłanie eventData:", eventData);
+
+  try {
+    await FormDataSend(eventData);
+
+    router.push({
+      pathname: "/(auth)/Event",
+      params: {
+        location: eventData.location,
+        address: eventData.address,
+        startDate: eventData.startDate,
+        endDate: eventData.endDate,
+        activity: eventData.activity,
+        spots: eventData.spots,
+      },
+    });
+  } catch (error) {
+    Alert.alert("Błąd", "Nie udało się zapisać wydarzenia");
+    console.error("❌ Błąd zapisu:", error);
+  }
+};
+
 
   return (
     <>

@@ -1,10 +1,12 @@
+// utils/registerForPushNotificationsAsync.ts
 import * as Notifications from "expo-notifications";
 import * as Device from "expo-device";
 import { Platform } from "react-native";
 
 export async function registerForPushNotificationsAsync(userId: number) {
   if (!Device.isDevice) {
-    alert("Push notifications działają tylko na urządzeniu fizycznym");
+    console.log("📱 Is real device:", Device.isDevice);
+    alert("Push notifications wymagają prawdziwego urządzenia!");
     return;
   }
 
@@ -17,12 +19,13 @@ export async function registerForPushNotificationsAsync(userId: number) {
   }
 
   if (finalStatus !== "granted") {
-    alert("Brak zgody na powiadomienia");
+    alert("Nie uzyskano zgody na powiadomienia!");
     return;
   }
 
   const token = (await Notifications.getExpoPushTokenAsync()).data;
-  console.log("🟢 Push token:", token);
+  console.log("🟢 Token push:", token);
+  console.log("📤 Wysyłanie tokena z userId:", userId);
 
   await fetch("http://192.168.1.26:3000/api/push-token", {
     method: "POST",

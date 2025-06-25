@@ -1,17 +1,17 @@
+import { loadActivities } from "@/utilis/activityStoarage";
+import { useRouter } from "expo-router";
 import React from "react";
-import { useForm, Controller } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import {
-  View,
+  Alert,
+  Button,
   Text,
   TextInput,
-  Button,
-  Alert,
   TouchableOpacity,
+  View,
 } from "react-native";
-import styles from "../styles/Login.styles";
-import { useRouter } from "expo-router";
 import { useAuth } from "../context/AuthContext";
-import { loadActivities } from "@/utilis/activityStoarage";
+import styles from "../styles/Login.styles";
 
 interface FormData {
   userName: string;
@@ -20,7 +20,7 @@ interface FormData {
 }
 
 const Login = () => {
-  const { setUserName, setUserId  } = useAuth();
+  const { setUserName, setUserId } = useAuth();
   const { control, handleSubmit } = useForm<FormData>();
   const router = useRouter();
   const onSubmit = async (dataLog: FormData) => {
@@ -33,17 +33,19 @@ const Login = () => {
         body: JSON.stringify(dataLog),
       });
 
-   if (res.status === 200) {
-    const data = await res.json();
-    setUserName(data.userName);
-    setUserId(data.userId); 
-    const storedActivities = await loadActivities(data.userName); 
+      if (res.status === 200) {
+        const data = await res.json();
+        setUserName(data.userName);
+        setUserId(data.userId);
+        console.log(data.userId,"USERID")
+        const storedActivities = await loadActivities(data.userName);
+        console.log("🟢 Login response:", data);
 
-    if (storedActivities.length > 0 ) {
-      router.replace("/(auth)/Event");
-    } else {
-      router.replace("/(main)/HomeScreen");
-    }
+        if (storedActivities.length > 0) {
+          router.replace("/(auth)/Event");
+        } else {
+          router.replace("/(main)/HomeScreen");
+        }
       } else if (res.status === 422) {
         Alert.alert("Błąd");
       } else {

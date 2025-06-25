@@ -52,7 +52,6 @@ export default function CreateEventForm() {
       const lng = userLocation.coords.longitude;
       const result = await fetchPlaces(newActivity, lat, lng);
       setPlaces(result || []);
-      console.log("Wyniki wyszukiwania:", result);
     } catch (error) {
       console.error("Błąd pobierania miejsc:", error);
     }

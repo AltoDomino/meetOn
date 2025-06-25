@@ -11,7 +11,7 @@ const FormDataSend = async (DataForm: {
   creatorId: number;
 }) => {
   try {
-    const res = await fetch("http://192.168.1.26:3000/Create-event", {
+    const res = await fetch("http://192.168.1.26:3000/api/events/create", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(DataForm),

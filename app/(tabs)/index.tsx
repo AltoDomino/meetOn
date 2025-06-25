@@ -5,18 +5,9 @@ import { HelloWave } from '@/components/HelloWave';
 import ParallaxScrollView from '@/components/ParallaxScrollView';
 import { ThemedText } from '@/components/ThemedText';
 import { ThemedView } from '@/components/ThemedView';
-import { useAuth } from '../context/AuthContext';
-import { useEffect } from 'react';
-import { registerForPushNotificationsAsync } from '@/utilis/registerForPushNotificatiionsAsync';
+
 
 export default function HomeScreen() {
-  const { userId } = useAuth();
-
-  useEffect(() => {
-    if (userId) {
-      registerForPushNotificationsAsync(userId);
-    }
-  }, [userId]);
 
   return (
     <ParallaxScrollView
