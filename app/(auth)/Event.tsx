@@ -1,19 +1,22 @@
-import React, { useEffect, useState } from "react";
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  StyleSheet,
-  ActivityIndicator,
-} from "react-native";
-import { useRouter } from "expo-router";
-import { useAuth } from "../context/AuthContext";
 import { registerForPushNotificationsAsync } from "@/utilis/registerForPushNotificatiionsAsync";
 import { useFocusEffect } from "@react-navigation/native";
-import { useCallback } from "react";
+import React, { useCallback, useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  View,
+  Alert,
+} from "react-native";
+import { useAuth } from "../context/AuthContext";
+import { styles } from "../styles/Event.styles";
+import { router, useLocalSearchParams } from "expo-router";
 
-type Event = {
+const BACKEND_URL = "http://192.168.1.26:3000";
+
+export type Event = {
+  spots: number;
   id: number;
   activity: string;
   location: string;
@@ -22,24 +25,22 @@ type Event = {
   creator: {
     userName: string;
   };
+  participantsCount: number;
 };
 
 export default function Events() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const router = useRouter();
   const { userId } = useAuth();
+    const { location, startDate, endDate } =
+      useLocalSearchParams();
   
-useFocusEffect(
-  useCallback(() => {
-    fetchEvents(); // ← Twój fetch z wydarzeniami
-  }, [])
-);
+
   const fetchEvents = async () => {
     if (!userId) return;
     try {
-      const res = await fetch(`http://192.168.1.26:3000/api/events?userId=${userId}`);
+      const res = await fetch(`${BACKEND_URL}/api/events?userId=${userId}`);
       const data = await res.json();
       setEvents(data);
     } catch (err) {
@@ -47,41 +48,82 @@ useFocusEffect(
     }
   };
 
+  const joinEvent = async (eventId: number) => {
+    if (!userId) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/join/join`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, eventId }),
+      });
+      if (res.ok) {
+        Alert.alert("Sukces", "Dołączono do wydarzenia");
+        fetchEvents();
+            router.push({
+              pathname: "/screens/EventScreenRoom",
+              params: {
+                location: location,
+                startDate: startDate,
+                endDate: endDate,
+              },
+            })
+        
+        
+      } else {
+        const err = await res.json();
+        Alert.alert("Błąd", err.error || "Nie udało się dołączyć");
+      }
+    } catch (error) {
+      console.error("Błąd dołączania:", error);
+      Alert.alert("Błąd", "Wystąpił problem z serwerem");
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchEvents();
+    }, [])
+  );
+
   useEffect(() => {
     if (!userId) return;
-
     registerForPushNotificationsAsync(userId);
-
     fetchEvents().finally(() => setLoading(false));
   }, [userId]);
 
   const handleRefresh = async () => {
     if (!userId) return;
-
     setRefreshing(true);
     await fetchEvents();
     setRefreshing(false);
   };
 
   const renderItem = ({ item }: { item: Event }) => (
-    <TouchableOpacity
-      style={styles.card}
-      onPress={() =>
-        router.push({
-          pathname: "/screens/EventScreenRoom",
-          params: {
-            location: item.location,
-            startDate: item.startDate,
-            endDate: item.endDate,
-          },
-        })
-      }
-    >
-      <Text style={styles.title}>{item.activity}</Text>
-      <Text>📍 {item.location}</Text>
-      <Text>🕒 {new Date(item.startDate).toLocaleString()}</Text>
-      <Text>👤 Twórca: {item.creator.userName}</Text>
-    </TouchableOpacity>
+    <View style={styles.card}>
+      <View style={styles.cardRow}>
+        <View style={styles.eventInfo}>
+          <Text style={styles.title}>{item.activity}</Text>
+          <Text>📍 {item.location}</Text>
+          <Text>🕒 {new Date(item.startDate).toLocaleString()}</Text>
+          <Text>👤 Twórca: {item.creator.userName}</Text>
+        </View>
+
+        <View style={styles.participantsBox}>
+          <Text style={styles.participantIcon}>👥</Text>
+          <Text style={styles.participantCount}>
+            {item.participantsCount}/{item.spots}
+          </Text>
+      
+
+      <TouchableOpacity
+        style={styles.joinButton}
+        onPress={() => joinEvent(item.id)}
+      >
+        <Text style={styles.joinButtonText}>Dołącz</Text>
+      </TouchableOpacity> 
+      </View>
+      </View>
+    </View>
   );
 
   if (loading) {
@@ -113,25 +155,3 @@ useFocusEffect(
     />
   );
 }
-
-const styles = StyleSheet.create({
-  card: {
-    backgroundColor: "#fff",
-    padding: 16,
-    marginBottom: 12,
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  title: {
-    fontSize: 18,
-    fontWeight: "bold",
-  },
-  center: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 32,
-  },
-});

@@ -1,80 +1,63 @@
 import { StyleSheet } from "react-native";
+
 export const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    padding: 16,
+  card: {
     backgroundColor: "#fff",
+    padding: 16,
+    marginBottom: 12,
+    borderRadius: 10,
+    shadowColor: "#000",
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
   },
-  headerRow: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
-  },
-  eventInfoBox: {
-    flex: 1,
-  },
-  eventText: {
+  title: {
     fontSize: 18,
     fontWeight: "bold",
   },
-  eventSubText: {
-    fontSize: 14,
-    color: "#555",
-  },
-  leaveButton: {
-    backgroundColor: "#FF3B30",
-    flexDirection: "row",
-    alignItems: "center",
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  avatarContainer: {
-    flexDirection: "row",
+  center: {
+    flex: 1,
     justifyContent: "center",
-    marginVertical: 30,
-    gap: 12,
-    flexWrap: "wrap",
-  },
-  avatar: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginHorizontal: 6,
-  },
-  chatContainer: {
-    flex: 1,
-    borderTopWidth: 1,
-    borderColor: "#ccc",
-    paddingTop: 12,
-  },
-  chatMessage: {
-    padding: 10,
-    backgroundColor: "#f0f0f0",
-    borderRadius: 8,
-    marginBottom: 8,
-    alignSelf: "flex-start",
-  },
-  chatInputRow: {
-    flexDirection: "row",
     alignItems: "center",
-    borderTopWidth: 1,
-    borderColor: "#ccc",
-    paddingTop: 8,
-    marginTop: 8,
+    padding: 32,
   },
-  chatInput: {
+  cardRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  eventInfo: {
     flex: 1,
-    height: 40,
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 8,
-    paddingHorizontal: 10,
-    marginRight: 8,
+    paddingRight: 12,
   },
-  sendButton: {
+
+  participantsBox: {
+    alignItems: "center",
+    justifyContent: "center",
+  },
+
+  participantIcon: {
+    fontSize: 20,
+    marginBottom: 4,
+  },
+
+  participantCount: {
+    fontWeight: "bold",
+    color: "#007AFF",
+    fontSize: 14,
+    marginBottom: 8,
+  },
+
+  joinButton: {
     backgroundColor: "#007AFF",
-    padding: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     borderRadius: 8,
+    marginTop: 4,
+  },
+
+  joinButtonText: {
+    color: "#fff",
+    fontSize: 14,
+    fontWeight: "bold",
   },
 });
