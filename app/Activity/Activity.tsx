@@ -84,15 +84,10 @@ const renderItem = ({ item }: { item: string }) => {
 <Stack.Screen
   options={{
     title: "Wybierz aktywność", 
-    headerLeft: () => (
-      <TouchableOpacity onPress={() => router.replace("/(auth)/Event")}>
-        <Ionicons name="arrow-back" size={24} color="#fff" />
-      </TouchableOpacity>
-    ),
     headerStyle: {
       backgroundColor: "#00A9F4"
     },
-    headerTintColor: "#fff", // ikony i tekst nagłówka na biało
+    headerTintColor: "#fff", 
   }}
 />
 

@@ -1,24 +1,23 @@
 import { StyleSheet } from "react-native";
 
 const styles = StyleSheet.create({
-container: {
-  flex: 1, // zamiast flexGrow
-  backgroundColor: "#ffffff",
-  paddingHorizontal: 24,
-  paddingVertical: 40,
-},
-reactLogo: {
-  width: "100%", 
-  height: undefined, 
-  aspectRatio: 1, // szerokość / wysokość (dostosuj jeśli trzeba)
-  resizeMode: "contain",
-  marginBottom: 20,
-},
+  container: {
+    flex: 1, // zamiast flexGrow
+    backgroundColor: "#ffffff",
+    paddingHorizontal: 24,
+    paddingVertical: 40,
+  },
+  reactLogo: {
+    width: "100%",
+    height: undefined,
+    aspectRatio: 1, // szerokość / wysokość (dostosuj jeśli trzeba)
+    resizeMode: "contain",
+    marginBottom: 20,
+  },
   titleContainer: {
-    marginBottom: 10,
+    marginBottom: 30,
   },
   welcomeText: {
-
     fontSize: 40,
     fontWeight: "bold",
     textAlign: "center",
@@ -26,19 +25,19 @@ reactLogo: {
   },
   form: {
     width: "100%",
-    backgroundColor: "#f5f5f5",
-
-    borderRadius: 16,
-    shadowColor: "#000",
+    backgroundColor: "rgba(243, 243, 243, 0.08)",
+    borderRadius: 12,
+    padding: 20,
+    shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
+    shadowRadius: 8,
+    elevation: 5,
   },
+
   label: {
     fontSize: 14,
     marginBottom: 4,
-    color: "#333",
+     color: "#fff",
   },
   input: {
     height: 44,
@@ -78,15 +77,33 @@ reactLogo: {
     fontSize: 16,
   },
   logoContainer: {
-  alignItems: "center",
-  marginBottom: 20,
-},
+    alignItems: "center",
+    marginBottom: 20,
+  },
 
-contentContainer: {
-  flex: 1,
-  justifyContent: "center",
-},
+  contentContainer: {
+    flex: 1,
+    justifyContent: "center",
+  },
 
+  background: {
+    flex: 1,
+    width: "100%",
+    height: "100%",
+  },
+
+  centeredContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    paddingHorizontal: 24,
+  },
+
+  logo: {
+    width: 260,
+    height: 120,
+    marginBottom: 20,
+  },
 });
 
 export default styles;

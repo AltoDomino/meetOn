@@ -11,11 +11,10 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
+  ImageBackground,
 } from "react-native";
 import { useAuth } from "../context/AuthContext";
 import styles from "../styles/Login.styles";
-import { HelloWave } from "@/components/HelloWave";
 
 interface FormData {
   userName: string;
@@ -61,15 +60,15 @@ const Login = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior={Platform.OS === "ios" ? "padding" : undefined}
+    <ImageBackground
+      source={require("@/assets/images/meetOn.png")}
+      style={styles.background}
+      resizeMode="cover"
     >
-      <ScrollView contentContainerStyle={styles.container}>
-        <Image
-          source={require("@/assets/images/meetOn.png")}
-          style={styles.reactLogo}
-        />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        style={styles.centeredContainer}
+      >
 
         <View style={styles.form}>
           <Text style={styles.label}>Email:</Text>
@@ -85,6 +84,7 @@ const Login = () => {
                 onChangeText={onChange}
                 keyboardType="email-address"
                 autoCapitalize="none"
+                placeholderTextColor="#ccc"
               />
             )}
           />
@@ -102,6 +102,7 @@ const Login = () => {
                 onChangeText={onChange}
                 secureTextEntry
                 autoCapitalize="none"
+                placeholderTextColor="#ccc"
               />
             )}
           />
@@ -122,8 +123,8 @@ const Login = () => {
             <Text style={styles.registerButtonText}>ZAREJESTRUJ SIĘ</Text>
           </TouchableOpacity>
         </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </ImageBackground>
   );
 };
 
