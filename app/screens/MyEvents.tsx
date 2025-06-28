@@ -1,11 +1,11 @@
 import { registerForPushNotificationsAsync } from "@/utilis/registerForPushNotificatiionsAsync";
 import SwitchButton from "@/utilis/SwitchButton";
 import { useFocusEffect } from "@react-navigation/native";
-import { router, useLocalSearchParams } from "expo-router";
+import type { LinkProps } from "expo-router";
+import { Stack, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
-  Alert,
   FlatList,
   Text,
   TouchableOpacity,
@@ -29,7 +29,12 @@ export type Event = {
   participantsCount: number;
 };
 
-export default function Events() {
+type Props = {
+  to: LinkProps["href"];
+  label?: string;
+};
+
+export default function MyEvents() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -39,41 +44,13 @@ export default function Events() {
   const fetchEvents = async () => {
     if (!userId) return;
     try {
-      const res = await fetch(`${BACKEND_URL}/api/events?userId=${userId}`);
+      const res = await fetch(
+        `${BACKEND_URL}/api/events?userId=${userId}&ownOnly=true`
+      );
       const data = await res.json();
       setEvents(data);
     } catch (err) {
       console.error("Błąd pobierania wydarzeń:", err);
-    }
-  };
-
-  const joinEvent = async (eventId: number) => {
-    if (!userId) return;
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/join/join`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, eventId }),
-      });
-      if (res.ok) {
-        Alert.alert("Sukces", "Dołączono do wydarzenia");
-        fetchEvents();
-        router.push({
-          pathname: "/screens/EventScreenRoom",
-          params: {
-            eventId,
-            location,
-            startDate,
-            endDate,
-          },
-        });
-      } else {
-        const err = await res.json();
-        Alert.alert("Błąd", err.error || "Nie udało się dołączyć");
-      }
-    } catch (error) {
-      console.error("Błąd dołączania:", error);
-      Alert.alert("Błąd", "Wystąpił problem z serwerem");
     }
   };
 
@@ -82,7 +59,6 @@ export default function Events() {
       fetchEvents();
     }, [])
   );
-
   useEffect(() => {
     if (!userId) return;
     registerForPushNotificationsAsync(userId);
@@ -105,18 +81,13 @@ export default function Events() {
           <Text>🕒 {new Date(item.startDate).toLocaleString()}</Text>
           <Text>👤 Twórca: {item.creator.userName}</Text>
         </View>
-
         <View style={styles.participantsBox}>
           <Text style={styles.participantIcon}>👥</Text>
           <Text style={styles.participantCount}>
             {item.participantsCount}/{item.spots}
           </Text>
-
-          <TouchableOpacity
-            style={styles.joinButton}
-            onPress={() => joinEvent(item.id)}
-          >
-            <Text style={styles.joinButtonText}>Dołącz</Text>
+          <TouchableOpacity style={styles.joinButton}>
+            <Text style={styles.joinButtonText}>Zobacz</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -131,37 +102,42 @@ export default function Events() {
     );
   }
 
-  if (events.length === 0) {
-    return (
-      <View style={styles.center}>
-        <SwitchButton to="/screens/MyEvents" label="Twoje wydarzenia" />
+  return (
+    <View style={{ flex: 1 }}>
+      <Stack.Screen
+        options={{
+          title: "Twoje Wydarzenia",
+          headerStyle: {
+            backgroundColor: "#00A9F4",
+          },
+        }}
+      />
 
-        <Text style={{ fontSize: 16, color: "#666", marginTop: 10 }}>
-          Brak aktualnych wydarzeń w pobliżu 😞
-        </Text>
-      </View>
-    );
-  }
-
-return (
-  <View style={{ flex: 1 }}>
-    <View style={{ padding: 16, backgroundColor: "#f0f0f0" }}>
-      <SwitchButton to="/screens/MyEvents" label="Twoje wydarzenia" />
+      <FlatList
+        data={events}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={{ padding: 16 }}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
+        ListHeaderComponent={
+          <View style={{ marginBottom: 16 }}>
+            <SwitchButton to="/(auth)/Event" label="Wydarzenia w okolicy" />
+          </View>
+        }
+        ListEmptyComponent={
+          <Text
+            style={{
+              fontSize: 16,
+              color: "#666",
+              textAlign: "center",
+              marginTop: 20,
+            }}
+          >
+            Brak Twoich wydarzeń 😞
+          </Text>
+        }
+      />
     </View>
-    <FlatList
-      data={events}
-      renderItem={renderItem}
-      keyExtractor={(item) => item.id.toString()}
-      contentContainerStyle={{ padding: 16 }}
-      refreshing={refreshing}
-      onRefresh={handleRefresh}
-      ListEmptyComponent={
-        <Text style={{ fontSize: 16, color: "#666", textAlign: "center", marginTop: 10 }}>
-          Brak aktualnych wydarzeń w pobliżu 😞
-        </Text>
-      }
-    />
-  </View>
-);
-
+  );
 }

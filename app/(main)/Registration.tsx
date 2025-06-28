@@ -1,25 +1,17 @@
+import { router } from "expo-router";
+import { Controller, useForm } from "react-hook-form";
+import { Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
 import styles from "../styles/Registration.styles";
-import { useForm, Controller } from "react-hook-form";
-import {
-  View,
-  Text,
-  TextInput,
-  Button,
-  Alert,
-  TouchableOpacity,
-} from "react-native";
-import { Link, router  } from "expo-router";
 
 interface FormData {
   email: string;
   password: string;
   userName: string;
-}   
+}
 
 const Registration = () => {
-    const handleBack = () => router.push("/");
+  const handleBack = () => router.push("/");
   const { control, handleSubmit } = useForm<FormData>();
-
 
   const onSubmit = async (dataReg: FormData) => {
     try {
@@ -28,7 +20,7 @@ const Registration = () => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(dataReg),
       });
-        console.log("Dane:",dataReg)
+      console.log("Dane:", dataReg);
       if (res.status === 201) {
         Alert.alert("Sukces", "Dane wysłane");
       } else if (res.status === 403) {
@@ -41,7 +33,7 @@ const Registration = () => {
 
   return (
     <View style={styles.container}>
-            <Text style={styles.label}>Nazwa użytkownika:</Text>
+      <Text style={styles.label}>Nazwa użytkownika:</Text>
       <Controller
         control={control}
         name="userName"
@@ -89,13 +81,16 @@ const Registration = () => {
         )}
       />
 
-      <Button title="ZAREJESTRUJ" onPress={handleSubmit(onSubmit)} />
+      <TouchableOpacity style={styles.button} onPress={handleSubmit(onSubmit)}>
+        <Text style={styles.buttonText}>ZAREJESTRUJ</Text>
+      </TouchableOpacity>
+
       <View style={styles.link}>
-          <TouchableOpacity onPress={handleBack}>
-            <Text>← Wróć do logowania</Text>
-          </TouchableOpacity>
+        <TouchableOpacity onPress={handleBack}>
+          <Text style={styles.linkText}>← Wróć do logowania</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
 };
-export default Registration
+export default Registration;

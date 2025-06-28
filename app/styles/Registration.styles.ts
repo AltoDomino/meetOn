@@ -1,32 +1,50 @@
 import { StyleSheet } from "react-native";
 
- const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#fff",
     justifyContent: "center",
     paddingHorizontal: 24,
-    backgroundColor: "#fffff",
+    paddingVertical: 32,
+  },
+  input: {
+    height: 50,
+    borderColor: "#ccc",
+    borderWidth: 1,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    marginBottom: 16,
+    fontSize: 16,
+    backgroundColor: "#f9f9f9",
   },
   label: {
     fontSize: 16,
-    marginBottom: 8,
-
+    marginBottom: 4,
+    color: "#333",
+    fontWeight: "600",
   },
-  input: {
-    height: 48,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 8,
-    paddingHorizontal: 12,
-    backgroundColor: "#fff",
-    marginBottom: 20,
+  button: {
+    backgroundColor: "#00A9F4",
+    paddingVertical: 14,
+    borderRadius: 12,
+    alignItems: "center",
+    marginTop: 16,
+  },
+  buttonText: {
+    color: "#fff",
     fontSize: 16,
+    fontWeight: "bold",
   },
   link: {
-    marginTop: 24,
-    color: "#0066cc",
-    textAlign: "center",
+    marginTop: 28,
+    alignItems: "center",
+  },
+  linkText: {
     fontSize: 16,
+    color: "#007bff",
+    fontWeight: "500",
   },
 });
-export default styles
+
+export default styles;

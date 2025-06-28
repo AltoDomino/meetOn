@@ -12,7 +12,7 @@ const EventRoomScreen = () => {
   const [messages, setMessages] = useState([]);
   const [participants, setParticipants] = useState([]);
   const { userId } = useAuth();
-  
+
   useEffect(() => {
     // pobierz wiadomości i uczestników
     // TODO: fetch(`/api/event/${eventId}/details`)
@@ -29,9 +29,11 @@ const EventRoomScreen = () => {
       });
 
       if (res.ok) {
-        router.back(); // wraca na listę, która się automatycznie odświeży
+        console.log(res, "res");
+        router.back();
       } else {
         const data = await res.json();
+
         alert(data.error || "Błąd opuszczania wydarzenia");
       }
     } catch (err) {
@@ -56,8 +58,8 @@ const EventRoomScreen = () => {
           <View style={styles.eventInfo}>
             <Text style={styles.title}>{location}</Text>
             <Text>
-              {new Date(startDate).toLocaleString()} -{" "}
-              {new Date(endDate).toLocaleTimeString()}
+              {/* {new Date(startDate).toLocaleString()} -{" "}
+              {new Date(endDate).toLocaleTimeString()} */}
             </Text>
           </View>
 
@@ -82,22 +84,22 @@ const EventRoomScreen = () => {
           <Text style={styles.participantsTitle}>Uczestnicy wydarzenia:</Text>
           <FlatList
             data={participants}
-            keyExtractor={(item) => item.id.toString()}
+            // keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
               <View style={styles.participantCard}>
                 <View style={styles.avatar}>
                   <Text style={styles.avatarText}>
-                    {item.userName?.charAt(0).toUpperCase()}
+                    {/* {item.userName?.charAt(0).toUpperCase()} */}
                   </Text>
                 </View>
-                <Text style={styles.userName}>{item.userName}</Text>
+                {/* <Text style={styles.userName}>{item.userName}</Text> */}
               </View>
             )}
           />
         </View>
 
         <View style={styles.chatContainer}>
-          <ChatBox messages={messages} />
+          {/* <ChatBox messages={messages} /> */}
         </View>
       </View>
     </>
