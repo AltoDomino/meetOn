@@ -39,14 +39,45 @@ export default function Events() {
   const { userId } = useAuth();
   const { location, startDate, endDate } = useLocalSearchParams();
   const { activities } = useActivity();
+  useEffect(() => {
+    const checkIfAlreadyInEvent = async () => {
+      if (!userId) return;
 
+      try {
+        const res = await fetch(
+          `${BACKEND_URL}/api/event/joined?userId=${userId}`
+        );
+        const events = await res.json();
+
+        if (events.length > 0) {
+          const event = events[0];
+          router.replace({
+            pathname: "/screens/LocalEventRoom",
+            params: {
+              eventId: event.id,
+              location: event.location,
+              startDate: event.startDate,
+              endDate: event.endDate,
+            },
+          });
+        }
+      } catch (error) {
+        console.error(
+          "❌ Błąd przy automatycznym przekierowaniu z /screens/Events:",
+          error
+        );
+      }
+    };
+
+    checkIfAlreadyInEvent();
+  }, [userId]);
   const fetchEvents = async (): Promise<void> => {
     if (!userId) return;
     try {
       const res = await fetch(`${BACKEND_URL}/api/events?userId=${userId}`);
       const data = await res.json();
       setEvents(data);
-      console.log(data,",wydarzenia ktore przychodzą")
+      console.log(data, ",wydarzenia ktore przychodzą");
     } catch (err) {
       console.error("Błąd pobierania wydarzeń:", err);
     }
@@ -124,34 +155,33 @@ export default function Events() {
             {item.participantsCount}/{item.spots}
           </Text>
 
-  {item.isUserJoined || item.isCreator ? (
-  <TouchableOpacity
-    onPress={() =>
-      router.push({
-        pathname: item.isCreator
-          ? "/screens/MyEventRoom"
-          : "/screens/LocalEventRoom", // 🔹 różnicuj pokój
-        params: {
-          eventId: item.id,
-          location: item.location,
-          startDate: item.startDate,
-          endDate: item.endDate,
-        },
-      })
-    }
-    style={styles.joinButton}
-  >
-    <Text style={styles.joinButtonText}>Zobacz</Text>
-  </TouchableOpacity>
-) : (
-  <TouchableOpacity
-    onPress={() => joinEvent(item.id)}
-    style={styles.joinButton}
-  >
-    <Text style={styles.joinButtonText}>Dołącz</Text>
-  </TouchableOpacity>
-)}
-
+          {item.isUserJoined || item.isCreator ? (
+            <TouchableOpacity
+              onPress={() =>
+                router.push({
+                  pathname: item.isCreator
+                    ? "/screens/MyEventRoom"
+                    : "/screens/LocalEventRoom", // 🔹 różnicuj pokój
+                  params: {
+                    eventId: item.id,
+                    location: item.location,
+                    startDate: item.startDate,
+                    endDate: item.endDate,
+                  },
+                })
+              }
+              style={styles.joinButton}
+            >
+              <Text style={styles.joinButtonText}>Zobacz</Text>
+            </TouchableOpacity>
+          ) : (
+            <TouchableOpacity
+              onPress={() => joinEvent(item.id)}
+              style={styles.joinButton}
+            >
+              <Text style={styles.joinButtonText}>Dołącz</Text>
+            </TouchableOpacity>
+          )}
         </View>
       </View>
     </View>
