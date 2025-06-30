@@ -5,15 +5,7 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f8f0bf5b-7ad0-40cb-94ee-cdf641474b64" name="Changes" comment="">
-      <change beforePath="$PROJECT_DIR$/app/(main)/Login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(main)/Login.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(main)/Registration.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(main)/Registration.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(tabs)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(tabs)/explore.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(tabs)/index.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/styles/Login.styles.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/styles/Login.styles.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/styles/Registration.styles.ts" beforeDir="false" afterPath="$PROJECT_DIR$/app/styles/Registration.styles.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/images/meetOn.png" beforeDir="false" afterPath="$PROJECT_DIR$/assets/images/meetOn.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />

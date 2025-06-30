@@ -11,6 +11,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useActivity } from "../context/ActivityContext";
 import { useAuth } from "../context/AuthContext";
 import { styles } from "../styles/Event.styles";
 
@@ -27,6 +28,8 @@ export type Event = {
     userName: string;
   };
   participantsCount: number;
+  isUserJoined: boolean;
+  isCreator: boolean;
 };
 
 export default function Events() {
@@ -35,17 +38,38 @@ export default function Events() {
   const [refreshing, setRefreshing] = useState(false);
   const { userId } = useAuth();
   const { location, startDate, endDate } = useLocalSearchParams();
+  const { activities } = useActivity();
 
-  const fetchEvents = async () => {
+  const fetchEvents = async (): Promise<void> => {
     if (!userId) return;
     try {
       const res = await fetch(`${BACKEND_URL}/api/events?userId=${userId}`);
       const data = await res.json();
       setEvents(data);
+      console.log(data,",wydarzenia ktore przychodzą")
     } catch (err) {
       console.error("Błąd pobierania wydarzeń:", err);
     }
   };
+
+  useEffect(() => {
+    if (!userId) return;
+    setLoading(true);
+    registerForPushNotificationsAsync(userId);
+    fetchEvents().finally(() => setLoading(false));
+  }, [userId]);
+
+  // ⬇️ Automatyczne odświeżenie po zmianie aktywności
+  useEffect(() => {
+    if (userId) fetchEvents();
+  }, [activities]);
+
+  // ⬇️ Odświeżanie przy focusie + aktywności
+  useFocusEffect(
+    useCallback(() => {
+      if (userId) fetchEvents();
+    }, [activities])
+  );
 
   const joinEvent = async (eventId: number) => {
     if (!userId) return;
@@ -59,7 +83,7 @@ export default function Events() {
         Alert.alert("Sukces", "Dołączono do wydarzenia");
         fetchEvents();
         router.push({
-          pathname: "/screens/EventScreenRoom",
+          pathname: "/screens/LocalEventRoom",
           params: {
             eventId,
             location,
@@ -76,18 +100,6 @@ export default function Events() {
       Alert.alert("Błąd", "Wystąpił problem z serwerem");
     }
   };
-
-  useFocusEffect(
-    useCallback(() => {
-      fetchEvents();
-    }, [])
-  );
-
-  useEffect(() => {
-    if (!userId) return;
-    registerForPushNotificationsAsync(userId);
-    fetchEvents().finally(() => setLoading(false));
-  }, [userId]);
 
   const handleRefresh = async () => {
     if (!userId) return;
@@ -112,12 +124,34 @@ export default function Events() {
             {item.participantsCount}/{item.spots}
           </Text>
 
-          <TouchableOpacity
-            style={styles.joinButton}
-            onPress={() => joinEvent(item.id)}
-          >
-            <Text style={styles.joinButtonText}>Dołącz</Text>
-          </TouchableOpacity>
+  {item.isUserJoined || item.isCreator ? (
+  <TouchableOpacity
+    onPress={() =>
+      router.push({
+        pathname: item.isCreator
+          ? "/screens/MyEventRoom"
+          : "/screens/LocalEventRoom", // 🔹 różnicuj pokój
+        params: {
+          eventId: item.id,
+          location: item.location,
+          startDate: item.startDate,
+          endDate: item.endDate,
+        },
+      })
+    }
+    style={styles.joinButton}
+  >
+    <Text style={styles.joinButtonText}>Zobacz</Text>
+  </TouchableOpacity>
+) : (
+  <TouchableOpacity
+    onPress={() => joinEvent(item.id)}
+    style={styles.joinButton}
+  >
+    <Text style={styles.joinButtonText}>Dołącz</Text>
+  </TouchableOpacity>
+)}
+
         </View>
       </View>
     </View>
@@ -135,7 +169,6 @@ export default function Events() {
     return (
       <View style={styles.center}>
         <SwitchButton to="/screens/MyEvents" label="Twoje wydarzenia" />
-
         <Text style={{ fontSize: 16, color: "#666", marginTop: 10 }}>
           Brak aktualnych wydarzeń w pobliżu 😞
         </Text>
@@ -143,25 +176,31 @@ export default function Events() {
     );
   }
 
-return (
-  <View style={{ flex: 1 }}>
-    <View style={{ padding: 16, backgroundColor: "#f0f0f0" }}>
-      <SwitchButton to="/screens/MyEvents" label="Twoje wydarzenia" />
+  return (
+    <View style={{ flex: 1 }}>
+      <View style={{ padding: 16, backgroundColor: "#f0f0f0" }}>
+        <SwitchButton to="/screens/MyEvents" label="Twoje wydarzenia" />
+      </View>
+      <FlatList
+        data={events}
+        renderItem={renderItem}
+        keyExtractor={(item) => item.id.toString()}
+        contentContainerStyle={{ padding: 16 }}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
+        ListEmptyComponent={
+          <Text
+            style={{
+              fontSize: 16,
+              color: "#666",
+              textAlign: "center",
+              marginTop: 10,
+            }}
+          >
+            Brak aktualnych wydarzeń w pobliżu 😞
+          </Text>
+        }
+      />
     </View>
-    <FlatList
-      data={events}
-      renderItem={renderItem}
-      keyExtractor={(item) => item.id.toString()}
-      contentContainerStyle={{ padding: 16 }}
-      refreshing={refreshing}
-      onRefresh={handleRefresh}
-      ListEmptyComponent={
-        <Text style={{ fontSize: 16, color: "#666", textAlign: "center", marginTop: 10 }}>
-          Brak aktualnych wydarzeń w pobliżu 😞
-        </Text>
-      }
-    />
-  </View>
-);
-
+  );
 }

@@ -2,7 +2,7 @@ import { registerForPushNotificationsAsync } from "@/utilis/registerForPushNotif
 import SwitchButton from "@/utilis/SwitchButton";
 import { useFocusEffect } from "@react-navigation/native";
 import type { LinkProps } from "expo-router";
-import { Stack, useLocalSearchParams } from "expo-router";
+import { router, Stack, useLocalSearchParams } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -17,7 +17,6 @@ import { styles } from "../styles/Event.styles";
 const BACKEND_URL = "http://192.168.1.26:3000";
 
 export type Event = {
-  spots: number;
   id: number;
   activity: string;
   location: string;
@@ -27,11 +26,9 @@ export type Event = {
     userName: string;
   };
   participantsCount: number;
-};
-
-type Props = {
-  to: LinkProps["href"];
-  label?: string;
+  spots: number;
+  isUserJoined: boolean; 
+  isCreator: boolean; 
 };
 
 export default function MyEvents() {
@@ -39,7 +36,6 @@ export default function MyEvents() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const { userId } = useAuth();
-  const { location, startDate, endDate } = useLocalSearchParams();
 
   const fetchEvents = async () => {
     if (!userId) return;
@@ -52,6 +48,17 @@ export default function MyEvents() {
     } catch (err) {
       console.error("Błąd pobierania wydarzeń:", err);
     }
+  };
+  const handleJoin = (event: Event) => {
+    router.push({
+      pathname: "./MyEventRoom",
+      params: {
+        eventId: event.id.toString(), 
+        location: event.location,
+        startDate: event.startDate,
+        endDate: event.endDate,
+      },
+    });
   };
 
   useFocusEffect(
@@ -86,7 +93,10 @@ export default function MyEvents() {
           <Text style={styles.participantCount}>
             {item.participantsCount}/{item.spots}
           </Text>
-          <TouchableOpacity style={styles.joinButton}>
+          <TouchableOpacity
+            style={styles.joinButton}
+            onPress={() => handleJoin(item)}
+          >
             <Text style={styles.joinButtonText}>Zobacz</Text>
           </TouchableOpacity>
         </View>

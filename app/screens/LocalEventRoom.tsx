@@ -1,0 +1,162 @@
+import { Ionicons } from "@expo/vector-icons";
+import { Stack, useLocalSearchParams, useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
+import type { Event } from "../(auth)/Event";
+import { useAuth } from "../context/AuthContext";
+import { styles } from "../styles/EventScreenRoom.styles";
+import ChatBox from "@/components/Chtabox";
+
+type Participant = {
+  id: number;
+  userName: string;
+};
+
+const LocalEventRoom = () => {
+  const router = useRouter();
+  const { location, startDate, endDate, eventId } = useLocalSearchParams();
+
+  const [messages, setMessages] = useState([]);
+  const [participants, setParticipants] = useState<Participant[]>([]);
+  const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
+
+  const { userId } = useAuth();
+
+  useEffect(() => {
+    const fetchEventDetails = async () => {
+      try {
+        const res = await fetch(
+          `http://192.168.1.26:3000/api/event/${eventId}/details`
+        );
+        const data = await res.json();
+        setCurrentEvent(data);
+        setParticipants(data.participants);
+        console.log("pobieranie danych z wydarzenia lokalnego", data);
+      } catch (err) {
+        console.error("Błąd pobierania szczegółów wydarzenia:", err);
+      }
+    };
+
+    fetchEventDetails();
+  }, []);
+
+  const handleLeave = async () => {
+    const numericEventId = Number(eventId);
+    if (!userId || isNaN(numericEventId)) return;
+
+    try {
+      const res = await fetch("http://192.168.1.26:3000/api/leave", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ userId, eventId: numericEventId }),
+      });
+
+      if (res.ok) {
+        router.replace("/(auth)/Event");
+      } else {
+        const data = await res.json();
+        Alert.alert("Błąd", data.error || "Błąd opuszczania wydarzenia");
+      }
+    } catch (err) {
+      console.error("Błąd opuszczania:", err);
+      Alert.alert("Błąd", "Nie udało się połączyć z serwerem");
+    }
+  };
+  const handleSwitch = () => {
+    router.replace("./MyEvents");
+  };
+  return (
+    <>
+      <Stack.Screen
+        options={{
+          title: "Wydarzenie",
+          headerStyle: { backgroundColor: "#00A9F4" },
+          headerTintColor: "#fff",
+          headerLeft: () => null,
+        }}
+      />
+      <View style={styles.container}>
+        <View style={styles.header}>
+          <View style={styles.eventInfo}>
+            <Text style={styles.title}>{location ?? "Brak lokalizacji"}</Text>
+            {typeof startDate === "string" && typeof endDate === "string" && (
+              <Text>
+                {new Date(startDate).toLocaleDateString()} •{" "}
+                {new Date(startDate).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}{" "}
+                -{" "}
+                {new Date(endDate).toLocaleTimeString([], {
+                  hour: "2-digit",
+                  minute: "2-digit",
+                })}
+              </Text>
+            )}
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.leaveButtonWrapper}
+              onPress={handleLeave}
+            >
+              <View style={styles.leaveTextWrapper}>
+                <Text style={styles.leaveButton}>Opuść</Text>
+                <Text style={styles.leaveButton}>wydarzenie</Text>
+              </View>
+              <Ionicons
+                name="exit-outline"
+                size={18}
+                color="#999"
+                style={styles.leaveIcon}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.leaveButtonWrapper}
+              onPress={handleSwitch}
+            >
+              <View style={styles.leaveTextWrapper}>
+                <Text style={styles.leaveButton}>Moje</Text>
+                <Text style={styles.leaveButton}>wydarzenia</Text>
+              </View>
+              <Ionicons
+                name="swap-vertical-outline"
+                size={18}
+                color="#999"
+                style={styles.leaveIcon}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.participantsContainer}>
+          <Text style={styles.participantsTitle}>Uczestnicy wydarzenia:</Text>
+          {participants.length === 0 ? (
+            <Text style={styles.emptyText}>Brak uczestników</Text>
+          ) : (
+            <FlatList
+              data={participants}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <View style={styles.participantCard}>
+                  <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>
+                      {item.userName?.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <Text style={styles.userName}>{item.userName}</Text>
+                </View>
+              )}
+            />
+          )}
+        </View>
+
+        <View style={styles.chatContainer}>
+          <ChatBox messages={messages} />
+        </View>
+      </View>
+    </>
+  );
+};
+
+export default LocalEventRoom;

@@ -7,7 +7,7 @@ export default function Logout() {
 
   useEffect(() => {
     logout();
-    router.replace("/"); 
+    router.replace("/(main)/Login"); 
   }, []);
 
   return null;

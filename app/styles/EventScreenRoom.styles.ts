@@ -106,4 +106,14 @@ export const styles = StyleSheet.create({
   leaveIcon: {
     marginTop: 2,
   },
+  emptyText: {
+  textAlign: "center",
+  color: "#888",
+  fontSize: 16,
+  marginTop: 20,
+  fontStyle: "italic",
+},
+buttonContainer:{
+  gap:20
+}
 });
