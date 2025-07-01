@@ -36,9 +36,10 @@ export default function Events() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const { userId } = useAuth();
+  const { userId, hasChosenActivities } = useAuth();
   const { location, startDate, endDate } = useLocalSearchParams();
   const { activities } = useActivity();
+
   useEffect(() => {
     const checkIfAlreadyInEvent = async () => {
       if (!userId) return;
@@ -51,26 +52,34 @@ export default function Events() {
 
         if (events.length > 0) {
           const event = events[0];
-          router.replace({
-            pathname: "/screens/LocalEventRoom",
-            params: {
-              eventId: event.id,
-              location: event.location,
-              startDate: event.startDate,
-              endDate: event.endDate,
-            },
-          });
+
+          // 👉 PRZEKIEROWUJEMY TYLKO UCZESTNIKÓW, NIE TWÓRCĘ
+          if (!event.isCreator) {
+            console.log(
+              "📦 Przekierowanie uczestnika do LocalEventRoom:",
+              event
+            );
+            router.replace({
+              pathname: "/screens/LocalEventRoom",
+              params: {
+                eventId: event.id,
+                location: event.location,
+                startDate: event.startDate,
+                endDate: event.endDate,
+              },
+            });
+          } else {
+            console.log("🧾 Twórca wydarzenia — zostaje na ekranie Events");
+          }
         }
       } catch (error) {
-        console.error(
-          "❌ Błąd przy automatycznym przekierowaniu z /screens/Events:",
-          error
-        );
+        console.error("❌ Błąd przy sprawdzaniu aktywnego wydarzenia:", error);
       }
     };
 
     checkIfAlreadyInEvent();
   }, [userId]);
+
   const fetchEvents = async (): Promise<void> => {
     if (!userId) return;
     try {
@@ -85,31 +94,37 @@ export default function Events() {
 
   useEffect(() => {
     if (!userId) return;
+
+    if (!hasChosenActivities) {
+      router.replace("/(main)/HomeScreen");
+      return;
+    }
+
     setLoading(true);
     registerForPushNotificationsAsync(userId);
     fetchEvents().finally(() => setLoading(false));
   }, [userId]);
 
-  // ⬇️ Automatyczne odświeżenie po zmianie aktywności
   useEffect(() => {
-    if (userId) fetchEvents();
+    if (userId && activities.length > 0) fetchEvents();
   }, [activities]);
 
-  // ⬇️ Odświeżanie przy focusie + aktywności
   useFocusEffect(
     useCallback(() => {
-      if (userId) fetchEvents();
+      if (userId && activities.length > 0) fetchEvents();
     }, [activities])
   );
 
   const joinEvent = async (eventId: number) => {
     if (!userId) return;
+
     try {
       const res = await fetch(`${BACKEND_URL}/api/join/join`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, eventId }),
       });
+
       if (res.ok) {
         Alert.alert("Sukces", "Dołączono do wydarzenia");
         fetchEvents();
@@ -124,7 +139,10 @@ export default function Events() {
         });
       } else {
         const err = await res.json();
-        Alert.alert("Błąd", err.error || "Nie udało się dołączyć");
+        Alert.alert(
+          "Błąd",
+          err.error || "Nie udało się dołączyć, Aktywny Gender Balance"
+        ); // ⬅️ tu pokażemy błąd genderBalance
       }
     } catch (error) {
       console.error("Błąd dołączania:", error);
@@ -161,7 +179,7 @@ export default function Events() {
                 router.push({
                   pathname: item.isCreator
                     ? "/screens/MyEventRoom"
-                    : "/screens/LocalEventRoom", // 🔹 różnicuj pokój
+                    : "/screens/LocalEventRoom",
                   params: {
                     eventId: item.id,
                     location: item.location,

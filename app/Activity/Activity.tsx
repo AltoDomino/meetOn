@@ -17,10 +17,8 @@ import ActivityDataSend from "./SendActivity";
 
 export default function Activity() {
   const { setActivities } = useActivity();
-  const { userName } = useAuth();
+  const { userName, userId, setHasChosenActivities } = useAuth();
   const [selectedActivities, setSelectedActivities] = useState<string[]>([]);
-
-  const { userId } = useAuth();
 
   const handleSaveActivity = async () => {
     if (!userId) {
@@ -37,7 +35,9 @@ export default function Activity() {
         activities: selectedActivities,
       });
 
-      router.replace("/(auth)/YourActivities"); 
+     setHasChosenActivities(true); // <- tutaj ustawiamy flagę
+
+      router.replace("/(auth)/YourActivities");
     } catch (error) {
       Alert.alert("Błąd", "Aktywności nie zostały dodane, spróbuj jeszcze raz");
     }

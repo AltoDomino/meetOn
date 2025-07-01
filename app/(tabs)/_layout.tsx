@@ -12,52 +12,56 @@ export default function Index() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    if (userId === undefined) return; // poczekaj aż context się załaduje
+    if (userId === undefined) return;
 
     if (!userId) {
-      setIsReady(true); // pokaż ekran logowania
+      setIsReady(true);
       return;
     }
 
     const checkUserState = async () => {
       try {
-        const eventRes = await fetch(`${BACKEND_URL}/api/event/joined?userId=${userId}`);
+        const eventRes = await fetch(
+          `${BACKEND_URL}/api/event/joined?userId=${userId}`
+        );
         const events = await eventRes.json();
 
         if (events.length > 0) {
           const event = events[0];
-          router.replace({
-            pathname: "/screens/LocalEventRoom",
-            params: {
-              eventId: event.id,
-              location: event.location,
-              startDate: event.startDate,
-              endDate: event.endDate,
-            },
-          });
-        } else {
-          const interestsRes = await fetch(`${BACKEND_URL}/api/interests/${userId}`);
-          const interests = await interestsRes.json();
-
-          if (!interests || interests.length === 0) {
-            router.replace("/(main)/HomeScreen");
-          } else {
-            router.replace("/(auth)/Event");
+          if (!event.isCreator) {
+            router.replace({
+              pathname: "/screens/LocalEventRoom",
+              params: {
+                eventId: event.id,
+                location: event.location,
+                startDate: event.startDate,
+                endDate: event.endDate,
+              },
+            });
+            return;
           }
+        }
+
+        const interestsRes = await fetch(
+          `${BACKEND_URL}/api/interests/${userId}`
+        );
+        const interests = await interestsRes.json();
+
+        if (!interests || interests.length === 0) {
+          router.replace("/(main)/HomeScreen");
+        } else {
+          router.replace("/(auth)/Event");
         }
       } catch (err) {
         console.error("❌ Błąd podczas przekierowania:", err);
-        setIsReady(true); // pokaż login, jeśli coś się wywali
+        setIsReady(true);
       }
     };
 
     checkUserState();
   }, [userId]);
-useEffect(() => {
-  console.log("🔑 AuthContext loaded:", userId);
-}, [userId]);
-  if (userId === undefined || !isReady && !userId) {
-    // czekamy na załadowanie kontekstu
+
+  if (userId === undefined || (!isReady && !userId)) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
         <ActivityIndicator size="large" />

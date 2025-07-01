@@ -8,10 +8,9 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-  Image,
+  ImageBackground,
   KeyboardAvoidingView,
   Platform,
-  ImageBackground,
 } from "react-native";
 import { useAuth } from "../context/AuthContext";
 import styles from "../styles/Login.styles";
@@ -22,14 +21,16 @@ interface FormData {
   password: string;
 }
 
+const BACKEND_URL = "http://192.168.1.26:3000";
+
 const Login = () => {
-  const { setUserName, setUserId } = useAuth();
+  const { setUserName, setUserId, setHasChosenActivities } = useAuth();
   const { control, handleSubmit } = useForm<FormData>();
   const router = useRouter();
 
   const onSubmit = async (dataLog: FormData) => {
     try {
-      const res = await fetch("http://192.168.1.26:3000/api/login", {
+      const res = await fetch(`${BACKEND_URL}/api/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -41,6 +42,15 @@ const Login = () => {
         const data = await res.json();
         setUserName(data.userName);
         setUserId(data.userId);
+
+        // 🔍 Sprawdź zainteresowania z backendu i ustaw flagę
+        const interestsRes = await fetch(`${BACKEND_URL}/api/interests/${data.userId}`);
+        const interests = await interestsRes.json();
+
+        if (interests && interests.length > 0) {
+          setHasChosenActivities(true);
+        }
+
         const storedActivities = await loadActivities(data.userName);
 
         if (storedActivities.length > 0) {
@@ -69,7 +79,6 @@ const Login = () => {
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         style={styles.centeredContainer}
       >
-
         <View style={styles.form}>
           <Text style={styles.label}>Email:</Text>
           <Controller

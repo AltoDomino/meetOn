@@ -1,8 +1,8 @@
 import { router } from "expo-router";
+import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   Alert,
-  Image,
   ImageBackground,
   KeyboardAvoidingView,
   Platform,
@@ -11,19 +11,27 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import DropDownPicker from "react-native-dropdown-picker";
 import styles from "../styles/Registration.styles";
 
 interface FormData {
   email: string;
   password: string;
   userName: string;
+  gender: string;
 }
 
 const Registration = () => {
   const handleBack = () => router.push("/(main)/Login");
   const { control, handleSubmit } = useForm<FormData>();
+  const [open, setOpen] = useState(false);
+  const [items, setItems] = useState([
+    { label: "Mężczyzna", value: "male" },
+    { label: "Kobieta", value: "female" },
+  ]);
 
   const onSubmit = async (dataReg: FormData) => {
+    console.log("DANE REJESTRACJI:", dataReg); // 👈 sprawdź co leci
     try {
       const res = await fetch("http://192.168.1.26:3000/api/registration", {
         method: "POST",
@@ -43,7 +51,7 @@ const Registration = () => {
   return (
     <KeyboardAvoidingView
       style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
     >
       <ImageBackground
         source={require("@/assets/images/meetOn.png")}
@@ -51,7 +59,6 @@ const Registration = () => {
         resizeMode="cover"
       >
         <View style={styles.centeredContainer}>
-
           <View style={styles.formContainer}>
             <Text style={styles.label}>Nazwa użytkownika:</Text>
             <Controller
@@ -68,7 +75,6 @@ const Registration = () => {
                 />
               )}
             />
-
             <Text style={styles.label}>Email:</Text>
             <Controller
               control={control}
@@ -85,7 +91,6 @@ const Registration = () => {
                 />
               )}
             />
-
             <Text style={styles.label}>Hasło:</Text>
             <Controller
               control={control}
@@ -101,6 +106,27 @@ const Registration = () => {
                 />
               )}
             />
+            <Text style={styles.label}>Płeć:</Text>
+            <Controller
+              control={control}
+              name="gender"
+              rules={{ required: "Wybór płci jest wymagany" }}
+              render={({ field: { onChange, value } }) => (
+                <DropDownPicker
+                  open={open}
+                  setOpen={setOpen}
+                  value={value}
+                  setValue={(callback) => {
+                    const newValue = callback(value);
+                    onChange(newValue); 
+                  }}
+                  items={items}
+                  setItems={setItems}
+                  placeholder="Wybierz płeć"
+                  style={{ marginBottom: open ? 150 : 16 }}
+                />
+              )}
+            />
 
             <TouchableOpacity
               style={styles.button}
@@ -108,7 +134,6 @@ const Registration = () => {
             >
               <Text style={styles.buttonText}>ZAREJESTRUJ</Text>
             </TouchableOpacity>
-
             <View style={styles.link}>
               <TouchableOpacity onPress={handleBack}>
                 <Text style={styles.linkText}>← Wróć do logowania</Text>
