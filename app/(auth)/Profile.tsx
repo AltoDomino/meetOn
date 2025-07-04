@@ -10,22 +10,57 @@ import {
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { styles } from "../styles/Pofile.styles";
+import { useAuth } from "../context/AuthContext"; // zakładam, że tu masz userId
+
 export default function ProfileScreen() {
+  const { userId } = useAuth(); // używane do identyfikacji użytkownika
   const [login, setLogin] = useState("użytkownik123");
   const [email, setEmail] = useState("user@example.com");
   const [password, setPassword] = useState("");
-  const [avatar, setAvatar] = useState(null);
+  const [avatar, setAvatar] = useState<string | null>(null);
   const [subscriptionActive, setSubscriptionActive] = useState(false);
 
   const pickImage = async () => {
-    await ImagePicker.launchImageLibraryAsync({
+    const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ImagePicker.MediaTypeOptions.Images,
       quality: 0.7,
       allowsEditing: true,
       aspect: [1, 1],
+      base64: false,
     });
 
+    if (!result.canceled) {
+      const image = result.assets[0];
 
+      const formData = new FormData();
+      formData.append("avatar", {
+        uri: image.uri,
+        name: "avatar.jpg",
+        type: "image/jpeg",
+      } as any);
+      formData.append("userId", userId?.toString() || "");
+
+      try {
+        const response = await fetch("http://192.168.1.26:3000/api/avatar", {
+          method: "POST",
+          body: formData,
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          setAvatar(data.avatarUrl); // Zapisujemy pełny URL avatara
+          Alert.alert("Sukces", "Avatar zapisany!");
+        } else {
+          Alert.alert("Błąd", data.error || "Coś poszło nie tak.");
+        }
+      } catch (error) {
+        console.error("❌ Błąd przesyłania avatara:", error);
+        Alert.alert("Błąd", "Nie udało się wysłać avatara.");
+      }
+    }
   };
 
   const handleSubscription = () => {
@@ -35,9 +70,27 @@ export default function ProfileScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.container}>
-      <TouchableOpacity onPress={pickImage}>
-{/* <Image source={{ uri: avatarUri }} style={{ width: 100, height: 100 }} /> */}
-        <Text style={styles.avatarHint}>Zmień avatar</Text>
+      <TouchableOpacity onPress={pickImage} style={{ alignItems: "center" }}>
+        {avatar ? (
+          <Image
+            source={{ uri: avatar }}
+            style={{ width: 100, height: 100, borderRadius: 50, marginBottom: 8 }}
+          />
+        ) : (
+          <View
+            style={{
+              width: 100,
+              height: 100,
+              borderRadius: 50,
+              backgroundColor: "#ddd",
+              justifyContent: "center",
+              alignItems: "center",
+              marginBottom: 8,
+            }}
+          >
+            <Text style={styles.avatarHint}>Zmień avatar</Text>
+          </View>
+        )}
       </TouchableOpacity>
 
       <Text style={styles.label}>Login</Text>
@@ -59,7 +112,10 @@ export default function ProfileScreen() {
         style={styles.input}
       />
 
-      <TouchableOpacity style={styles.saveButton} onPress={() => Alert.alert("Zapisano zmiany!")}>
+      <TouchableOpacity
+        style={styles.saveButton}
+        onPress={() => Alert.alert("Zapisano zmiany!")}
+      >
         <Text style={styles.saveButtonText}>Zapisz zmiany</Text>
       </TouchableOpacity>
 

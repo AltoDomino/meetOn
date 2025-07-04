@@ -1,3 +1,4 @@
+import ChatBox from "@/components/Chtabox";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -5,7 +6,6 @@ import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
 import type { Event } from "../(auth)/Event";
 import { useAuth } from "../context/AuthContext";
 import { styles } from "../styles/EventScreenRoom.styles";
-import ChatBox from "@/components/Chtabox";
 
 type Participant = {
   id: number;
@@ -23,9 +23,11 @@ const EventRoomScreen = () => {
   useEffect(() => {
     const fetchEventDetails = async () => {
       try {
-        const res = await fetch(`http://192.168.1.26:3000/api/event/${eventId}/details`)
+        const res = await fetch(
+          `http://192.168.1.26:3000/api/event/${eventId}/details`
+        );
         const data = await res.json();
-        console.log(data,"info o moim iwencie")
+        console.log(data, "info o moim iwencie");
         setCurrentEvent(data);
         setParticipants(data.participants);
       } catch (err) {
@@ -42,7 +44,7 @@ const EventRoomScreen = () => {
     currentEvent.participantsCount === 1;
 
   const handleDeleteEvent = async () => {
-    if (!currentEvent) return; 
+    if (!currentEvent) return;
 
     try {
       const res = await fetch(`/api/events/${currentEvent.id}`, {
@@ -71,19 +73,24 @@ const EventRoomScreen = () => {
       <View style={styles.container}>
         <Stack.Screen
           options={{
-            title: "Moje Wydarzenia", 
+            title: "Moje Wydarzenia",
             headerStyle: {
-              backgroundColor: "#00A9F4"
+              backgroundColor: "#00A9F4",
             },
-            headerTintColor: "#fff", 
+            headerTintColor: "#fff",
           }}
         />
         <View style={styles.header}>
           <View style={styles.eventInfo}>
             <Text style={styles.title}>{location}</Text>
             <Text>
-              {new Date(startDate).toLocaleString()} -{" "}
-              {new Date(endDate).toLocaleTimeString()}
+              {new Date(
+                Array.isArray(startDate) ? startDate[0] : startDate
+              ).toLocaleString()}{" "}
+              -{" "}
+              {new Date(
+                Array.isArray(endDate) ? endDate[0] : endDate
+              ).toLocaleTimeString()}
             </Text>
           </View>
           {canDeleteEvent && (
@@ -124,7 +131,7 @@ const EventRoomScreen = () => {
         </View>
 
         <View style={styles.chatContainer}>
-          <ChatBox messages={messages} />
+          {/* <ChatBox messages={messages} /> */}
         </View>
       </View>
     </>

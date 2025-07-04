@@ -1,4 +1,4 @@
-import { registerForPushNotificationsAsync } from "@/utilis/registerForPushNotificatiionsAsync";
+import { registerPushToken } from "@/utilis/registerForPushNotificatiionsAsync";
 import SwitchButton from "@/utilis/SwitchButton";
 import { useFocusEffect } from "@react-navigation/native";
 import { router, useLocalSearchParams } from "expo-router";
@@ -53,7 +53,6 @@ export default function Events() {
         if (events.length > 0) {
           const event = events[0];
 
-          // 👉 PRZEKIEROWUJEMY TYLKO UCZESTNIKÓW, NIE TWÓRCĘ
           if (!event.isCreator) {
             console.log(
               "📦 Przekierowanie uczestnika do LocalEventRoom:",
@@ -101,7 +100,7 @@ export default function Events() {
     }
 
     setLoading(true);
-    registerForPushNotificationsAsync(userId);
+    registerPushToken(userId)
     fetchEvents().finally(() => setLoading(false));
   }, [userId]);
 
@@ -124,7 +123,7 @@ export default function Events() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, eventId }),
       });
-
+      console.log(userId, "wysyłam userid", eventId, "wysyłam eventid");
       if (res.ok) {
         Alert.alert("Sukces", "Dołączono do wydarzenia");
         fetchEvents();
@@ -137,12 +136,27 @@ export default function Events() {
             endDate,
           },
         });
+        console.log("JAKA WIADOMOSC PRZYSZLA🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢",res)
       } else {
         const err = await res.json();
-        Alert.alert(
-          "Błąd",
-          err.error || "Nie udało się dołączyć, Aktywny Gender Balance"
-        ); // ⬅️ tu pokażemy błąd genderBalance
+        let message = err.error || "Nie udało się dołączyć do wydarzenia.";
+        
+
+        if (message.includes("mężczyzn")) {
+          message =
+            "Brak miejsc dla mężczyzn. Wydarzenie ma równy podział płci.";
+        }
+        if (message.includes("kobiet")) {
+          message = "Brak miejsc dla kobiet. Wydarzenie ma równy podział płci.";
+        }
+        if (message.includes("Brak miejsc w wydarzeniu")) {
+          message = "Wszystkie miejsca w wydarzeniu są już zajęte.";
+        }
+        if (message.includes("Użytkownik już dołączył")) {
+          message = "Już jesteś uczestnikiem tego wydarzenia.";
+        }
+
+        Alert.alert("Nie możesz dołączyć", message);
       }
     } catch (error) {
       console.error("Błąd dołączania:", error);

@@ -1,4 +1,4 @@
-import { registerForPushNotificationsAsync } from "@/utilis/registerForPushNotificatiionsAsync";
+import { registerPushToken } from "@/utilis/registerForPushNotificatiionsAsync";
 import SwitchButton from "@/utilis/SwitchButton";
 import { useFocusEffect } from "@react-navigation/native";
 import type { LinkProps } from "expo-router";
@@ -68,7 +68,7 @@ export default function MyEvents() {
   );
   useEffect(() => {
     if (!userId) return;
-    registerForPushNotificationsAsync(userId);
+    registerPushToken(userId)
     fetchEvents().finally(() => setLoading(false));
   }, [userId]);
 

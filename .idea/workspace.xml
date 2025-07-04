@@ -5,8 +5,30 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f8f0bf5b-7ad0-40cb-94ee-cdf641474b64" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/SplashScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/SplashScreen.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/android/build.gradle" beforeDir="false" afterPath="$PROJECT_DIR$/android/build.gradle" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/app.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(auth)/Event.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/Event.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(auth)/Profile.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/Profile.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(tabs)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/_layout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/context/AuthContext.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/context/AuthContext.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/screens/LocalEventRoom.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/screens/LocalEventRoom.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/screens/MyEventRoom.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/screens/MyEventRoom.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/screens/MyEvents.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/screens/MyEvents.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/images/partial-react-logo.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/images/react-logo.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/images/react-logo@2x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/images/react-logo@3x.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/images/ryj.png" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/eas.json" beforeDir="false" afterPath="$PROJECT_DIR$/eas.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utilis/Notification.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/utilis/activityStoarage.ts" beforeDir="false" afterPath="$PROJECT_DIR$/utilis/activityStoarage.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utilis/registerForPushNotificatiionsAsync.ts" beforeDir="false" afterPath="$PROJECT_DIR$/utilis/registerForPushNotificatiionsAsync.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -1,36 +1,62 @@
 import React, { useEffect } from "react";
-import { View, Text, StyleSheet, Animated, Easing } from "react-native";
-import { router } from "expo-router";
+import { View, Image, StyleSheet, Dimensions } from "react-native";
+import Animated, {
+  useSharedValue,
+  useAnimatedStyle,
+  withTiming,
+  Easing,
+  runOnJS,
+} from "react-native-reanimated";
 import * as SplashScreen from "expo-splash-screen";
-import { styles } from "./app/styles/SplashScreen.styles";
-const SplashScreenComponent = () => {
-  const fadeAnim = new Animated.Value(0);
+
+const screen = Dimensions.get("window");
+
+SplashScreen.preventAutoHideAsync();
+
+const Splash = ({ onFinish }: { onFinish: () => void }) => {
+  const scale = useSharedValue(0.5);
+  const opacity = useSharedValue(1);
+
+  const animatedStyle = useAnimatedStyle(() => ({
+    transform: [{ scale: scale.value }],
+    opacity: opacity.value,
+  }));
 
   useEffect(() => {
-    const animate = async () => {
-      Animated.timing(fadeAnim, {
-        toValue: 1,
-        duration: 1500,
-        easing: Easing.inOut(Easing.ease),
-        useNativeDriver: true,
-      }).start(async () => {
-        await SplashScreen.hideAsync(); // <--- chowamy domyślny splash
-        setTimeout(() => {
-          router.replace("/(main)/HomeScreen");
-        }, 1000);
-      });
-    };
+    scale.value = withTiming(1, {
+      duration: 1000,
+      easing: Easing.out(Easing.exp),
+    });
 
-    animate();
+    setTimeout(() => {
+      opacity.value = withTiming(0, { duration: 500 }, () => {
+        runOnJS(onFinish)();
+      });
+    }, 1500);
   }, []);
 
   return (
     <View style={styles.container}>
-      <Animated.Text style={[styles.logo, { opacity: fadeAnim }]}>
-        meetOn 🟢
-      </Animated.Text>
+      <Animated.Image
+        source={require("./assets/images/ikonameeton.png")}
+        style={[styles.logo, animatedStyle]}
+        resizeMode="contain"
+      />
     </View>
   );
 };
 
-export default SplashScreenComponent;
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#000",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  logo: {
+    width: screen.width * 0.6,
+    height: screen.width * 0.6,
+  },
+});
+
+export default Splash;

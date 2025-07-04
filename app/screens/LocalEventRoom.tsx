@@ -5,7 +5,6 @@ import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
 import type { Event } from "../(auth)/Event";
 import { useAuth } from "../context/AuthContext";
 import { styles } from "../styles/EventScreenRoom.styles";
-import ChatBox from "@/components/Chtabox";
 
 type Participant = {
   id: number;
@@ -19,6 +18,8 @@ const LocalEventRoom = () => {
   const [messages, setMessages] = useState([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+
 
   const { userId } = useAuth();
 
@@ -130,13 +131,19 @@ const LocalEventRoom = () => {
         </View>
 
         <View style={styles.participantsContainer}>
-          <Text style={styles.participantsTitle}>Uczestnicy wydarzenia:</Text>
-          {participants.length === 0 ? (
-            <Text style={styles.emptyText}>Brak uczestników</Text>
-          ) : (
+          <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
+            <Text style={styles.participantsTitle}>
+              {isExpanded ? "Ukryj uczestników ▲" : "Pokaż uczestników ▼"}
+            </Text>
+          </TouchableOpacity>
+
+          {isExpanded && (
             <FlatList
               data={participants}
               keyExtractor={(item) => item.id.toString()}
+              ListEmptyComponent={
+                <Text style={styles.emptyText}>Brak uczestników</Text>
+              }
               renderItem={({ item }) => (
                 <View style={styles.participantCard}>
                   <View style={styles.avatar}>
@@ -152,7 +159,7 @@ const LocalEventRoom = () => {
         </View>
 
         <View style={styles.chatContainer}>
-          <ChatBox messages={messages} />
+          {/* <ChatBox messages={messages} /> */}
         </View>
       </View>
     </>
