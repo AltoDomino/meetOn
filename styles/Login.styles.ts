@@ -23,16 +23,21 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: "#0051cc",
   },
-  form: {
-    width: "100%",
-    backgroundColor: "rgba(243, 243, 243, 0.08)",
-    borderRadius: 12,
-    padding: 20,
-    shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: 2 },
-    shadowRadius: 8,
-    elevation: 5,
-  },
+form: {
+  position: "absolute",
+  bottom: 140,
+  left: 30,
+  right:30,
+  backgroundColor: "rgba(243, 243, 243, 0.08)",
+  borderTopLeftRadius: 12,
+  borderTopRightRadius: 12,
+  padding: 20,
+  shadowOpacity: 0.3,
+  shadowOffset: { width: 0, height: -2 },
+  shadowRadius: 8,
+  elevation: 10,
+},
+
 
   label: {
     fontSize: 14,

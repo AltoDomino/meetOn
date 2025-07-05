@@ -5,13 +5,14 @@ const styles = StyleSheet.create({
     flex: 1,
     width: "100%",
     height: "100%",
+    backgroundColor: "#0d1a4d",
   },
 
   centeredContainer: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    paddingHorizontal: 24,
+    paddingHorizontal: 20,
+    paddingTop: 10,
+    backgroundColor: "#0d1a4d",
   },
 
   logo: {
@@ -21,14 +22,18 @@ const styles = StyleSheet.create({
   },
 
   formContainer: {
-    width: "100%",
+    position: "absolute",
+    bottom: 80,
+    left: 30,
+    right: 30,
     backgroundColor: "rgba(243, 243, 243, 0.08)",
-    borderRadius: 12,
+    borderTopLeftRadius: 12,
+    borderTopRightRadius: 12,
     padding: 20,
     shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: { width: 0, height: -2 },
     shadowRadius: 8,
-    elevation: 5,
+    elevation: 10,
   },
 
   input: {
@@ -39,14 +44,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     marginBottom: 16,
     fontSize: 16,
-    backgroundColor: "#fff", // białe tło inputa
-    color: "#000",            // czarny tekst
+    backgroundColor: "#fff",
   },
 
   label: {
     fontSize: 16,
     marginBottom: 4,
-    color: "#333", // ciemny tekst
+    color: "#fff",
     fontWeight: "600",
   },
 
@@ -60,7 +64,7 @@ const styles = StyleSheet.create({
     paddingRight: 30,
     marginBottom: 16,
     backgroundColor: "#fff", // białe tło
-    color: "#000",           // czarny tekst
+    color: "#000", // czarny tekst
   },
 
   button: {

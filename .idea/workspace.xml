@@ -6,49 +6,11 @@
   <component name="ChangeListManager">
     <list default="true" id="f8f0bf5b-7ad0-40cb-94ee-cdf641474b64" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/SplashScreen.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/app.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(auth)/CreateEvent.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/CreateEvent.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(auth)/Event.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/Event.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(auth)/FriendList.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/FriendList.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(auth)/Logout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/Logout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(auth)/Profile.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/Profile.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(auth)/YourActivities.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/YourActivities.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(main)/HomeScreen.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(main)/HomeScreen.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(main)/Login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(main)/Login.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/app/(main)/Registration.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(main)/Registration.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(tabs)/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(tabs)/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/Activity/Activity.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/Activity/Activity.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/CreateEvent/DetailsForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/CreateEvent/DetailsForm.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/CreateEvent/PlaceDateform.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/CreateEvent/PlaceDateform.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/InviteFriends/FriendsRequest.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/InviteFriends/FriendsRequest.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/InviteFriends/SendFriendRequest.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/InviteFriends/SendFriendRequest.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/_layout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/_layout.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/context/ActivityContext.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/context/AuthContext.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/screens/LocalEventRoom.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/screens/LocalEventRoom.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/screens/MyEventRoom.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/screens/MyEventRoom.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/screens/MyEvents.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/screens/MyEvents.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/styles/Activity.styles.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/styles/CreateEvent.styles.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/styles/Event.styles.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/styles/EventScreenRoom.styles.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/styles/FrielndList.styles.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/styles/FriendsRequest.styles.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/styles/HomeScreen.styles.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/styles/Login.styles.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/styles/Pofile.styles.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/styles/Registration.styles.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/styles/SplashScreen.styles.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/styles/YourActivites.styles.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/styles/form.styles.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/styles/index.styles.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/styles/notification.styles.ts" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/images/splash-icon.png" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/babel.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/babel.config.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/tsconfig.json" beforeDir="false" afterPath="$PROJECT_DIR$/tsconfig.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/images/ikonameeton.png" beforeDir="false" afterPath="$PROJECT_DIR$/assets/images/ikonameeton.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/assets/images/meetOn.png" beforeDir="false" afterPath="$PROJECT_DIR$/assets/images/meetOn.png" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/styles/Login.styles.ts" beforeDir="false" afterPath="$PROJECT_DIR$/styles/Login.styles.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/styles/Registration.styles.ts" beforeDir="false" afterPath="$PROJECT_DIR$/styles/Registration.styles.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
