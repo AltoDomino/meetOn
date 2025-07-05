@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { FlatList, Text, TouchableOpacity, View } from "react-native";
-import { useAuth } from "../context/AuthContext";
-import { styles } from "../styles/FriendsRequest.styles";
+import { useAuth } from "../../context/AuthContext";
+import { styles } from "../../styles/FriendsRequest.styles";
 
 type Request = {
   requesterId: number;

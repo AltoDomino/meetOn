@@ -1,8 +1,7 @@
 import { registerPushToken } from "@/utilis/registerForPushNotificatiionsAsync";
 import SwitchButton from "@/utilis/SwitchButton";
 import { useFocusEffect } from "@react-navigation/native";
-import type { LinkProps } from "expo-router";
-import { router, Stack, useLocalSearchParams } from "expo-router";
+import { router, Stack } from "expo-router";
 import React, { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -11,8 +10,8 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useAuth } from "../context/AuthContext";
-import { styles } from "../styles/Event.styles";
+import { useAuth } from "../../context/AuthContext";
+import { styles } from "../../styles/Event.styles";
 
 const BACKEND_URL = "http://192.168.1.26:3000";
 
@@ -27,8 +26,8 @@ export type Event = {
   };
   participantsCount: number;
   spots: number;
-  isUserJoined: boolean; 
-  isCreator: boolean; 
+  isUserJoined: boolean;
+  isCreator: boolean;
 };
 
 export default function MyEvents() {
@@ -53,7 +52,7 @@ export default function MyEvents() {
     router.push({
       pathname: "./MyEventRoom",
       params: {
-        eventId: event.id.toString(), 
+        eventId: event.id.toString(),
         location: event.location,
         startDate: event.startDate,
         endDate: event.endDate,
@@ -68,7 +67,7 @@ export default function MyEvents() {
   );
   useEffect(() => {
     if (!userId) return;
-    registerPushToken(userId)
+    registerPushToken(userId);
     fetchEvents().finally(() => setLoading(false));
   }, [userId]);
 

@@ -1,16 +1,16 @@
+import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
 import {
-  View,
+  Alert,
+  Image,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
-  Image,
-  Alert,
-  ScrollView,
+  View,
 } from "react-native";
-import * as ImagePicker from "expo-image-picker";
-import { styles } from "../styles/Pofile.styles";
-import { useAuth } from "../context/AuthContext"; // zakładam, że tu masz userId
+import { useAuth } from "../../context/AuthContext"; // zakładam, że tu masz userId
+import { styles } from "../../styles/Pofile.styles";
 
 export default function ProfileScreen() {
   const { userId } = useAuth(); // używane do identyfikacji użytkownika
@@ -74,7 +74,12 @@ export default function ProfileScreen() {
         {avatar ? (
           <Image
             source={{ uri: avatar }}
-            style={{ width: 100, height: 100, borderRadius: 50, marginBottom: 8 }}
+            style={{
+              width: 100,
+              height: 100,
+              borderRadius: 50,
+              marginBottom: 8,
+            }}
           />
         ) : (
           <View

@@ -9,9 +9,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useActivity } from "../context/ActivityContext";
-import { useAuth } from "../context/AuthContext";
-import { styles } from "../styles/Activity.styles";
+import { useActivity } from "../../context/ActivityContext";
+import { useAuth } from "../../context/AuthContext";
+import styles from "../../styles/Activity.styles";
 import { activityImages } from "./Activities";
 import ActivityDataSend from "./SendActivity";
 
@@ -35,7 +35,7 @@ export default function Activity() {
         activities: selectedActivities,
       });
 
-     setHasChosenActivities(true); // <- tutaj ustawiamy flagę
+      setHasChosenActivities(true); // <- tutaj ustawiamy flagę
 
       router.replace("/(auth)/YourActivities");
     } catch (error) {

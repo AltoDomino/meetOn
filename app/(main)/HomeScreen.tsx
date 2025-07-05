@@ -1,19 +1,18 @@
-import React, { useState } from "react";
+import { useRouter } from "expo-router";
+import React from "react";
 import {
-  Text,
-  TouchableOpacity,
-  ScrollView,
-  View,
   ImageBackground,
+  Keyboard,
   KeyboardAvoidingView,
   Platform,
-  Keyboard,
-  TextInput,
+  ScrollView,
+  Text,
+  TouchableOpacity,
   TouchableWithoutFeedback,
+  View,
 } from "react-native";
-import { styles } from "../styles/HomeScreen.styles";
-import { useRouter } from "expo-router";
-import { useAuth } from "../context/AuthContext";
+import { useAuth } from "../../context/AuthContext";
+import { styles } from "../../styles/HomeScreen.styles";
 
 export default function Home() {
   const router = useRouter();
@@ -23,7 +22,7 @@ export default function Home() {
 
   return (
     <ImageBackground
-       source={require("@/assets/images/meetOn.png")}
+      source={require("@/assets/images/meetOn.png")}
       style={styles.background}
       resizeMode="cover"
     >
@@ -41,8 +40,8 @@ export default function Home() {
               <Text style={styles.greeting}>Cześć {userName}! 👋</Text>
               <Text style={styles.header}>Włącz znajomości</Text>
               <Text style={styles.description}>
-                meetOn pomoże Ci znaleźć ludzi, którzy chcą spędzać wolny czas tak
-                jak Ty — planszówki, siatkówka, karaoke czy może bilard?.
+                meetOn pomoże Ci znaleźć ludzi, którzy chcą spędzać wolny czas
+                tak jak Ty — planszówki, siatkówka, karaoke czy może bilard?.
               </Text>
 
               <TouchableOpacity style={styles.button} onPress={handleActivity}>

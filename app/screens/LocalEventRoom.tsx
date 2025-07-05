@@ -3,8 +3,8 @@ import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
 import type { Event } from "../(auth)/Event";
-import { useAuth } from "../context/AuthContext";
-import { styles } from "../styles/EventScreenRoom.styles";
+import { useAuth } from "../../context/AuthContext";
+import { styles } from "../../styles/EventScreenRoom.styles";
 
 type Participant = {
   id: number;
@@ -19,7 +19,6 @@ const LocalEventRoom = () => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
-
 
   const { userId } = useAuth();
 

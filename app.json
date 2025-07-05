@@ -25,7 +25,7 @@
 
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/ikonameeton.png",
+        "foregroundImage": "./assets/images/startMeetOn.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,

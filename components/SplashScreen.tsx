@@ -38,9 +38,9 @@ const Splash = ({ onFinish }: { onFinish: () => void }) => {
   return (
     <View style={styles.container}>
       <Animated.Image
-        source={require("./assets/images/ikonameeton.png")}
+        source={require("../assets/images/startMeetOn.png")}
         style={[styles.logo, animatedStyle]}
-        resizeMode="contain"
+        resizeMode="cover"
       />
     </View>
   );

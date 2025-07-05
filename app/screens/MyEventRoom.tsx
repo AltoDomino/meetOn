@@ -1,11 +1,11 @@
-import ChatBox from "@/components/Chtabox";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
 import type { Event } from "../(auth)/Event";
-import { useAuth } from "../context/AuthContext";
-import { styles } from "../styles/EventScreenRoom.styles";
+import { useAuth } from "../../context/AuthContext";
+import { styles } from "../../styles/EventScreenRoom.styles";
+import ChatBox from "@/components/Chtabox";
 
 type Participant = {
   id: number;
@@ -131,7 +131,7 @@ const EventRoomScreen = () => {
         </View>
 
         <View style={styles.chatContainer}>
-          {/* <ChatBox messages={messages} /> */}
+          <ChatBox messages={messages} />
         </View>
       </View>
     </>

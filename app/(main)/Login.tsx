@@ -4,16 +4,16 @@ import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   Alert,
+  ImageBackground,
+  KeyboardAvoidingView,
+  Platform,
   Text,
   TextInput,
   TouchableOpacity,
   View,
-  ImageBackground,
-  KeyboardAvoidingView,
-  Platform,
 } from "react-native";
-import { useAuth } from "../context/AuthContext";
-import styles from "../styles/Login.styles";
+import { useAuth } from "../../context/AuthContext";
+import styles from "../../styles/Login.styles";
 
 interface FormData {
   userName: string;
@@ -44,7 +44,9 @@ const Login = () => {
         setUserId(data.userId);
 
         // 🔍 Sprawdź zainteresowania z backendu i ustaw flagę
-        const interestsRes = await fetch(`${BACKEND_URL}/api/interests/${data.userId}`);
+        const interestsRes = await fetch(
+          `${BACKEND_URL}/api/interests/${data.userId}`
+        );
         const interests = await interestsRes.json();
 
         if (interests && interests.length > 0) {

@@ -9,15 +9,15 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useActivity } from "../../context/ActivityContext";
+import { useAuth } from "../../context/AuthContext";
+import { styles } from "../../styles/YourActivites.styles";
 import { activityImages } from "../Activity/Activities";
-import { useActivity } from "../context/ActivityContext";
-import { useAuth } from "../context/AuthContext";
-import { styles } from "../styles/YourActivites.styles";
 
 export default function YourActivities() {
   const { userName, userId } = useAuth();
   const { activities, setActivities } = useActivity();
-  console.log("🧪 YourActivities: userId =", userId, "userName =", userName); 
+  console.log("🧪 YourActivities: userId =", userId, "userName =", userName);
   useEffect(() => {
     const fetchActivities = async () => {
       if (userName) {
@@ -41,15 +41,15 @@ export default function YourActivities() {
             const updated = activities.filter((a) => a !== activity);
             setActivities(updated);
             await saveActivities(userName, updated);
-            console.log(userId,"czy userid istnieje ")
+            console.log(userId, "czy userid istnieje ");
             await fetch(`http://192.168.1.26:3000/api/interests/${userId}`, {
               method: "PATCH",
               headers: {
                 "Content-Type": "application/json",
               },
-              body: JSON.stringify({ interests: updated }) 
+              body: JSON.stringify({ interests: updated }),
             });
-            console.log(userId,"czy user id istneije ")
+            console.log(userId, "czy user id istneije ");
           },
         },
       ]

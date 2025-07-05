@@ -3,17 +3,16 @@ import Slider from "@react-native-community/slider";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useState } from "react";
 import { Alert, Switch, Text, TouchableOpacity, View } from "react-native";
-import { styles } from "../styles/form.styles";
+import { useAuth } from "../../context/AuthContext";
+import { styles } from "../../styles/form.styles";
 import FormDataSend from "./SendDataform";
-import { useAuth } from "../context/AuthContext";
-
 
 const DetailsForm = () => {
   const [GenderSplit, setGenderSplit] = useState(false);
   const [minAge, setMinAge] = useState(18);
   const [maxAge, setMaxAge] = useState(40);
   const [spots, setSpots] = useState("");
-const { userId } = useAuth()
+  const { userId } = useAuth();
   const { location, address, startDate, endDate, activity } =
     useLocalSearchParams();
 
@@ -24,53 +23,52 @@ const { userId } = useAuth()
     setGenderSplit(value);
   };
 
-const handleSubmit = async () => {
-  if (!spots) {
-    alert("Uzupełnij wszystkie wymagane pola");
-    return;
-  }
+  const handleSubmit = async () => {
+    if (!spots) {
+      alert("Uzupełnij wszystkie wymagane pola");
+      return;
+    }
 
-  if (!userId) {
-    Alert.alert("Błąd", "Brak zalogowanego użytkownika");
-    console.log("❌ Brak userId w AuthContext");
-    return;
-  }
+    if (!userId) {
+      Alert.alert("Błąd", "Brak zalogowanego użytkownika");
+      console.log("❌ Brak userId w AuthContext");
+      return;
+    }
 
-  const eventData = {
-    location: location?.toString() ?? "",
-    address: address?.toString() ?? "",
-    startDate: parsedStartDate.toISOString(),
-    endDate: parsedEndDate.toISOString(),
-    activity: activity?.toString() ?? "",
-    spots,
-    genderSplit: GenderSplit,
-    minAge,
-    maxAge,
-    creatorId: userId,
+    const eventData = {
+      location: location?.toString() ?? "",
+      address: address?.toString() ?? "",
+      startDate: parsedStartDate.toISOString(),
+      endDate: parsedEndDate.toISOString(),
+      activity: activity?.toString() ?? "",
+      spots,
+      genderSplit: GenderSplit,
+      minAge,
+      maxAge,
+      creatorId: userId,
+    };
+
+    console.log("📤 Wysyłanie eventData:", eventData);
+
+    try {
+      await FormDataSend(eventData);
+
+      router.push({
+        pathname: "/(auth)/Event",
+        params: {
+          location: eventData.location,
+          address: eventData.address,
+          startDate: eventData.startDate,
+          endDate: eventData.endDate,
+          activity: eventData.activity,
+          spots: eventData.spots,
+        },
+      });
+    } catch (error) {
+      Alert.alert("Błąd", "Nie udało się zapisać wydarzenia");
+      console.error("❌ Błąd zapisu:", error);
+    }
   };
-
-  console.log("📤 Wysyłanie eventData:", eventData);
-
-  try {
-    await FormDataSend(eventData);
-
-    router.push({
-      pathname: "/(auth)/Event",
-      params: {
-        location: eventData.location,
-        address: eventData.address,
-        startDate: eventData.startDate,
-        endDate: eventData.endDate,
-        activity: eventData.activity,
-        spots: eventData.spots,
-      },
-    });
-  } catch (error) {
-    Alert.alert("Błąd", "Nie udało się zapisać wydarzenia");
-    console.error("❌ Błąd zapisu:", error);
-  }
-};
-
 
   return (
     <>
@@ -140,7 +138,9 @@ const handleSubmit = async () => {
           Od {minAge} do {maxAge} lat
         </Text>
 
-        <Text style={{ fontWeight: "bold", marginBottom: 4 }}>Minimalny wiek</Text>
+        <Text style={{ fontWeight: "bold", marginBottom: 4 }}>
+          Minimalny wiek
+        </Text>
         <Slider
           minimumValue={18}
           maximumValue={100}
@@ -151,7 +151,9 @@ const handleSubmit = async () => {
           maximumTrackTintColor="#ccc"
         />
 
-        <Text style={{ fontWeight: "bold", marginTop: 12, marginBottom: 4 }}>Maksymalny wiek</Text>
+        <Text style={{ fontWeight: "bold", marginTop: 12, marginBottom: 4 }}>
+          Maksymalny wiek
+        </Text>
         <Slider
           minimumValue={minAge}
           maximumValue={100}

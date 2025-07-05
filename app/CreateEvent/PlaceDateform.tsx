@@ -1,6 +1,6 @@
 import fetchPlaces, { Place } from "@/utilis/FetchActivityPlaces";
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePicker from "@react-native-community/datetimepicker";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
 import * as Location from "expo-location";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -13,7 +13,7 @@ import {
   View,
 } from "react-native";
 
-import { styles } from "../styles/form.styles";
+import { styles } from "../../styles/form.styles";
 
 export default function CreateEventForm() {
   const { activity: choosenActivity } = useLocalSearchParams();
@@ -25,21 +25,24 @@ export default function CreateEventForm() {
   const [loading, setLoading] = useState(false);
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
-  const [showStartPicker, setShowStartPicker] = useState(false);
-  const [showEndPicker, setShowEndPicker] = useState(false);
   const [customLocation, setCustomLocation] = useState("");
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
 
-  console.log("activiity", choosenActivity);
-  useEffect(() => {
-    if (choosenActivity) {
-      console.log(choosenActivity, "chosen activity");
-    }
-  }, [choosenActivity]);
+  const [isStartPickerVisible, setStartPickerVisible] = useState(false);
+  const [isEndPickerVisible, setEndPickerVisible] = useState(false);
+
+  const handleStartConfirm = (date: Date) => {
+    setStartDate(date);
+    setStartPickerVisible(false);
+  };
+
+  const handleEndConfirm = (date: Date) => {
+    setEndDate(date);
+    setEndPickerVisible(false);
+  };
 
   const fetchNearbyPlaces = async () => {
     setLoading(true);
-
     const { status } = await Location.requestForegroundPermissionsAsync();
     if (status !== "granted") {
       console.log("Brak dostępu do lokalizacji");
@@ -111,105 +114,96 @@ export default function CreateEventForm() {
   };
 
   return (
-    <>
-      <View style={styles.container}>
-        <Text style={styles.label}>Sugerowane lokalizacje:</Text>
-        <FlatList
-          data={places}
-          keyExtractor={(item) => item.placeId}
-          renderItem={renderPlaceTile}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingBottom: 20 }}
-          ListEmptyComponent={<Text>Brak wyników</Text>}
-        />
-        <Text style={styles.label}>Lub wpisz własną lokalizację:</Text>
-        <TextInput
-          style={{
-            borderWidth: 1,
-            borderColor: "#ccc",
-            borderRadius: 8,
-            padding: 10,
-            marginTop: 8,
-            marginBottom: 16,
-            fontSize: 16,
-          }}
-          placeholder="Wpisz własną lokalizację"
-          value={customLocation}
-          onChangeText={setCustomLocation}
-        />
+    <View style={styles.container}>
+      <Text style={styles.label}>Sugerowane lokalizacje:</Text>
+      <FlatList
+        data={places}
+        keyExtractor={(item) => item.placeId}
+        renderItem={renderPlaceTile}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 20 }}
+        ListEmptyComponent={<Text>Brak wyników</Text>}
+      />
 
-        <Text style={styles.label}>Data i godzina wydarzenia:</Text>
-        <View style={styles.dateRow}>
-          <TouchableOpacity
-            style={styles.datePickerBox}
-            onPress={() => setShowStartPicker(true)}
-          >
-            <Text style={styles.datePickerLabel}>Start</Text>
-            <Text style={styles.datePickerText}>
-              {startDate.toLocaleDateString()} {startDate.toLocaleTimeString()}
-            </Text>
-          </TouchableOpacity>
+      <Text style={styles.label}>Lub wpisz własną lokalizację:</Text>
+      <TextInput
+        style={{
+          borderWidth: 1,
+          borderColor: "#ccc",
+          borderRadius: 8,
+          padding: 10,
+          marginTop: 8,
+          marginBottom: 16,
+          fontSize: 16,
+        }}
+        placeholder="Wpisz własną lokalizację"
+        value={customLocation}
+        onChangeText={setCustomLocation}
+      />
 
-          <TouchableOpacity
-            style={styles.datePickerBox}
-            onPress={() => setShowEndPicker(true)}
-          >
-            <Text style={styles.datePickerLabel}>Koniec</Text>
-            <Text style={styles.datePickerText}>
-              {endDate.toLocaleDateString()} {endDate.toLocaleTimeString()}
-            </Text>
-          </TouchableOpacity>
-        </View>
-        {showStartPicker && (
-          <DateTimePicker
-            value={startDate}
-            mode="datetime"
-            display="default"
-            onChange={(e, selectedDate) => {
-              setShowStartPicker(false);
-              if (selectedDate) setStartDate(selectedDate);
-            }}
-          />
-        )}
-
-        {showEndPicker && (
-          <DateTimePicker
-            value={endDate}
-            mode="datetime"
-            display="default"
-            onChange={(e, selectedDate) => {
-              setShowEndPicker(false);
-              if (selectedDate) setEndDate(selectedDate);
-            }}
-          />
-        )}
+      <Text style={styles.label}>Data i godzina wydarzenia:</Text>
+      <View style={styles.dateRow}>
         <TouchableOpacity
-          style={styles.submitButton}
-          onPress={() => {
-            if (!selectedPlaceId && !customLocation) {
-              alert("Musisz wybrać miejsce lub wpisać własną lokalizację");
-              return;
-            }
-
-            const selectedPlace = places.find(
-              (p) => p.placeId === selectedPlaceId
-            );
-
-            router.push({
-              pathname: "/CreateEvent/DetailsForm",
-              params: {
-                activity: newActivity,
-                location: customLocation || selectedPlace?.name || "",
-                address: customLocation || selectedPlace?.address || "",
-                startDate: startDate.toISOString(),
-                endDate: endDate.toISOString(),
-              },
-            });
-          }}
+          style={styles.datePickerBox}
+          onPress={() => setStartPickerVisible(true)}
         >
-          <Text style={styles.submitButtonText}>Szczegóły Wydarzenia</Text>
+          <Text style={styles.datePickerLabel}>Start</Text>
+          <Text style={styles.datePickerText}>
+            {startDate.toLocaleDateString()} 
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.datePickerBox}
+          onPress={() => setEndPickerVisible(true)}
+        >
+          <Text style={styles.datePickerLabel}>Koniec</Text>
+          <Text style={styles.datePickerText}>
+            {endDate.toLocaleDateString()} 
+          </Text>
         </TouchableOpacity>
       </View>
-    </>
+
+      {/* PICKERY MODALNE */}
+      <DateTimePickerModal
+        isVisible={isStartPickerVisible}
+        mode="datetime"
+        onConfirm={handleStartConfirm}
+        onCancel={() => setStartPickerVisible(false)}
+      />
+      <DateTimePickerModal
+        isVisible={isEndPickerVisible}
+        mode="datetime"
+        onConfirm={handleEndConfirm}
+        onCancel={() => setEndPickerVisible(false)}
+      />
+
+      <TouchableOpacity
+        style={styles.submitButton}
+        onPress={() => {
+          if (!selectedPlaceId && !customLocation) {
+            alert("Musisz wybrać miejsce lub wpisać własną lokalizację");
+            return;
+          }
+
+          const selectedPlace = places.find(
+            (p) => p.placeId === selectedPlaceId
+          );
+
+          router.push({
+            pathname: "/CreateEvent/DetailsForm",
+            params: {
+              activity: newActivity,
+              location: customLocation || selectedPlace?.name || "",
+              address: customLocation || selectedPlace?.address || "",
+              startDate: startDate.toISOString(),
+              endDate: endDate.toISOString(),
+            },
+          });
+        }}
+      >
+        <Text style={styles.submitButtonText}>Szczegóły Wydarzenia</Text>
+      </TouchableOpacity>
+    </View>
   );
 }

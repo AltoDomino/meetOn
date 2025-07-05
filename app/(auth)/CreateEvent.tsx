@@ -8,10 +8,10 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { useActivity } from "../../context/ActivityContext";
+import { useAuth } from "../../context/AuthContext";
+import styles from "../../styles/CreateEvent.styles";
 import { activityImages } from "../Activity/Activities";
-import { useActivity } from "../context/ActivityContext";
-import { useAuth } from "../context/AuthContext";
-import { styles } from "../styles/CreateEvent.styles";
 
 export default function CreateEvent() {
   const [events, setEvents] = useState<any[]>([]);

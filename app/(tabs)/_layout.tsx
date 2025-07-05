@@ -1,18 +1,18 @@
-import React, { useEffect, useState } from "react";
-import { useRouter } from "expo-router";
-import { useAuth } from "../context/AuthContext";
-import Login from "../(main)/Login";
-import {
-  ActivityIndicator,
-  View,
-  Modal,
-  Text,
-  Pressable,
-  Image,
-} from "react-native";
-import * as Notifications from "expo-notifications";
 import { registerPushToken } from "@/utilis/registerForPushNotificatiionsAsync";
 import { setupNotificationListener } from "@/utilis/useNotificationListener";
+import * as Notifications from "expo-notifications";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
+import {
+  ActivityIndicator,
+  Image,
+  Modal,
+  Pressable,
+  Text,
+  View,
+} from "react-native";
+import Login from "../(main)/Login";
+import { useAuth } from "../../context/AuthContext";
 
 const BACKEND_URL = "http://192.168.1.26:3000";
 
@@ -30,10 +30,12 @@ export default function Index() {
     registerPushToken(userId);
 
     // Obsługa niestandardowego modala
-    const subscription = Notifications.addNotificationReceivedListener((notif) => {
-      setNotification(notif);
-      setVisible(true);
-    });
+    const subscription = Notifications.addNotificationReceivedListener(
+      (notif) => {
+        setNotification(notif);
+        setVisible(true);
+      }
+    );
 
     const unsubscribe = setupNotificationListener();
     return () => {
@@ -125,12 +127,10 @@ export default function Index() {
             }}
           >
             <Image
-              source={require("../../assets/images/ikonameeton.png")}
+              source={require("../../assets/images/startMeetOn.png")}
               style={{ width: 40, height: 40, marginBottom: 10 }}
             />
-            <Text
-              style={{ color: "white", fontSize: 20, fontWeight: "bold" }}
-            >
+            <Text style={{ color: "white", fontSize: 20, fontWeight: "bold" }}>
               meetOn
             </Text>
             <Text style={{ color: "white", fontSize: 18, marginTop: 10 }}>

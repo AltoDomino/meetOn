@@ -11,9 +11,9 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useActivity } from "../context/ActivityContext";
-import { useAuth } from "../context/AuthContext";
-import { styles } from "../styles/Event.styles";
+import { useActivity } from "../../context/ActivityContext";
+import { useAuth } from "../../context/AuthContext";
+import { styles } from "../../styles/Event.styles";
 
 const BACKEND_URL = "http://192.168.1.26:3000";
 
@@ -100,7 +100,7 @@ export default function Events() {
     }
 
     setLoading(true);
-    registerPushToken(userId)
+    registerPushToken(userId);
     fetchEvents().finally(() => setLoading(false));
   }, [userId]);
 
@@ -136,11 +136,9 @@ export default function Events() {
             endDate,
           },
         });
-        console.log("JAKA WIADOMOSC PRZYSZLA🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢🟢",res)
       } else {
         const err = await res.json();
         let message = err.error || "Nie udało się dołączyć do wydarzenia.";
-        
 
         if (message.includes("mężczyzn")) {
           message =

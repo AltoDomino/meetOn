@@ -1,8 +1,8 @@
 import React, { useState } from "react";
-import { View, TextInput, Button, Alert, StyleSheet } from "react-native";
-import { useAuth } from "../context/AuthContext";
+import { Alert, Button, StyleSheet, TextInput, View } from "react-native";
+import { useAuth } from "../../context/AuthContext";
 
-export default function SendFriendRequest() {
+export default function SendFriendRequest({ onRequestSent }: { onRequestSent?: () => void }) {
   const { userId } = useAuth();
   const [receiverName, setReceiverName] = useState("");
 
@@ -18,9 +18,14 @@ export default function SendFriendRequest() {
           receiverName,
         }),
       });
+
       if (res.ok) {
         Alert.alert("✅ Zaproszenie wysłane!");
         setReceiverName("");
+
+        if (onRequestSent) {
+          setTimeout(() => onRequestSent(), 1000);
+        }
       } else {
         const error = await res.json();
         Alert.alert("❌ Błąd", error?.error || "Nie udało się wysłać.");

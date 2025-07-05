@@ -1,5 +1,5 @@
 import { StyleSheet } from "react-native";
-export const styles = StyleSheet.create({
+const styles = StyleSheet.create({
   container: { flex: 1, padding: 20 },
   sectionTitle: {
     fontSize: 18,
@@ -57,3 +57,5 @@ export const styles = StyleSheet.create({
     color: "#888",
   },
 });
+
+export default styles
