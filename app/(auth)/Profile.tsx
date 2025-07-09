@@ -9,15 +9,20 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import { useAuth } from "../../context/AuthContext"; // zakładam, że tu masz userId
+import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/Pofile.styles";
 
 export default function ProfileScreen() {
-  const { userId } = useAuth(); // używane do identyfikacji użytkownika
-  const [login, setLogin] = useState("użytkownik123");
-  const [email, setEmail] = useState("user@example.com");
-  const [password, setPassword] = useState("");
-  const [avatar, setAvatar] = useState<string | null>(null);
+  const {
+    userId,
+    userName,
+    avatar,
+    description,
+    setAvatar,
+    setUserName,
+    setDescription,
+  } = useAuth();
+
   const [subscriptionActive, setSubscriptionActive] = useState(false);
 
   const pickImage = async () => {
@@ -51,7 +56,7 @@ export default function ProfileScreen() {
 
         const data = await response.json();
         if (response.ok) {
-          setAvatar(data.avatarUrl); // Zapisujemy pełny URL avatara
+          setAvatar(data.avatarUrl);
           Alert.alert("Sukces", "Avatar zapisany!");
         } else {
           Alert.alert("Błąd", data.error || "Coś poszło nie tak.");
@@ -63,6 +68,28 @@ export default function ProfileScreen() {
     }
   };
 
+const handleSave = async () => {
+  try {
+    const res = await fetch("http://192.168.1.26:3000/api/user/profile", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, userName, description }),
+    });
+
+    const data = await res.json();
+
+    if (res.ok) {
+      setUserName(data.userName);
+      setDescription(data.description);
+      Alert.alert("✅ Zmiany zapisane!");
+    } else {
+      Alert.alert("❌ Błąd", data.error || "Nie udało się zapisać zmian.");
+    }
+  } catch (err) {
+    console.error("❌ Błąd zapisu profilu:", err);
+    Alert.alert("❌ Błąd połączenia", "Spróbuj ponownie później.");
+  }
+};
   const handleSubscription = () => {
     Alert.alert("Subskrypcja", "Zakup subskrypcji zakończony sukcesem!");
     setSubscriptionActive(true);
@@ -99,28 +126,25 @@ export default function ProfileScreen() {
       </TouchableOpacity>
 
       <Text style={styles.label}>Login</Text>
-      <TextInput value={login} onChangeText={setLogin} style={styles.input} />
+      <TextInput value={userName} onChangeText={setUserName} style={styles.input} />
 
-      <Text style={styles.label}>E-mail</Text>
+      <Text style={styles.label}>Opis</Text>
       <TextInput
-        value={email}
-        onChangeText={setEmail}
-        style={styles.input}
-        keyboardType="email-address"
+        value={description}
+        onChangeText={setDescription}
+        style={[styles.input, { height: 80 }]}
+        multiline
       />
-
+{/* 
       <Text style={styles.label}>Nowe hasło</Text>
       <TextInput
         value={password}
         onChangeText={setPassword}
         secureTextEntry
         style={styles.input}
-      />
+      /> */}
 
-      <TouchableOpacity
-        style={styles.saveButton}
-        onPress={() => Alert.alert("Zapisano zmiany!")}
-      >
+      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
         <Text style={styles.saveButtonText}>Zapisz zmiany</Text>
       </TouchableOpacity>
 

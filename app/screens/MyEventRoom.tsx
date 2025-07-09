@@ -1,42 +1,90 @@
+// EventRoomScreen.tsx
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { Alert, FlatList, Text, TouchableOpacity, View } from "react-native";
+import {
+  Alert,
+  FlatList,
+  Image,
+  Modal,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import io from "socket.io-client";
 import type { Event } from "../(auth)/Event";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/EventScreenRoom.styles";
-import ChatBox from "@/components/Chtabox";
+import ChatBox, { Message } from "@/components/ChatBox";
+
+const socket = io("http://192.168.1.26:3000", { transports: ["websocket"] });
 
 type Participant = {
   id: number;
   userName: string;
+  avatar: string | null;
+  description: string;
 };
 
 const EventRoomScreen = () => {
   const router = useRouter();
   const { location, startDate, endDate, eventId } = useLocalSearchParams();
-  const [messages, setMessages] = useState([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
   const { userId, userName } = useAuth();
   const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
+  const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const fetchEventDetails = async () => {
+    try {
+      const res = await fetch(`http://192.168.1.26:3000/api/event/${eventId}/details`);
+      const data = await res.json();
+      setCurrentEvent(data);
+      setParticipants(data.participants);
+    } catch (err) {
+      console.error("Błąd pobierania szczegółów wydarzenia:", err);
+    }
+  };
 
   useEffect(() => {
-    const fetchEventDetails = async () => {
-      try {
-        const res = await fetch(
-          `http://192.168.1.26:3000/api/event/${eventId}/details`
-        );
-        const data = await res.json();
-        console.log(data, "info o moim iwencie");
-        setCurrentEvent(data);
-        setParticipants(data.participants);
-      } catch (err) {
-        console.error("Błąd pobierania szczegółów wydarzenia:", err);
-      }
-    };
-
     fetchEventDetails();
   }, []);
+
+  useEffect(() => {
+    if (!eventId || typeof eventId !== "string") return;
+
+    socket.emit("joinRoom", eventId);
+
+    socket.on("message", (newMessage: Message) => {
+      setMessages((prev) => [...prev, newMessage]);
+    });
+
+    socket.on("participantJoined", () => {
+      fetchEventDetails();
+    });
+
+    socket.on("participantLeft", () => {
+      fetchEventDetails();
+    });
+
+    return () => {
+      socket.emit("leaveRoom", eventId);
+      socket.off("message");
+      socket.off("participantJoined");
+      socket.off("participantLeft");
+    };
+  }, [eventId]);
+
+  const handleSendMessage = (content: string) => {
+    if (!eventId || typeof eventId !== "string" || !userName) return;
+
+    socket.emit("sendMessage", {
+      eventId,
+      content,
+      sender: userName,
+    });
+  };
 
   const canDeleteEvent =
     currentEvent &&
@@ -60,11 +108,7 @@ const EventRoomScreen = () => {
       Alert.alert("Sukces", "Wydarzenie zostało usunięte");
       router.push("/screens/MyEvents");
     } catch (error: unknown) {
-      if (error instanceof Error) {
-        Alert.alert("Błąd", error.message);
-      } else {
-        Alert.alert("Błąd", "Nieznany błąd");
-      }
+      Alert.alert("Błąd", error instanceof Error ? error.message : "Nieznany błąd");
     }
   };
 
@@ -74,66 +118,95 @@ const EventRoomScreen = () => {
         <Stack.Screen
           options={{
             title: "Moje Wydarzenia",
-            headerStyle: {
-              backgroundColor: "#00A9F4",
-            },
+            headerStyle: { backgroundColor: "#00A9F4" },
             headerTintColor: "#fff",
           }}
         />
+
+        {/* HEADER */}
         <View style={styles.header}>
           <View style={styles.eventInfo}>
             <Text style={styles.title}>{location}</Text>
             <Text>
-              {new Date(
-                Array.isArray(startDate) ? startDate[0] : startDate
-              ).toLocaleString()}{" "}
-              -{" "}
-              {new Date(
-                Array.isArray(endDate) ? endDate[0] : endDate
-              ).toLocaleTimeString()}
+              {new Date(Array.isArray(startDate) ? startDate[0] : startDate).toLocaleString()} -{" "}
+              {new Date(Array.isArray(endDate) ? endDate[0] : endDate).toLocaleTimeString()}
             </Text>
           </View>
           {canDeleteEvent && (
-            <TouchableOpacity
-              style={styles.leaveButtonWrapper}
-              onPress={handleDeleteEvent}
-            >
+            <TouchableOpacity style={styles.leaveButtonWrapper} onPress={handleDeleteEvent}>
               <View style={styles.leaveTextWrapper}>
                 <Text style={styles.leaveButton}>Usuń</Text>
                 <Text style={styles.leaveButton}>wydarzenie</Text>
               </View>
-              <Ionicons
-                name="exit-outline"
-                size={18}
-                color="#999"
-                style={styles.leaveIcon}
-              />
+              <Ionicons name="exit-outline" size={18} color="#999" style={styles.leaveIcon} />
             </TouchableOpacity>
           )}
         </View>
 
+        {/* UCZESTNICY */}
         <View style={styles.participantsContainer}>
           <Text style={styles.participantsTitle}>Uczestnicy wydarzenia:</Text>
           <FlatList
             data={participants}
             keyExtractor={(item) => item.id.toString()}
             renderItem={({ item }) => (
-              <View style={styles.participantCard}>
+              <TouchableOpacity
+                style={styles.participantCard}
+                onPress={() => {
+                  setSelectedParticipant(item);
+                  setModalVisible(true);
+                }}
+              >
                 <View style={styles.avatar}>
                   <Text style={styles.avatarText}>
                     {item.userName?.charAt(0).toUpperCase()}
                   </Text>
                 </View>
                 <Text style={styles.userName}>{item.userName}</Text>
-              </View>
+              </TouchableOpacity>
             )}
           />
         </View>
 
         <View style={styles.chatContainer}>
-          <ChatBox messages={messages} />
+          <ChatBox messages={messages} onSend={handleSendMessage} />
         </View>
       </View>
+
+      {/* MODAL */}
+      {selectedParticipant && (
+        <Modal visible={modalVisible} transparent animationType="fade">
+          <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" }}>
+            <View style={{ backgroundColor: "white", padding: 20, borderRadius: 10, width: "80%", alignItems: "center" }}>
+              {selectedParticipant.avatar && selectedParticipant.avatar.trim() !== "" ? (
+                <Image
+                  source={{ uri: selectedParticipant.avatar }}
+                  style={{ width: 80, height: 80, borderRadius: 40, marginBottom: 10 }}
+                />
+              ) : (
+                <View style={{
+                  width: 80,
+                  height: 80,
+                  borderRadius: 40,
+                  backgroundColor: "#ccc",
+                  justifyContent: "center",
+                  alignItems: "center",
+                  marginBottom: 10,
+                }}>
+                  <Text style={{ fontSize: 24 }}>{selectedParticipant.userName.charAt(0).toUpperCase()}</Text>
+                </View>
+              )}
+              <Text style={{ fontSize: 18, fontWeight: "bold" }}>{selectedParticipant.userName}</Text>
+              <Text style={{ marginTop: 10, textAlign: "center" }}>
+                {selectedParticipant.description || "Brak opisu"}
+              </Text>
+              <TouchableOpacity onPress={() => setModalVisible(false)} style={{ marginTop: 15 }}>
+                <Text style={{ color: "#007AFF" }}>Zamknij</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+      )}
     </>
   );
 };

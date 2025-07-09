@@ -5,12 +5,19 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f8f0bf5b-7ad0-40cb-94ee-cdf641474b64" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/components/NotificationHandler.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/styles/ChatBox.styles.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utilis/SendActivity.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/utilis/SendDataform.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(main)/Registration.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(main)/Registration.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/images/ikonameeton.png" beforeDir="false" afterPath="$PROJECT_DIR$/assets/images/ikonameeton.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/assets/images/meetOn.png" beforeDir="false" afterPath="$PROJECT_DIR$/assets/images/meetOn.png" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/styles/Login.styles.ts" beforeDir="false" afterPath="$PROJECT_DIR$/styles/Login.styles.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/styles/Registration.styles.ts" beforeDir="false" afterPath="$PROJECT_DIR$/styles/Registration.styles.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(auth)/Profile.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/Profile.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/screens/LocalEventRoom.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/screens/LocalEventRoom.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/screens/MyEventRoom.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/screens/MyEventRoom.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/Chtabox.tsx" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/context/AuthContext.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/context/AuthContext.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utilis/activityStoarage.ts" beforeDir="false" afterPath="$PROJECT_DIR$/utilis/activityStoarage.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

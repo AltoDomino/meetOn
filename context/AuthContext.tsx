@@ -1,12 +1,17 @@
+// context/AuthContext.tsx
 import React, { createContext, useContext, useState, useEffect } from "react";
 import * as SecureStore from "expo-secure-store";
 
 type AuthContextType = {
   userId: number | null;
   userName: string;
+  avatar: string | null;
+  description: string;
   hasChosenActivities: boolean;
   setUserId: (id: number) => void;
   setUserName: (name: string) => void;
+  setAvatar: (url: string) => void;
+  setDescription: (desc: string) => void;
   setHasChosenActivities: (chosen: boolean) => Promise<void>;
   logout: () => Promise<void>;
 };
@@ -16,6 +21,8 @@ const AuthContext = createContext<AuthContextType | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [userId, setUserId] = useState<number | null>(null);
   const [userName, setUserName] = useState("");
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [description, setDescription] = useState("");
   const [hasChosenActivities, setHasChosenActivitiesState] = useState(false);
 
   useEffect(() => {
@@ -42,6 +49,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = async (): Promise<void> => {
     setUserName("");
     setUserId(null);
+    setAvatar(null);
+    setDescription("");
     setHasChosenActivitiesState(false);
     try {
       await SecureStore.deleteItemAsync("hasChosenActivities");
@@ -55,9 +64,13 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       value={{
         userId,
         userName,
+        avatar,
+        description,
         hasChosenActivities,
         setUserId,
         setUserName,
+        setAvatar,
+        setDescription,
         setHasChosenActivities,
         logout,
       }}
