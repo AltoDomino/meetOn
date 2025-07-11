@@ -46,13 +46,16 @@ export default function ProfileScreen() {
       formData.append("userId", userId?.toString() || "");
 
       try {
-        const response = await fetch("http://192.168.1.26:3000/api/avatar", {
-          method: "POST",
-          body: formData,
-          headers: {
-            "Content-Type": "multipart/form-data",
-          },
-        });
+        const response = await fetch(
+          "https://meeton-backend-ffmo.onrender.com/api/avatar",
+          {
+            method: "POST",
+            body: formData,
+            headers: {
+              "Content-Type": "multipart/form-data",
+            },
+          }
+        );
 
         const data = await response.json();
         if (response.ok) {
@@ -68,28 +71,31 @@ export default function ProfileScreen() {
     }
   };
 
-const handleSave = async () => {
-  try {
-    const res = await fetch("http://192.168.1.26:3000/api/user/profile", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, userName, description }),
-    });
+  const handleSave = async () => {
+    try {
+      const res = await fetch(
+        "https://meeton-backend-ffmo.onrender.com/api/user/profile",
+        {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, userName, description }),
+        }
+      );
 
-    const data = await res.json();
+      const data = await res.json();
 
-    if (res.ok) {
-      setUserName(data.userName);
-      setDescription(data.description);
-      Alert.alert("✅ Zmiany zapisane!");
-    } else {
-      Alert.alert("❌ Błąd", data.error || "Nie udało się zapisać zmian.");
+      if (res.ok) {
+        setUserName(data.userName);
+        setDescription(data.description);
+        Alert.alert("✅ Zmiany zapisane!");
+      } else {
+        Alert.alert("❌ Błąd", data.error || "Nie udało się zapisać zmian.");
+      }
+    } catch (err) {
+      console.error("❌ Błąd zapisu profilu:", err);
+      Alert.alert("❌ Błąd połączenia", "Spróbuj ponownie później.");
     }
-  } catch (err) {
-    console.error("❌ Błąd zapisu profilu:", err);
-    Alert.alert("❌ Błąd połączenia", "Spróbuj ponownie później.");
-  }
-};
+  };
   const handleSubscription = () => {
     Alert.alert("Subskrypcja", "Zakup subskrypcji zakończony sukcesem!");
     setSubscriptionActive(true);
@@ -126,7 +132,11 @@ const handleSave = async () => {
       </TouchableOpacity>
 
       <Text style={styles.label}>Login</Text>
-      <TextInput value={userName} onChangeText={setUserName} style={styles.input} />
+      <TextInput
+        value={userName}
+        onChangeText={setUserName}
+        style={styles.input}
+      />
 
       <Text style={styles.label}>Opis</Text>
       <TextInput
@@ -135,7 +145,7 @@ const handleSave = async () => {
         style={[styles.input, { height: 80 }]}
         multiline
       />
-{/* 
+      {/* 
       <Text style={styles.label}>Nowe hasło</Text>
       <TextInput
         value={password}

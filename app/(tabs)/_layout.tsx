@@ -14,7 +14,7 @@ import {
 import Login from "../(main)/Login";
 import { useAuth } from "../../context/AuthContext";
 
-const BACKEND_URL = "http://192.168.1.26:3000";
+const BACKEND_URL = "https://meeton-backend-ffmo.onrender.com";
 
 export default function Index() {
   const { userId } = useAuth();

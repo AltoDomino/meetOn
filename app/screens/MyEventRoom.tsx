@@ -1,4 +1,5 @@
 // EventRoomScreen.tsx
+import ChatBox, { Message } from "@/components/ChatBox";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -15,9 +16,10 @@ import io from "socket.io-client";
 import type { Event } from "../(auth)/Event";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/EventScreenRoom.styles";
-import ChatBox, { Message } from "@/components/ChatBox";
 
-const socket = io("http://192.168.1.26:3000", { transports: ["websocket"] });
+const socket = io("https://meeton-backend-ffmo.onrender.com", {
+  transports: ["websocket"],
+});
 
 type Participant = {
   id: number;
@@ -33,12 +35,15 @@ const EventRoomScreen = () => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const { userId, userName } = useAuth();
   const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
-  const [selectedParticipant, setSelectedParticipant] = useState<Participant | null>(null);
+  const [selectedParticipant, setSelectedParticipant] =
+    useState<Participant | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
 
   const fetchEventDetails = async () => {
     try {
-      const res = await fetch(`http://192.168.1.26:3000/api/event/${eventId}/details`);
+      const res = await fetch(
+        `https://meeton-backend-ffmo.onrender.com/api/event/${eventId}/details`
+      );
       const data = await res.json();
       setCurrentEvent(data);
       setParticipants(data.participants);
@@ -108,7 +113,10 @@ const EventRoomScreen = () => {
       Alert.alert("Sukces", "Wydarzenie zostało usunięte");
       router.push("/screens/MyEvents");
     } catch (error: unknown) {
-      Alert.alert("Błąd", error instanceof Error ? error.message : "Nieznany błąd");
+      Alert.alert(
+        "Błąd",
+        error instanceof Error ? error.message : "Nieznany błąd"
+      );
     }
   };
 
@@ -128,17 +136,30 @@ const EventRoomScreen = () => {
           <View style={styles.eventInfo}>
             <Text style={styles.title}>{location}</Text>
             <Text>
-              {new Date(Array.isArray(startDate) ? startDate[0] : startDate).toLocaleString()} -{" "}
-              {new Date(Array.isArray(endDate) ? endDate[0] : endDate).toLocaleTimeString()}
+              {new Date(
+                Array.isArray(startDate) ? startDate[0] : startDate
+              ).toLocaleString()}{" "}
+              -{" "}
+              {new Date(
+                Array.isArray(endDate) ? endDate[0] : endDate
+              ).toLocaleTimeString()}
             </Text>
           </View>
           {canDeleteEvent && (
-            <TouchableOpacity style={styles.leaveButtonWrapper} onPress={handleDeleteEvent}>
+            <TouchableOpacity
+              style={styles.leaveButtonWrapper}
+              onPress={handleDeleteEvent}
+            >
               <View style={styles.leaveTextWrapper}>
                 <Text style={styles.leaveButton}>Usuń</Text>
                 <Text style={styles.leaveButton}>wydarzenie</Text>
               </View>
-              <Ionicons name="exit-outline" size={18} color="#999" style={styles.leaveIcon} />
+              <Ionicons
+                name="exit-outline"
+                size={18}
+                color="#999"
+                style={styles.leaveIcon}
+              />
             </TouchableOpacity>
           )}
         </View>
@@ -176,31 +197,61 @@ const EventRoomScreen = () => {
       {/* MODAL */}
       {selectedParticipant && (
         <Modal visible={modalVisible} transparent animationType="fade">
-          <View style={{ flex: 1, backgroundColor: "rgba(0,0,0,0.5)", justifyContent: "center", alignItems: "center" }}>
-            <View style={{ backgroundColor: "white", padding: 20, borderRadius: 10, width: "80%", alignItems: "center" }}>
-              {selectedParticipant.avatar && selectedParticipant.avatar.trim() !== "" ? (
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.5)",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "white",
+                padding: 20,
+                borderRadius: 10,
+                width: "80%",
+                alignItems: "center",
+              }}
+            >
+              {selectedParticipant.avatar &&
+              selectedParticipant.avatar.trim() !== "" ? (
                 <Image
                   source={{ uri: selectedParticipant.avatar }}
-                  style={{ width: 80, height: 80, borderRadius: 40, marginBottom: 10 }}
+                  style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 40,
+                    marginBottom: 10,
+                  }}
                 />
               ) : (
-                <View style={{
-                  width: 80,
-                  height: 80,
-                  borderRadius: 40,
-                  backgroundColor: "#ccc",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  marginBottom: 10,
-                }}>
-                  <Text style={{ fontSize: 24 }}>{selectedParticipant.userName.charAt(0).toUpperCase()}</Text>
+                <View
+                  style={{
+                    width: 80,
+                    height: 80,
+                    borderRadius: 40,
+                    backgroundColor: "#ccc",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginBottom: 10,
+                  }}
+                >
+                  <Text style={{ fontSize: 24 }}>
+                    {selectedParticipant.userName.charAt(0).toUpperCase()}
+                  </Text>
                 </View>
               )}
-              <Text style={{ fontSize: 18, fontWeight: "bold" }}>{selectedParticipant.userName}</Text>
+              <Text style={{ fontSize: 18, fontWeight: "bold" }}>
+                {selectedParticipant.userName}
+              </Text>
               <Text style={{ marginTop: 10, textAlign: "center" }}>
                 {selectedParticipant.description || "Brak opisu"}
               </Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)} style={{ marginTop: 15 }}>
+              <TouchableOpacity
+                onPress={() => setModalVisible(false)}
+                style={{ marginTop: 15 }}
+              >
                 <Text style={{ color: "#007AFF" }}>Zamknij</Text>
               </TouchableOpacity>
             </View>

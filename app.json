@@ -4,17 +4,15 @@
     "slug": "meetOn",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/meetOn.png",
+    "icon": "./assets/images/startMeetOn.png",
     "scheme": "meeton",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
-
     "splash": {
       "image": "./assets/images/startMeetOn.png",
-      "resizeMode": "cover",
-      "backgroundColor": "#000000"
+      "resizeMode": "contain",
+      "backgroundColor": "#0d1a4d"
     },
-
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.domino96.meetOn",
@@ -22,49 +20,35 @@
         "ITSAppUsesNonExemptEncryption": false
       }
     },
-
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/startMeetOn.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0d1a4d"
       },
       "edgeToEdgeEnabled": true,
       "useNextNotificationsApi": true,
       "package": "com.domino96.meetOn"
     },
-
     "web": {
       "bundler": "metro",
       "output": "static",
-      "favicon": "./assets/images/favicon.png"
+      "favicon": "./assets/images/startMeetOn.png"
     },
-
     "plugins": [
       "expo-router",
       "expo-notifications",
-      [
-        "expo-splash-screen",
-        {
-          "image": "./assets/images/startMeetOn.png",
-          "resizeMode": "cover",
-          "backgroundColor": "#000000"
-        }
-      ],
       "expo-font",
       "expo-secure-store"
     ],
-
     "experiments": {
       "typedRoutes": true
     },
-
     "extra": {
       "router": {},
       "eas": {
         "projectId": "21c25dfa-afc4-4d4a-9ce3-3d1a809d4dfe"
       }
     },
-
     "owner": "domino96"
   }
 }

@@ -17,7 +17,7 @@ export default function FriendsList() {
   const fetchFriends = async () => {
     try {
       const res = await fetch(
-        `http://192.168.1.26:3000/api/invite-friends/${userId}`
+        `https://meeton-backend-ffmo.onrender.com/api/invite-friends/${userId}`
       );
       const data = await res.json();
       setFriends(data);

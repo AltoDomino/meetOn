@@ -16,7 +16,7 @@ import type { Event } from "../(auth)/Event";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/EventScreenRoom.styles";
 
-const socket = io("http://192.168.1.26:3000");
+const socket = io("https://meeton-backend-ffmo.onrender.com");
 
 const LocalEventRoom = () => {
   const router = useRouter();
@@ -31,7 +31,9 @@ const LocalEventRoom = () => {
 
   const fetchEventDetails = async () => {
     try {
-      const res = await fetch(`http://192.168.1.26:3000/api/event/${eventId}/details`);
+      const res = await fetch(
+        `https://meeton-backend-ffmo.onrender.com/api/event/${eventId}/details`
+      );
       const data = await res.json();
       setCurrentEvent(data);
       setParticipants(data.participants);
@@ -76,7 +78,9 @@ const LocalEventRoom = () => {
 
   const fetchParticipantDetails = async (participantId: number) => {
     try {
-      const res = await fetch(`http://192.168.1.26:3000/api/user/profile/${participantId}`);
+      const res = await fetch(
+        `https://meeton-backend-ffmo.onrender.com/api/user/profile/${participantId}`
+      );
       const data = await res.json();
       setSelectedParticipant(data);
       setModalVisible(true);
@@ -90,11 +94,14 @@ const LocalEventRoom = () => {
     if (!userId || isNaN(numericEventId)) return;
 
     try {
-      const res = await fetch("http://192.168.1.26:3000/api/leave", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, eventId: numericEventId }),
-      });
+      const res = await fetch(
+        "https://meeton-backend-ffmo.onrender.com/api/leave",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, eventId: numericEventId }),
+        }
+      );
 
       if (res.ok) {
         socket.emit("participantLeft", eventId);
@@ -127,17 +134,21 @@ const LocalEventRoom = () => {
         {/* Header */}
         <View style={styles.header}>
           <View style={styles.eventInfo}>
-            <Text style={styles.title}>{currentEvent?.location || "Brak lokalizacji"}</Text>
+            <Text style={styles.title}>
+              {currentEvent?.location || "Brak lokalizacji"}
+            </Text>
             <Text>
               {currentEvent?.startDate
                 ? new Date(currentEvent.startDate).toLocaleDateString()
-                : ""} {" • "}
+                : ""}{" "}
+              {" • "}
               {currentEvent?.startDate
                 ? new Date(currentEvent.startDate).toLocaleTimeString([], {
                     hour: "2-digit",
                     minute: "2-digit",
                   })
-                : ""} {" - "}
+                : ""}{" "}
+              {" - "}
               {currentEvent?.endDate
                 ? new Date(currentEvent.endDate).toLocaleTimeString([], {
                     hour: "2-digit",
@@ -148,19 +159,35 @@ const LocalEventRoom = () => {
           </View>
 
           <View style={styles.buttonContainer}>
-            <TouchableOpacity style={styles.leaveButtonWrapper} onPress={handleLeave}>
+            <TouchableOpacity
+              style={styles.leaveButtonWrapper}
+              onPress={handleLeave}
+            >
               <View style={styles.leaveTextWrapper}>
                 <Text style={styles.leaveButton}>Opuść</Text>
                 <Text style={styles.leaveButton}>wydarzenie</Text>
               </View>
-              <Ionicons name="exit-outline" size={18} color="#999" style={styles.leaveIcon} />
+              <Ionicons
+                name="exit-outline"
+                size={18}
+                color="#999"
+                style={styles.leaveIcon}
+              />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.leaveButtonWrapper} onPress={handleSwitch}>
+            <TouchableOpacity
+              style={styles.leaveButtonWrapper}
+              onPress={handleSwitch}
+            >
               <View style={styles.leaveTextWrapper}>
                 <Text style={styles.leaveButton}>Moje</Text>
                 <Text style={styles.leaveButton}>wydarzenia</Text>
               </View>
-              <Ionicons name="swap-vertical-outline" size={18} color="#999" style={styles.leaveIcon} />
+              <Ionicons
+                name="swap-vertical-outline"
+                size={18}
+                color="#999"
+                style={styles.leaveIcon}
+              />
             </TouchableOpacity>
           </View>
         </View>
@@ -177,9 +204,14 @@ const LocalEventRoom = () => {
             <FlatList
               data={participants}
               keyExtractor={(item) => item.id.toString()}
-              ListEmptyComponent={<Text style={styles.emptyText}>Brak uczestników</Text>}
+              ListEmptyComponent={
+                <Text style={styles.emptyText}>Brak uczestników</Text>
+              }
               renderItem={({ item }) => (
-                <TouchableOpacity onPress={() => fetchParticipantDetails(item.id)} style={styles.participantCard}>
+                <TouchableOpacity
+                  onPress={() => fetchParticipantDetails(item.id)}
+                  style={styles.participantCard}
+                >
                   <View style={styles.avatar}>
                     {item.avatar && item.avatar.trim() !== "" ? (
                       <Image
@@ -187,7 +219,9 @@ const LocalEventRoom = () => {
                         style={{ width: 40, height: 40, borderRadius: 20 }}
                       />
                     ) : (
-                      <Text style={styles.avatarText}>{item.userName?.charAt(0).toUpperCase()}</Text>
+                      <Text style={styles.avatarText}>
+                        {item.userName?.charAt(0).toUpperCase()}
+                      </Text>
                     )}
                   </View>
                   <Text style={styles.userName}>{item.userName}</Text>
@@ -203,23 +237,77 @@ const LocalEventRoom = () => {
         </View>
 
         {/* Modal */}
-        <Modal visible={modalVisible} transparent animationType="fade" onRequestClose={() => setModalVisible(false)}>
-          <View style={{ flex: 1, justifyContent: "center", alignItems: "center", backgroundColor: "rgba(0,0,0,0.6)" }}>
-            <View style={{ backgroundColor: "#fff", borderRadius: 16, padding: 20, width: "80%", alignItems: "center" }}>
-              {selectedParticipant?.avatarUrl && selectedParticipant.avatarUrl.trim() !== "" ? (
+        <Modal
+          visible={modalVisible}
+          transparent
+          animationType="fade"
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "rgba(0,0,0,0.6)",
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#fff",
+                borderRadius: 16,
+                padding: 20,
+                width: "80%",
+                alignItems: "center",
+              }}
+            >
+              {selectedParticipant?.avatarUrl &&
+              selectedParticipant.avatarUrl.trim() !== "" ? (
                 <Image
                   source={{ uri: selectedParticipant.avatarUrl }}
-                  style={{ width: 200, height: 200, borderRadius: 60, marginBottom: 16 }}
+                  style={{
+                    width: 200,
+                    height: 200,
+                    borderRadius: 60,
+                    marginBottom: 16,
+                  }}
                 />
               ) : (
-                <View style={{ width: 120, height: 120, borderRadius: 60, backgroundColor: "#ccc", justifyContent: "center", alignItems: "center", marginBottom: 16 }}>
-                  <Text style={{ fontSize: 48 }}>{selectedParticipant?.userName?.charAt(0).toUpperCase()}</Text>
+                <View
+                  style={{
+                    width: 120,
+                    height: 120,
+                    borderRadius: 60,
+                    backgroundColor: "#ccc",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginBottom: 16,
+                  }}
+                >
+                  <Text style={{ fontSize: 48 }}>
+                    {selectedParticipant?.userName?.charAt(0).toUpperCase()}
+                  </Text>
                 </View>
               )}
-              <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 5 }}>{selectedParticipant?.userName}</Text>
-              <Text style={{ textAlign: "center", color: "#666" }}>{selectedParticipant?.description || "Brak opisu"}</Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)} style={{ marginTop: 20, padding: 10, backgroundColor: "#00A9F4", borderRadius: 8 }}>
-                <Text style={{ color: "white", fontWeight: "bold" }}>Zamknij</Text>
+              <Text
+                style={{ fontSize: 20, fontWeight: "bold", marginBottom: 5 }}
+              >
+                {selectedParticipant?.userName}
+              </Text>
+              <Text style={{ textAlign: "center", color: "#666" }}>
+                {selectedParticipant?.description || "Brak opisu"}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setModalVisible(false)}
+                style={{
+                  marginTop: 20,
+                  padding: 10,
+                  backgroundColor: "#00A9F4",
+                  borderRadius: 8,
+                }}
+              >
+                <Text style={{ color: "white", fontWeight: "bold" }}>
+                  Zamknij
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

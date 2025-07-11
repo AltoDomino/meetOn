@@ -13,7 +13,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/Event.styles";
 
-const BACKEND_URL = "http://192.168.1.26:3000";
+const BACKEND_URL = "https://meeton-backend-ffmo.onrender.com";
 
 export type Event = {
   id: number;

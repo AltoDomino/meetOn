@@ -1,0 +1,1 @@
+export const backend_URL ="https://meeton-backend-ffmo.onrender.com"

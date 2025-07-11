@@ -42,13 +42,16 @@ export default function YourActivities() {
             setActivities(updated);
             await saveActivities(userName, updated);
             console.log(userId, "czy userid istnieje ");
-            await fetch(`http://192.168.1.26:3000/api/interests/${userId}`, {
-              method: "PATCH",
-              headers: {
-                "Content-Type": "application/json",
-              },
-              body: JSON.stringify({ interests: updated }),
-            });
+            await fetch(
+              `https://meeton-backend-ffmo.onrender.com/api/interests/${userId}`,
+              {
+                method: "PATCH",
+                headers: {
+                  "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ interests: updated }),
+              }
+            );
             console.log(userId, "czy user id istneije ");
           },
         },

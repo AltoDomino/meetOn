@@ -22,7 +22,7 @@ export default function Home() {
 
   return (
     <ImageBackground
-      source={require("@/assets/images/meetOn.png")}
+      source={require("@/assets/images/ikonameeton.png")}
       style={styles.background}
       resizeMode="cover"
     >

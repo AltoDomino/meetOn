@@ -1,6 +1,6 @@
-import * as Notifications from "expo-notifications";
-import * as Device from "expo-device";
 import Constants from "expo-constants";
+import * as Device from "expo-device";
+import * as Notifications from "expo-notifications";
 
 export const registerPushToken = async (userId: number) => {
   if (!Device.isDevice) {
@@ -29,7 +29,7 @@ export const registerPushToken = async (userId: number) => {
 
   console.log("📨 Token push:", token);
 
-  await fetch("http://192.168.1.26:3000/api/push-token", {
+  await fetch("https://meeton-backend-ffmo.onrender.com/api/push-token", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ userId, token }),

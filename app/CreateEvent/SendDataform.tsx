@@ -11,11 +11,14 @@ const FormDataSend = async (DataForm: {
   creatorId: number;
 }) => {
   try {
-    const res = await fetch("http://192.168.1.26:3000/api/event/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(DataForm),
-    });
+    const res = await fetch(
+      "https://meeton-backend-ffmo.onrender.com/api/event/create",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(DataForm),
+      }
+    );
 
     if (res.status === 201) {
       console.log("Dane:", DataForm);

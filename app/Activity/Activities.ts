@@ -18,6 +18,9 @@ export const activityImages: Record<string, any> = {
 "Taniec Towarzyski": require("../../assets/images/taniec-towarzyski.png"),
 "Wspinaczka": require("../../assets/images/spinaczka.png"),
 "Gokarty": require("../../assets/images/gokarty.png"),
+"strzelnica": require("../../assets/images/strzelnica.png"),
+"squash": require("../../assets/images/squash.png"),
+"padel": require("../../assets/images/padel.png"),
 "Stwórz własne": require("../../assets/images/wlasne.png"),
 
 };

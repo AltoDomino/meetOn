@@ -15,7 +15,7 @@ import { useActivity } from "../../context/ActivityContext";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/Event.styles";
 
-const BACKEND_URL = "http://192.168.1.26:3000";
+const BACKEND_URL = "https://meeton-backend-ffmo.onrender.com";
 
 export type Event = {
   spots: number;
@@ -36,6 +36,7 @@ export default function Events() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+  const [distanceFilter, setDistanceFilter] = useState<number | null>(null);
   const { userId, hasChosenActivities } = useAuth();
   const { location, startDate, endDate } = useLocalSearchParams();
   const { activities } = useActivity();
@@ -54,10 +55,6 @@ export default function Events() {
           const event = events[0];
 
           if (!event.isCreator) {
-            console.log(
-              "📦 Przekierowanie uczestnika do LocalEventRoom:",
-              event
-            );
             router.replace({
               pathname: "/screens/LocalEventRoom",
               params: {
@@ -67,8 +64,6 @@ export default function Events() {
                 endDate: event.endDate,
               },
             });
-          } else {
-            console.log("🧾 Twórca wydarzenia — zostaje na ekranie Events");
           }
         }
       } catch (error) {
@@ -82,10 +77,13 @@ export default function Events() {
   const fetchEvents = async (): Promise<void> => {
     if (!userId) return;
     try {
-      const res = await fetch(`${BACKEND_URL}/api/events?userId=${userId}`);
+      let url = `${BACKEND_URL}/api/events?userId=${userId}`;
+      if (distanceFilter) {
+        url += `&distance=${distanceFilter}`;
+      }
+      const res = await fetch(url);
       const data = await res.json();
       setEvents(data);
-      console.log(data, ",wydarzenia ktore przychodzą");
     } catch (err) {
       console.error("Błąd pobierania wydarzeń:", err);
     }
@@ -93,7 +91,6 @@ export default function Events() {
 
   useEffect(() => {
     if (!userId) return;
-
     if (!hasChosenActivities) {
       router.replace("/(main)/HomeScreen");
       return;
@@ -102,7 +99,7 @@ export default function Events() {
     setLoading(true);
     registerPushToken(userId);
     fetchEvents().finally(() => setLoading(false));
-  }, [userId]);
+  }, [userId, distanceFilter]);
 
   useEffect(() => {
     if (userId && activities.length > 0) fetchEvents();
@@ -123,7 +120,6 @@ export default function Events() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, eventId }),
       });
-      console.log(userId, "wysyłam userid", eventId, "wysyłam eventid");
       if (res.ok) {
         Alert.alert("Sukces", "Dołączono do wydarzenia");
         fetchEvents();
@@ -141,16 +137,12 @@ export default function Events() {
         let message = err.error || "Nie udało się dołączyć do wydarzenia.";
 
         if (message.includes("mężczyzn")) {
-          message =
-            "Brak miejsc dla mężczyzn. Wydarzenie ma równy podział płci.";
-        }
-        if (message.includes("kobiet")) {
+          message = "Brak miejsc dla mężczyzn. Wydarzenie ma równy podział płci.";
+        } else if (message.includes("kobiet")) {
           message = "Brak miejsc dla kobiet. Wydarzenie ma równy podział płci.";
-        }
-        if (message.includes("Brak miejsc w wydarzeniu")) {
+        } else if (message.includes("Brak miejsc w wydarzeniu")) {
           message = "Wszystkie miejsca w wydarzeniu są już zajęte.";
-        }
-        if (message.includes("Użytkownik już dołączył")) {
+        } else if (message.includes("Użytkownik już dołączył")) {
           message = "Już jesteś uczestnikiem tego wydarzenia.";
         }
 
@@ -217,50 +209,83 @@ export default function Events() {
     </View>
   );
 
-  if (loading) {
-    return (
-      <View style={styles.center}>
-        <ActivityIndicator size="large" color="#000" />
-      </View>
-    );
-  }
-
-  if (events.length === 0) {
-    return (
-      <View style={styles.center}>
-        <SwitchButton to="/screens/MyEvents" label="Twoje wydarzenia" />
-        <Text style={{ fontSize: 16, color: "#666", marginTop: 10 }}>
-          Brak aktualnych wydarzeń w pobliżu 😞
-        </Text>
-      </View>
-    );
-  }
-
   return (
     <View style={{ flex: 1 }}>
       <View style={{ padding: 16, backgroundColor: "#f0f0f0" }}>
         <SwitchButton to="/screens/MyEvents" label="Twoje wydarzenia" />
+
+        <View
+          style={{
+            flexDirection: "row",
+            justifyContent: "space-around",
+            marginTop: 16,
+          }}
+        >
+          <TouchableOpacity onPress={() => setDistanceFilter(30)}>
+            <Text
+              style={{
+                backgroundColor: distanceFilter === 30 ? "#007AFF" : "#ccc",
+                color: distanceFilter === 30 ? "#fff" : "#000",
+                padding: 8,
+                borderRadius: 8,
+              }}
+            >
+              5–30 km
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setDistanceFilter(50)}>
+            <Text
+              style={{
+                backgroundColor: distanceFilter === 50 ? "#007AFF" : "#ccc",
+                color: distanceFilter === 50 ? "#fff" : "#000",
+                padding: 8,
+                borderRadius: 8,
+              }}
+            >
+              30–50 km
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity onPress={() => setDistanceFilter(999)}>
+            <Text
+              style={{
+                backgroundColor: distanceFilter === 999 ? "#007AFF" : "#ccc",
+                color: distanceFilter === 999 ? "#fff" : "#000",
+                padding: 8,
+                borderRadius: 8,
+              }}
+            >
+              50+ km
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
-      <FlatList
-        data={events}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={{ padding: 16 }}
-        refreshing={refreshing}
-        onRefresh={handleRefresh}
-        ListEmptyComponent={
-          <Text
-            style={{
-              fontSize: 16,
-              color: "#666",
-              textAlign: "center",
-              marginTop: 10,
-            }}
-          >
-            Brak aktualnych wydarzeń w pobliżu 😞
-          </Text>
-        }
-      />
+
+      {loading ? (
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#000" />
+        </View>
+      ) : (
+        <FlatList
+          data={events}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={{ padding: 16 }}
+          refreshing={refreshing}
+          onRefresh={handleRefresh}
+          ListEmptyComponent={
+            <Text
+              style={{
+                fontSize: 16,
+                color: "#666",
+                textAlign: "center",
+                marginTop: 10,
+              }}
+            >
+              Brak aktualnych wydarzeń w pobliżu 😞
+            </Text>
+          }
+        />
+      )}
     </View>
   );
 }

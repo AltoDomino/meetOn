@@ -21,7 +21,7 @@ interface FormData {
   password: string;
 }
 
-const BACKEND_URL = "http://192.168.1.26:3000";
+const BACKEND_URL = "https://meeton-backend-ffmo.onrender.com";
 
 const Login = () => {
   const { setUserName, setUserId, setHasChosenActivities } = useAuth();
@@ -37,7 +37,7 @@ const Login = () => {
         },
         body: JSON.stringify(dataLog),
       });
-
+console.log(dataLog)
       if (res.status === 200) {
         const data = await res.json();
         setUserName(data.userName);

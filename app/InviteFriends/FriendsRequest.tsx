@@ -17,18 +17,21 @@ export default function FriendRequests({ onAccepted }: Props) {
 
   const fetchRequests = async () => {
     const res = await fetch(
-      `http://192.168.1.26:3000/api/invite-friends/requests/${userId}`
+      `https://meeton-backend-ffmo.onrender.com/api/invite-friends/requests/${userId}`
     );
     const data = await res.json();
     setRequests(data);
   };
 
   const acceptRequest = async (requesterId: number) => {
-    await fetch(`http://192.168.1.26:3000/api/invite-friends/accept`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ senderId: requesterId, receiverId: userId }),
-    });
+    await fetch(
+      `https://meeton-backend-ffmo.onrender.com/api/invite-friends/accept`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ senderId: requesterId, receiverId: userId }),
+      }
+    );
     fetchRequests();
     onAccepted();
   };

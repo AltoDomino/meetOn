@@ -2,7 +2,11 @@ import React, { useState } from "react";
 import { Alert, Button, StyleSheet, TextInput, View } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 
-export default function SendFriendRequest({ onRequestSent }: { onRequestSent?: () => void }) {
+export default function SendFriendRequest({
+  onRequestSent,
+}: {
+  onRequestSent?: () => void;
+}) {
   const { userId } = useAuth();
   const [receiverName, setReceiverName] = useState("");
 
@@ -10,14 +14,17 @@ export default function SendFriendRequest({ onRequestSent }: { onRequestSent?: (
     if (!receiverName || !userId) return;
 
     try {
-      const res = await fetch(`http://192.168.1.26:3000/api/invite-friends/send`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          senderId: userId,
-          receiverName,
-        }),
-      });
+      const res = await fetch(
+        `https://meeton-backend-ffmo.onrender.com/api/invite-friends/send`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            senderId: userId,
+            receiverName,
+          }),
+        }
+      );
 
       if (res.ok) {
         Alert.alert("✅ Zaproszenie wysłane!");
