@@ -1,6 +1,5 @@
 import fetchPlaces, { Place } from "@/utilis/FetchActivityPlaces";
 import { Ionicons } from "@expo/vector-icons";
-import DateTimePickerModal from "react-native-modal-datetime-picker";
 import * as Location from "expo-location";
 import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -12,34 +11,37 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
+import Constants from "expo-constants";
+import DateTimePickerModal from "react-native-modal-datetime-picker";
+import BottomButton from "@/components/Bottombutton";
 import { styles } from "../../styles/form.styles";
 
-export default function CreateEventForm() {
-  const { activity: choosenActivity } = useLocalSearchParams();
+export default function PlaceDateform() {
+  const { activity: choosenActivity, customOnly } = useLocalSearchParams();
+
   const newActivity = Array.isArray(choosenActivity)
     ? choosenActivity[0]
     : choosenActivity;
 
+  const isCustomOnly = customOnly === "true";
+
   const [places, setPlaces] = useState<Place[]>([]);
   const [loading, setLoading] = useState(false);
-  const [startDate, setStartDate] = useState(new Date());
-  const [endDate, setEndDate] = useState(new Date());
+
+  const initialStartDate = new Date();
+  initialStartDate.setHours(initialStartDate.getHours() + 1);
+
+  const initialEndDate = new Date(initialStartDate);
+  initialEndDate.setHours(initialStartDate.getHours() + 1);
+
+  const [startDate, setStartDate] = useState(initialStartDate);
+  const [endDate, setEndDate] = useState(initialEndDate);
+
   const [customLocation, setCustomLocation] = useState("");
   const [selectedPlaceId, setSelectedPlaceId] = useState<string | null>(null);
 
   const [isStartPickerVisible, setStartPickerVisible] = useState(false);
   const [isEndPickerVisible, setEndPickerVisible] = useState(false);
-
-  const handleStartConfirm = (date: Date) => {
-    setStartDate(date);
-    setStartPickerVisible(false);
-  };
-
-  const handleEndConfirm = (date: Date) => {
-    setEndDate(date);
-    setEndPickerVisible(false);
-  };
 
   const fetchNearbyPlaces = async () => {
     setLoading(true);
@@ -62,8 +64,23 @@ export default function CreateEventForm() {
   };
 
   useEffect(() => {
-    fetchNearbyPlaces();
+    if (!isCustomOnly) {
+      fetchNearbyPlaces();
+    }
   }, [choosenActivity]);
+
+  const handleStartConfirm = (date: Date) => {
+    setStartDate(date);
+    const newEnd = new Date(date);
+    newEnd.setHours(newEnd.getHours() + 1);
+    setEndDate(newEnd);
+    setStartPickerVisible(false);
+  };
+
+  const handleEndConfirm = (date: Date) => {
+    setEndDate(date);
+    setEndPickerVisible(false);
+  };
 
   const renderPlaceTile = ({ item }: { item: Place }) => {
     const isSelected = selectedPlaceId === item.placeId;
@@ -86,9 +103,7 @@ export default function CreateEventForm() {
           ]}
         >
           <Text style={styles.placeText}>{item.name}</Text>
-          {item.address && (
-            <Text style={styles.placeAddress}>{item.address}</Text>
-          )}
+          {item.address && <Text style={styles.placeAddress}>{item.address}</Text>}
         </View>
 
         <View style={styles.iconRowBottom}>
@@ -113,19 +128,43 @@ export default function CreateEventForm() {
     );
   };
 
+  const handleSubmit = () => {
+    if (!selectedPlaceId && !customLocation) {
+      alert("Musisz wybrać miejsce lub wpisać własną lokalizację");
+      return;
+    }
+
+    const selectedPlace = places.find((p) => p.placeId === selectedPlaceId);
+
+    router.push({
+      pathname: "/CreateEvent/DetailsForm",
+      params: {
+        activity: newActivity,
+        location: customLocation || selectedPlace?.name || "",
+        address: customLocation || selectedPlace?.address || "",
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+      },
+    });
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={styles.label}>Sugerowane lokalizacje:</Text>
-      <FlatList
-        data={places}
-        keyExtractor={(item) => item.placeId}
-        renderItem={renderPlaceTile}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={{ paddingBottom: 20 }}
-        ListEmptyComponent={<Text>Brak wyników</Text>}
-      />
+      {!isCustomOnly && (
+        <>
+          <Text style={styles.label}>Sugerowane lokalizacje:</Text>
+          <FlatList
+            data={places}
+            keyExtractor={(item) => item.placeId}
+            renderItem={renderPlaceTile}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{ paddingBottom: 100 }}
+            ListEmptyComponent={<Text>Brak wyników</Text>}
+          />
+        </>
+      )}
 
-      <Text style={styles.label}>Lub wpisz własną lokalizację:</Text>
+      <Text style={styles.label}>Wpisz własną lokalizację:</Text>
       <TextInput
         style={{
           borderWidth: 1,
@@ -148,9 +187,7 @@ export default function CreateEventForm() {
           onPress={() => setStartPickerVisible(true)}
         >
           <Text style={styles.datePickerLabel}>Start</Text>
-          <Text style={styles.datePickerText}>
-            {startDate.toLocaleDateString()} 
-          </Text>
+          <Text style={styles.datePickerText}>{startDate.toLocaleString()}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -158,52 +195,26 @@ export default function CreateEventForm() {
           onPress={() => setEndPickerVisible(true)}
         >
           <Text style={styles.datePickerLabel}>Koniec</Text>
-          <Text style={styles.datePickerText}>
-            {endDate.toLocaleDateString()} 
-          </Text>
+          <Text style={styles.datePickerText}>{endDate.toLocaleString()}</Text>
         </TouchableOpacity>
       </View>
 
-      {/* PICKERY MODALNE */}
       <DateTimePickerModal
         isVisible={isStartPickerVisible}
         mode="datetime"
+        date={startDate}
         onConfirm={handleStartConfirm}
         onCancel={() => setStartPickerVisible(false)}
       />
       <DateTimePickerModal
         isVisible={isEndPickerVisible}
         mode="datetime"
+        date={endDate}
         onConfirm={handleEndConfirm}
         onCancel={() => setEndPickerVisible(false)}
       />
 
-      <TouchableOpacity
-        style={styles.submitButton}
-        onPress={() => {
-          if (!selectedPlaceId && !customLocation) {
-            alert("Musisz wybrać miejsce lub wpisać własną lokalizację");
-            return;
-          }
-
-          const selectedPlace = places.find(
-            (p) => p.placeId === selectedPlaceId
-          );
-
-          router.push({
-            pathname: "/CreateEvent/DetailsForm",
-            params: {
-              activity: newActivity,
-              location: customLocation || selectedPlace?.name || "",
-              address: customLocation || selectedPlace?.address || "",
-              startDate: startDate.toISOString(),
-              endDate: endDate.toISOString(),
-            },
-          });
-        }}
-      >
-        <Text style={styles.submitButtonText}>Szczegóły Wydarzenia</Text>
-      </TouchableOpacity>
+      <BottomButton title="Szczegóły Wydarzenia" onPress={handleSubmit} />
     </View>
   );
 }

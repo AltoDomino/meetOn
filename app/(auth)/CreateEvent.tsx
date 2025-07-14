@@ -63,28 +63,32 @@ export default function CreateEvent() {
     );
   };
 
-  const handleCreateEvent = () => {
-    if (!choosenActivity) return;
+const handleCreateEvent = () => {
+  if (!choosenActivity) return;
 
-    const mosirActivities = [
-      "Tenis ziemny",
-      "Piłka nożna",
-      "Koszykówka",
-      "Tenis stołowy",
-    ];
-    const finalActivity = mosirActivities.includes(choosenActivity)
-      ? "mosir"
-      : choosenActivity;
+  const mosirActivities = [
+    "Tenis ziemny",
+    "Piłka nożna",
+    "Koszykówka",
+    "Tenis stołowy",
+  ];
 
-    router.push({
-      pathname: "/CreateEvent/PlaceDateform",
-      params: {
-        activity: finalActivity,
-      },
-    });
+  const isMosir = mosirActivities.includes(choosenActivity);
+  const isOther = choosenActivity === "Stwórz własne";
 
-    console.log("wybrana aktywność (przekazywana):", finalActivity);
-  };
+  const finalActivity = isMosir ? "mosir" : choosenActivity;
+
+  router.push({
+    pathname: "/CreateEvent/PlaceDateform",
+    params: {
+      activity: finalActivity,
+      customOnly: isOther ? "true" : "false", // <-- Dodajemy parametr customOnly
+    },
+  });
+
+  console.log("wybrana aktywność (przekazywana):", finalActivity);
+};
+
 
   return (
     <View style={styles.container}>

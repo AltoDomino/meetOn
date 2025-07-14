@@ -25,6 +25,7 @@ export type Event = {
   startDate: string;
   endDate: string;
   creator: {
+    id: number | null;
     userName: string;
   };
   participantsCount: number;
@@ -83,7 +84,16 @@ export default function Events() {
       }
       const res = await fetch(url);
       const data = await res.json();
-      setEvents(data);
+
+      const now = new Date();
+
+      // Filtrowanie wydarzeń, które się jeszcze nie skończyły
+      const upcomingEvents = data.filter((event: Event) => {
+        const eventEndDate = new Date(event.endDate);
+        return eventEndDate > now;
+      });
+
+      setEvents(upcomingEvents);
     } catch (err) {
       console.error("Błąd pobierania wydarzeń:", err);
     }

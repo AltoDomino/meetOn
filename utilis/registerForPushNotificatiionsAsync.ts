@@ -2,6 +2,14 @@ import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 
+// 👉 Konfiguracja kanału powiadomień — WYMAGANE dla Androida
+Notifications.setNotificationChannelAsync("default", {
+  name: "default",
+  importance: Notifications.AndroidImportance.MAX,
+  vibrationPattern: [0, 250, 250, 250],
+  lightColor: "#FF231F7C",
+});
+
 export const registerPushToken = async (userId: number) => {
   if (!Device.isDevice) {
     alert("Push działa tylko na fizycznym urządzeniu!");
@@ -21,17 +29,20 @@ export const registerPushToken = async (userId: number) => {
     return;
   }
 
-  const token = (
-    await Notifications.getExpoPushTokenAsync({
+  try {
+    const tokenData = await Notifications.getExpoPushTokenAsync({
       projectId: Constants.expoConfig?.extra?.eas?.projectId,
-    })
-  ).data;
+    });
 
-  console.log("📨 Token push:", token);
+    const token = tokenData.data;
+    console.log("📨 Token push:", token);
 
-  await fetch("https://meeton-backend-ffmo.onrender.com/api/push-token", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, token }),
-  });
+    await fetch("https://meeton-backend-ffmo.onrender.com/api/push-token", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, token }),
+    });
+  } catch (error) {
+    console.error("❌ Błąd podczas rejestracji tokena push:", error);
+  }
 };

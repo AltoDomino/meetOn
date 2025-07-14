@@ -1,4 +1,3 @@
-// EventRoomScreen.tsx
 import ChatBox, { Message } from "@/components/ChatBox";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -7,11 +6,14 @@ import {
   Alert,
   FlatList,
   Image,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import io from "socket.io-client";
 import type { Event } from "../(auth)/Event";
 import { useAuth } from "../../context/AuthContext";
@@ -29,6 +31,7 @@ type Participant = {
 };
 
 const EventRoomScreen = () => {
+  const insets = useSafeAreaInsets();
   const router = useRouter();
   const { location, startDate, endDate, eventId } = useLocalSearchParams();
   const [messages, setMessages] = useState<Message[]>([]);
@@ -65,13 +68,8 @@ const EventRoomScreen = () => {
       setMessages((prev) => [...prev, newMessage]);
     });
 
-    socket.on("participantJoined", () => {
-      fetchEventDetails();
-    });
-
-    socket.on("participantLeft", () => {
-      fetchEventDetails();
-    });
+    socket.on("participantJoined", fetchEventDetails);
+    socket.on("participantLeft", fetchEventDetails);
 
     return () => {
       socket.emit("leaveRoom", eventId);
@@ -93,108 +91,134 @@ const EventRoomScreen = () => {
 
   const canDeleteEvent =
     currentEvent &&
-    currentEvent?.creator?.userName === userName &&
-    currentEvent.participantsCount === 1;
+    currentEvent.creator?.userName === userName &&
+    participants.length === 0;
 
-  const handleDeleteEvent = async () => {
-    if (!currentEvent) return;
+const handleDeleteEvent = () => {
+  Alert.alert(
+    "Usuń wydarzenie",
+    "Czy na pewno chcesz usunąć to wydarzenie? Tej operacji nie można cofnąć.",
+    [
+      {
+        text: "Anuluj",
+        style: "cancel",
+      },
+      {
+        text: "Usuń",
+        style: "destructive",
+        onPress: async () => {
+          if (!currentEvent) return;
 
-    try {
-      const res = await fetch(`/api/events/${currentEvent.id}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
+          try {
+            const res = await fetch(
+              `https://meeton-backend-ffmo.onrender.com/api/event/${currentEvent.id}`,
+              {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId }),
+              }
+            );
+
+            if (!res.ok) {
+              const errorData = await res.json();
+              throw new Error(errorData.error || "Błąd podczas usuwania wydarzenia");
+            }
+
+            Alert.alert("Sukces", "Wydarzenie zostało usunięte");
+            router.push("/screens/MyEvents");
+          } catch (error: unknown) {
+            Alert.alert(
+              "Błąd",
+              error instanceof Error ? error.message : "Nieznany błąd"
+            );
+          }
         },
-        body: JSON.stringify({ userId }),
-      });
-
-      if (!res.ok) throw new Error("Błąd podczas usuwania wydarzenia");
-
-      Alert.alert("Sukces", "Wydarzenie zostało usunięte");
-      router.push("/screens/MyEvents");
-    } catch (error: unknown) {
-      Alert.alert(
-        "Błąd",
-        error instanceof Error ? error.message : "Nieznany błąd"
-      );
-    }
-  };
+      },
+    ]
+  );
+};
 
   return (
     <>
-      <View style={styles.container}>
-        <Stack.Screen
-          options={{
-            title: "Moje Wydarzenia",
-            headerStyle: { backgroundColor: "#00A9F4" },
-            headerTintColor: "#fff",
-          }}
-        />
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        keyboardVerticalOffset={Platform.OS === "ios" ? insets.top + 80 : 0}
+      >
+        <View style={styles.container}>
+          <Stack.Screen
+            options={{
+              title: "Moje Wydarzenia",
+              headerStyle: { backgroundColor: "#00A9F4" },
+              headerTintColor: "#fff",
+            }}
+          />
 
-        {/* HEADER */}
-        <View style={styles.header}>
-          <View style={styles.eventInfo}>
-            <Text style={styles.title}>{location}</Text>
-            <Text>
-              {new Date(
-                Array.isArray(startDate) ? startDate[0] : startDate
-              ).toLocaleString()}{" "}
-              -{" "}
-              {new Date(
-                Array.isArray(endDate) ? endDate[0] : endDate
-              ).toLocaleTimeString()}
-            </Text>
-          </View>
-          {canDeleteEvent && (
-            <TouchableOpacity
-              style={styles.leaveButtonWrapper}
-              onPress={handleDeleteEvent}
-            >
-              <View style={styles.leaveTextWrapper}>
-                <Text style={styles.leaveButton}>Usuń</Text>
-                <Text style={styles.leaveButton}>wydarzenie</Text>
-              </View>
-              <Ionicons
-                name="exit-outline"
-                size={18}
-                color="#999"
-                style={styles.leaveIcon}
-              />
-            </TouchableOpacity>
-          )}
-        </View>
-
-        {/* UCZESTNICY */}
-        <View style={styles.participantsContainer}>
-          <Text style={styles.participantsTitle}>Uczestnicy wydarzenia:</Text>
-          <FlatList
-            data={participants}
-            keyExtractor={(item) => item.id.toString()}
-            renderItem={({ item }) => (
+          {/* HEADER */}
+          <View style={styles.header}>
+            <View style={styles.eventInfo}>
+              <Text style={styles.title}>{location}</Text>
+              <Text>
+                {new Date(
+                  Array.isArray(startDate) ? startDate[0] : startDate
+                ).toLocaleString()}{" "}
+                -{" "}
+                {new Date(
+                  Array.isArray(endDate) ? endDate[0] : endDate
+                ).toLocaleTimeString()}
+              </Text>
+            </View>
+            {canDeleteEvent && (
               <TouchableOpacity
-                style={styles.participantCard}
-                onPress={() => {
-                  setSelectedParticipant(item);
-                  setModalVisible(true);
-                }}
+                style={styles.leaveButtonWrapper}
+                onPress={handleDeleteEvent}
               >
-                <View style={styles.avatar}>
-                  <Text style={styles.avatarText}>
-                    {item.userName?.charAt(0).toUpperCase()}
-                  </Text>
+                <View style={styles.leaveTextWrapper}>
+                  <Text style={styles.leaveButton}>Usuń</Text>
+                  <Text style={styles.leaveButton}>wydarzenie</Text>
                 </View>
-                <Text style={styles.userName}>{item.userName}</Text>
+                <Ionicons
+                  name="exit-outline"
+                  size={18}
+                  color="#999"
+                  style={styles.leaveIcon}
+                />
               </TouchableOpacity>
             )}
-          />
-        </View>
+          </View>
 
-        <View style={styles.chatContainer}>
-          <ChatBox messages={messages} onSend={handleSendMessage} />
-        </View>
-      </View>
+          {/* UCZESTNICY */}
+          <View style={styles.participantsContainer}>
+            <Text style={styles.participantsTitle}>Uczestnicy wydarzenia:</Text>
+            <FlatList
+              data={participants}
+              keyExtractor={(item) => item.id.toString()}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.participantCard}
+                  onPress={() => {
+                    setSelectedParticipant(item);
+                    setModalVisible(true);
+                  }}
+                >
+                  <View style={styles.avatar}>
+                    <Text style={styles.avatarText}>
+                      {item.userName?.charAt(0).toUpperCase()}
+                    </Text>
+                  </View>
+                  <Text style={styles.userName}>{item.userName}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          </View>
 
-      {/* MODAL */}
+          {/* CHAT */}
+          <View style={styles.chatContainer}>
+            <ChatBox messages={messages} onSend={handleSendMessage} />
+          </View>
+        </View>
+      </KeyboardAvoidingView>
+
       {selectedParticipant && (
         <Modal visible={modalVisible} transparent animationType="fade">
           <View

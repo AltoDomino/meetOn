@@ -1,26 +1,45 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  background: {
+  container: {
     flex: 1,
+    backgroundColor: "#0d1a4d",
+  },
+
+  logoContainer: {
     width: "100%",
-    height: "100%",
-  },
-  overlay: {
-    flexGrow: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 24,
-    backgroundColor: "rgba(0, 0, 0, 0.6)", // półprzezroczysta warstwa dla czytelności
-  },
-  content: {
+    paddingTop: 60,
+    paddingBottom: 10,
     alignItems: "center",
   },
+
+  logo: {
+    width: "70%",
+    height: 150,
+    resizeMode: "contain",
+  },
+
+  contentContainer: {
+    flex: 1,
+    justifyContent: "center", 
+    alignItems: "center",
+    paddingHorizontal: 24,
+    bottom:80
+  },
+
   greeting: {
-    fontSize: 50,
+    fontSize: 70,
     color: "#B0DFFF",
-    marginBottom: 8,
+    marginBottom: 4,
   },
+
+  greetingUser: {
+    fontSize: 40,
+    color: "#B0DFFF",
+    marginBottom: 20,
+      fontWeight: "bold", 
+  },
+
   header: {
     fontSize: 28,
     fontWeight: "700",
@@ -28,6 +47,7 @@ export const styles = StyleSheet.create({
     marginBottom: 16,
     textAlign: "center",
   },
+
   description: {
     fontSize: 16,
     color: "#E1F1FF",
@@ -35,6 +55,7 @@ export const styles = StyleSheet.create({
     marginBottom: 30,
     lineHeight: 24,
   },
+
   button: {
     backgroundColor: "#00C1F3",
     paddingVertical: 14,
@@ -46,21 +67,45 @@ export const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5,
   },
+
   buttonText: {
     color: "#fff",
     fontWeight: "700",
     fontSize: 16,
   },
-  input: {
-  width: "100%",
-  backgroundColor: "rgba(255, 255, 255, 0.15)",
-  borderRadius: 12,
-  padding: 12,
-  color: "#fff",
-  fontSize: 16,
-  marginBottom: 20,
-  borderWidth: 1,
-  borderColor: "#5BC0FF",
-},
 
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.6)",
+    justifyContent: "center",
+    alignItems: "center",
+  },
+
+  modalContent: {
+    margin: 20,
+    backgroundColor: "#fff",
+    borderRadius: 12,
+    padding: 24,
+    alignItems: "center",
+    elevation: 10,
+  },
+
+  modalText: {
+    fontSize: 16,
+    textAlign: "center",
+    marginBottom: 20,
+    color: "#333",
+  },
+
+  modalButton: {
+    backgroundColor: "#0d1a4d",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    borderRadius: 8,
+  },
+
+  modalButtonText: {
+    color: "#fff",
+    fontWeight: "bold",
+  },
 });

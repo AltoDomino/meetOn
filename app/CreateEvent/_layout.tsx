@@ -15,7 +15,7 @@ export default function FormLayout() {
           },
           headerTintColor: "#fff",
           headerLeft: () => (
-            <TouchableOpacity onPress={() => router.push("/(auth)/Event")} style={{ paddingHorizontal: 10 }}>
+            <TouchableOpacity onPress={() => router.push("/(auth)/CreateEvent")} style={{ paddingHorizontal: 10 }}>
               <Ionicons name="arrow-back" size={24} color="#fff" />
             </TouchableOpacity>
           ),

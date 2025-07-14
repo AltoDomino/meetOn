@@ -1,11 +1,12 @@
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useState } from "react";
 import {
-  ImageBackground,
+  Image,
   Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
-  ScrollView,
+  Pressable,
   Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
@@ -17,40 +18,74 @@ import { styles } from "../../styles/HomeScreen.styles";
 export default function Home() {
   const router = useRouter();
   const { userName } = useAuth();
+  const [modalVisible, setModalVisible] = useState(false);
 
-  const handleActivity = () => router.push("/Activity/Activity");
+  const handleActivity = () => {
+    setModalVisible(true);
+  };
+
+  const handleModalConfirm = () => {
+    setModalVisible(false);
+    router.push("/Activity/Activity");
+  };
 
   return (
-    <ImageBackground
-      source={require("@/assets/images/ikonameeton.png")}
-      style={styles.background}
-      resizeMode="cover"
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      style={{ flex: 1 }}
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 0 : 20}
-      >
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView
-            contentContainerStyle={styles.overlay}
-            keyboardShouldPersistTaps="handled"
-          >
-            <View style={styles.content}>
-              <Text style={styles.greeting}>Cześć {userName}! 👋</Text>
-              <Text style={styles.header}>Włącz znajomości</Text>
-              <Text style={styles.description}>
-                meetOn pomoże Ci znaleźć ludzi, którzy chcą spędzać wolny czas
-                tak jak Ty — planszówki, siatkówka, karaoke czy może bilard?.
-              </Text>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <View style={styles.container}>
+          {/* Logo na górze */}
+          <View style={styles.logoContainer}>
+            <Image
+              source={require("@/assets/images/ikonameeton.png")}
+              style={styles.logo}
+            />
+          </View>
 
-              <TouchableOpacity style={styles.button} onPress={handleActivity}>
-                <Text style={styles.buttonText}>Przeglądaj aktywności</Text>
-              </TouchableOpacity>
+          <View style={styles.contentContainer}>
+            <Text style={styles.greeting}>Cześć</Text>
+            <Text style={styles.greetingUser}>{userName}! 👋</Text>
+            <Text style={styles.header}>Włącz znajomości</Text>
+            <Text style={styles.description}>
+              meetOn pomoże Ci znaleźć ludzi, którzy chcą spędzać wolny czas tak
+              jak Ty — planszówki, siatkówka, karaoke czy może bilard?
+            </Text>
+
+            <TouchableOpacity style={styles.button} onPress={handleActivity}>
+              <Text style={styles.buttonText}>Przeglądaj aktywności</Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* Modal */}
+          <Modal
+            animationType="fade"
+            transparent={true}
+            visible={modalVisible}
+            onRequestClose={() => setModalVisible(false)}
+          >
+            <View style={styles.modalOverlay}>
+              <View style={styles.modalContent}>
+                <Text style={styles.modalText}>
+                  <Text style={{ fontWeight: "bold" }}>UWAGA:</Text> wydarzenia
+                  które będą Ci proponowane są ściśle powiązane z aktywnościami,
+                  które zaraz wybierzesz. Pamiętaj, że zawsze możesz je usuwać
+                  lub dodać nowe, a wydarzenia będą się aktualizować zgodnie z
+                  Twoimi preferencjami.
+                </Text>
+
+                <Pressable
+                  onPress={handleModalConfirm}
+                  style={styles.modalButton}
+                >
+                  <Text style={styles.modalButtonText}>Rozumiem</Text>
+                </Pressable>
+              </View>
             </View>
-          </ScrollView>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
-    </ImageBackground>
+          </Modal>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 }

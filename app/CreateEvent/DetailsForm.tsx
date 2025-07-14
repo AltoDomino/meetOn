@@ -1,3 +1,4 @@
+import BottomButton from "@/components/Bottombutton";
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { router, useLocalSearchParams } from "expo-router";
@@ -165,10 +166,7 @@ const DetailsForm = () => {
         />
       </View>
 
-      {/* Zatwierdzenie */}
-      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-        <Text style={styles.submitButtonText}>Zatwierdź wydarzenie</Text>
-      </TouchableOpacity>
+      <BottomButton title="Zatwierdź wydarzenie" onPress={handleSubmit} />
     </>
   );
 };

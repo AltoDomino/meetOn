@@ -27,7 +27,10 @@
       },
       "edgeToEdgeEnabled": true,
       "useNextNotificationsApi": true,
-      "package": "com.domino96.meetOn"
+      "package": "com.domino96.meetOn",
+      "permissions": [
+        "NOTIFICATIONS"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -36,9 +39,16 @@
     },
     "plugins": [
       "expo-router",
-      "expo-notifications",
       "expo-font",
-      "expo-secure-store"
+      "expo-secure-store",
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/images/startMeetOn.png",
+          "color": "#0d1a4d",
+          "sounds": []
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true

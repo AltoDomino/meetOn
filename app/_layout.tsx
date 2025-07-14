@@ -1,4 +1,5 @@
 import SplashScreenComponent from "@/components/SplashScreen";
+import { useBackExit } from "@/utilis/useBackExit";
 import { Slot, SplashScreen } from "expo-router";
 import { useEffect, useState } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
@@ -9,7 +10,7 @@ SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [splashDone, setSplashDone] = useState(false);
-
+  useBackExit();
   useEffect(() => {
     if (splashDone) {
       SplashScreen.hideAsync();

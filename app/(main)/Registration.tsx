@@ -35,6 +35,7 @@ const Registration = () => {
   const [showDatePicker, setShowDatePicker] = useState(false);
 
   const [items, setItems] = useState([
+    { label: "Wybierz płeć", value: "" },
     { label: "Mężczyzna", value: "male" },
     { label: "Kobieta", value: "female" },
   ]);
@@ -54,11 +55,14 @@ const Registration = () => {
     };
 
     try {
-      const res = await fetch("https://meeton-backend-ffmo.onrender.com/api/registration", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(finalData),
-      });
+      const res = await fetch(
+        "https://meeton-backend-ffmo.onrender.com/api/registration",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(finalData),
+        }
+      );
       if (res.status === 201) {
         Alert.alert("Sukces", "Dane wysłane");
       } else if (res.status === 403) {
@@ -110,7 +114,9 @@ const Registration = () => {
                 />
               )}
             />
-            {errors.userName && <Text style={{ color: "red" }}>{errors.userName.message}</Text>}
+            {errors.userName && (
+              <Text style={{ color: "red" }}>{errors.userName.message}</Text>
+            )}
 
             <Text style={styles.label}>Email:</Text>
             <Controller
@@ -134,7 +140,9 @@ const Registration = () => {
                 />
               )}
             />
-            {errors.email && <Text style={{ color: "red" }}>{errors.email.message}</Text>}
+            {errors.email && (
+              <Text style={{ color: "red" }}>{errors.email.message}</Text>
+            )}
 
             <Text style={styles.label}>Hasło:</Text>
             <Controller
@@ -157,13 +165,17 @@ const Registration = () => {
                 />
               )}
             />
-            {errors.password && <Text style={{ color: "red" }}>{errors.password.message}</Text>}
+            {errors.password && (
+              <Text style={{ color: "red" }}>{errors.password.message}</Text>
+            )}
 
             <Text style={styles.label}>Płeć:</Text>
             <Controller
               control={control}
               name="gender"
-              rules={{ required: "Wybór płci jest wymagany" }}
+              rules={{
+                validate: (value) => value !== "" || "Wybór płci jest wymagany",
+              }}
               render={({ field: { onChange, value } }) => (
                 <DropDownPicker
                   open={open}
@@ -183,6 +195,9 @@ const Registration = () => {
                 />
               )}
             />
+            {errors.gender && (
+              <Text style={{ color: "red" }}>{errors.gender.message}</Text>
+            )}
 
             <Text style={styles.label}>Data urodzenia:</Text>
             <Controller

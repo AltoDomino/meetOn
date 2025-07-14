@@ -14,6 +14,7 @@ import { useAuth } from "../../context/AuthContext";
 import styles from "../../styles/Activity.styles";
 import { activityImages } from "./Activities";
 import ActivityDataSend from "./SendActivity";
+import BottomButton from "@/components/Bottombutton";
 
 export default function Activity() {
   const { setActivities } = useActivity();
@@ -35,7 +36,7 @@ export default function Activity() {
         activities: selectedActivities,
       });
 
-      setHasChosenActivities(true); // <- tutaj ustawiamy flagę
+      setHasChosenActivities(true);
 
       router.replace("/(auth)/YourActivities");
     } catch (error) {
@@ -50,6 +51,7 @@ export default function Activity() {
         : [...prev, activity]
     );
   };
+
   useEffect(() => {
     const fetchActivities = async () => {
       if (userName) {
@@ -90,15 +92,14 @@ export default function Activity() {
       <Stack.Screen
         options={{
           title: "Wybierz aktywność",
-          headerStyle: {
-            backgroundColor: "#00A9F4",
-          },
+          headerStyle: { backgroundColor: "#00A9F4" },
           headerTintColor: "#fff",
         }}
       />
 
       <View style={styles.container}>
         <Text style={styles.title}>Wybierz formę aktywności</Text>
+
         <FlatList
           data={Object.keys(activityImages)}
           keyExtractor={(item) => item}
@@ -106,13 +107,12 @@ export default function Activity() {
           numColumns={2}
           contentContainerStyle={styles.tilesContainer}
         />
+
         {selectedActivities.length > 0 && (
-          <TouchableOpacity
-            style={styles.saveButton}
+          <BottomButton
+            title="Zapisz aktywność"
             onPress={handleSaveActivity}
-          >
-            <Text style={styles.saveButtonText}>Zapisz aktywność</Text>
-          </TouchableOpacity>
+          />
         )}
       </View>
     </>

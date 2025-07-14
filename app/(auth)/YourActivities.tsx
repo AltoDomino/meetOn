@@ -6,18 +6,18 @@ import {
   FlatList,
   ImageBackground,
   Text,
-  TouchableOpacity,
   View,
 } from "react-native";
 import { useActivity } from "../../context/ActivityContext";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/YourActivites.styles";
 import { activityImages } from "../Activity/Activities";
+import BottomButton from "@/components/Bottombutton";
 
 export default function YourActivities() {
   const { userName, userId } = useAuth();
   const { activities, setActivities } = useActivity();
-  console.log("🧪 YourActivities: userId =", userId, "userName =", userName);
+
   useEffect(() => {
     const fetchActivities = async () => {
       if (userName) {
@@ -41,18 +41,14 @@ export default function YourActivities() {
             const updated = activities.filter((a) => a !== activity);
             setActivities(updated);
             await saveActivities(userName, updated);
-            console.log(userId, "czy userid istnieje ");
             await fetch(
               `https://meeton-backend-ffmo.onrender.com/api/interests/${userId}`,
               {
                 method: "PATCH",
-                headers: {
-                  "Content-Type": "application/json",
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ interests: updated }),
               }
             );
-            console.log(userId, "czy user id istneije ");
           },
         },
       ]
@@ -62,10 +58,7 @@ export default function YourActivities() {
   const renderItem = ({ item }: { item: string }) => {
     const imageSource = activityImages[item];
     return (
-      <TouchableOpacity
-        style={styles.tile}
-        onLongPress={() => handleRemoveActivity(item)}
-      >
+      <View style={styles.tile}>
         <ImageBackground
           source={imageSource}
           style={styles.imageBackground}
@@ -73,7 +66,7 @@ export default function YourActivities() {
         >
           <Text style={styles.tileText}>{item}</Text>
         </ImageBackground>
-      </TouchableOpacity>
+      </View>
     );
   };
 
@@ -89,12 +82,10 @@ export default function YourActivities() {
         contentContainerStyle={styles.tilesContainer}
       />
 
-      <TouchableOpacity
-        style={styles.addButton}
+      <BottomButton
+        title="Dodaj nową aktywność"
         onPress={() => router.push("/Activity/Activity")}
-      >
-        <Text style={styles.addButtonText}>Dodaj nową aktywność</Text>
-      </TouchableOpacity>
+      />
     </View>
   );
 }
