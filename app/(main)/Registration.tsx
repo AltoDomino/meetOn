@@ -6,7 +6,6 @@ import {
   Alert,
   ImageBackground,
   Keyboard,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -26,11 +25,13 @@ interface FormData {
 
 const Registration = () => {
   const handleBack = () => router.push("/(main)/Login");
+
   const {
     control,
     handleSubmit,
     formState: { errors },
   } = useForm<FormData>();
+
   const [open, setOpen] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
 
@@ -75,11 +76,7 @@ const Registration = () => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-      <ScrollView
-        contentContainerStyle={{ flexGrow: 1 }}
-        keyboardShouldPersistTaps="handled"
-        nestedScrollEnabled={true}
-      >
+      <View style={{ flex: 1, backgroundColor: "#0d1a4d" }}>
         <ImageBackground
           source={require("@/assets/images/ikonameeton.png")}
           style={{
@@ -91,7 +88,8 @@ const Registration = () => {
           }}
           resizeMode="contain"
         />
-        <View style={styles.centeredContainer}>
+
+        <View style={[styles.centeredContainer, { paddingBottom: 24 }]}>
           <View style={styles.formContainer}>
             <Text style={styles.label}>Nazwa użytkownika:</Text>
             <Controller
@@ -174,7 +172,8 @@ const Registration = () => {
               control={control}
               name="gender"
               rules={{
-                validate: (value) => value !== "" || "Wybór płci jest wymagany",
+                validate: (value) =>
+                  value !== "" || "Wybór płci jest wymagany",
               }}
               render={({ field: { onChange, value } }) => (
                 <DropDownPicker
@@ -249,7 +248,7 @@ const Registration = () => {
             </View>
           </View>
         </View>
-      </ScrollView>
+      </View>
     </TouchableWithoutFeedback>
   );
 };

@@ -47,7 +47,7 @@ export default function Home() {
           <View style={styles.contentContainer}>
             <Text style={styles.greeting}>Cześć</Text>
             <Text style={styles.greetingUser}>{userName}! 👋</Text>
-            <Text style={styles.header}>Włącz znajomości</Text>
+            <Text style={styles.header}>Włącz aktywności</Text>
             <Text style={styles.description}>
               meetOn pomoże Ci znaleźć ludzi, którzy chcą spędzać wolny czas tak
               jak Ty — planszówki, siatkówka, karaoke czy może bilard?

@@ -1,3 +1,4 @@
+import * as Location from "expo-location";
 import { registerPushToken } from "@/utilis/registerForPushNotificatiionsAsync";
 import SwitchButton from "@/utilis/SwitchButton";
 import { useFocusEffect } from "@react-navigation/native";
@@ -38,9 +39,32 @@ export default function Events() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [distanceFilter, setDistanceFilter] = useState<number | null>(null);
+  const [locationCoords, setLocationCoords] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
   const { userId, hasChosenActivities } = useAuth();
   const { location, startDate, endDate } = useLocalSearchParams();
   const { activities } = useActivity();
+
+  useEffect(() => {
+    const requestLocation = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Brak dostępu do lokalizacji");
+        return;
+      }
+
+      const userLocation = await Location.getCurrentPositionAsync({});
+      setLocationCoords({
+        latitude: userLocation.coords.latitude,
+        longitude: userLocation.coords.longitude,
+      });
+    };
+
+    requestLocation();
+  }, []);
 
   useEffect(() => {
     const checkIfAlreadyInEvent = async () => {
@@ -76,18 +100,21 @@ export default function Events() {
   }, [userId]);
 
   const fetchEvents = async (): Promise<void> => {
-    if (!userId) return;
+    if (!userId || !locationCoords) return;
+
     try {
       let url = `${BACKEND_URL}/api/events?userId=${userId}`;
+
       if (distanceFilter) {
         url += `&distance=${distanceFilter}`;
+        url += `&latitude=${locationCoords.latitude}&longitude=${locationCoords.longitude}`;
       }
+
       const res = await fetch(url);
       const data = await res.json();
 
       const now = new Date();
 
-      // Filtrowanie wydarzeń, które się jeszcze nie skończyły
       const upcomingEvents = data.filter((event: Event) => {
         const eventEndDate = new Date(event.endDate);
         return eventEndDate > now;
@@ -100,7 +127,7 @@ export default function Events() {
   };
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId || !locationCoords) return;
     if (!hasChosenActivities) {
       router.replace("/(main)/HomeScreen");
       return;
@@ -109,16 +136,16 @@ export default function Events() {
     setLoading(true);
     registerPushToken(userId);
     fetchEvents().finally(() => setLoading(false));
-  }, [userId, distanceFilter]);
+  }, [userId, distanceFilter, locationCoords]);
 
   useEffect(() => {
-    if (userId && activities.length > 0) fetchEvents();
-  }, [activities]);
+    if (userId && activities.length > 0 && locationCoords) fetchEvents();
+  }, [activities, locationCoords]);
 
   useFocusEffect(
     useCallback(() => {
-      if (userId && activities.length > 0) fetchEvents();
-    }, [activities])
+      if (userId && activities.length > 0 && locationCoords) fetchEvents();
+    }, [activities, locationCoords])
   );
 
   const joinEvent = async (eventId: number) => {
@@ -240,7 +267,7 @@ export default function Events() {
                 borderRadius: 8,
               }}
             >
-              5–30 km
+               0-30 km
             </Text>
           </TouchableOpacity>
           <TouchableOpacity onPress={() => setDistanceFilter(50)}>

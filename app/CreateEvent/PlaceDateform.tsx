@@ -1,3 +1,4 @@
+import BottomButton from "@/components/Bottombutton";
 import fetchPlaces, { Place } from "@/utilis/FetchActivityPlaces";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
@@ -11,12 +12,33 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import Constants from "expo-constants";
 import DateTimePickerModal from "react-native-modal-datetime-picker";
-import BottomButton from "@/components/Bottombutton";
 import { styles } from "../../styles/form.styles";
 
 export default function PlaceDateform() {
+  const formatDate = (date: {
+    toLocaleString: (
+      arg0: string,
+      arg1: {
+        weekday: string;
+        year: string;
+        month: string;
+        day: string;
+        hour: string;
+        minute: string;
+      }
+    ) => any;
+  }) => {
+    return date.toLocaleString("pl-PL", {
+      weekday: "short",
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   const { activity: choosenActivity, customOnly } = useLocalSearchParams();
 
   const newActivity = Array.isArray(choosenActivity)
@@ -103,7 +125,9 @@ export default function PlaceDateform() {
           ]}
         >
           <Text style={styles.placeText}>{item.name}</Text>
-          {item.address && <Text style={styles.placeAddress}>{item.address}</Text>}
+          {item.address && (
+            <Text style={styles.placeAddress}>{item.address}</Text>
+          )}
         </View>
 
         <View style={styles.iconRowBottom}>
@@ -153,14 +177,15 @@ export default function PlaceDateform() {
       {!isCustomOnly && (
         <>
           <Text style={styles.label}>Sugerowane lokalizacje:</Text>
-          <FlatList
-            data={places}
-            keyExtractor={(item) => item.placeId}
-            renderItem={renderPlaceTile}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{ paddingBottom: 100 }}
-            ListEmptyComponent={<Text>Brak wyników</Text>}
-          />
+          <View style={{ maxHeight: "45%" }}>
+            <FlatList
+              data={places}
+              keyExtractor={(item) => item.placeId}
+              renderItem={renderPlaceTile}
+              showsVerticalScrollIndicator={true}
+              ListEmptyComponent={<Text>Brak wyników</Text>}
+            />
+          </View>
         </>
       )}
 
@@ -187,7 +212,7 @@ export default function PlaceDateform() {
           onPress={() => setStartPickerVisible(true)}
         >
           <Text style={styles.datePickerLabel}>Start</Text>
-          <Text style={styles.datePickerText}>{startDate.toLocaleString()}</Text>
+          <Text style={styles.datePickerText}>{formatDate(startDate)}</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -195,7 +220,7 @@ export default function PlaceDateform() {
           onPress={() => setEndPickerVisible(true)}
         >
           <Text style={styles.datePickerLabel}>Koniec</Text>
-          <Text style={styles.datePickerText}>{endDate.toLocaleString()}</Text>
+          <Text style={styles.datePickerText}>{formatDate(endDate)}</Text>
         </TouchableOpacity>
       </View>
 

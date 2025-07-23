@@ -1,5 +1,4 @@
 import { Alert } from "react-native";
-// import { useAuth } from "@/context/AuthContext"; // jeśli masz
 
 const FormDataSend = async (DataForm: {
   location: string;
