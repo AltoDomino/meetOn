@@ -2,7 +2,8 @@ import BottomButton from "@/components/Bottombutton";
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useState } from "react";
+import * as Location from "expo-location";
+import React, { useEffect, useState } from "react";
 import { Alert, Switch, Text, TouchableOpacity, View } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/form.styles";
@@ -13,12 +14,38 @@ const DetailsForm = () => {
   const [minAge, setMinAge] = useState(18);
   const [maxAge, setMaxAge] = useState(40);
   const [spots, setSpots] = useState("");
+  const [locationCoords, setLocationCoords] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
+
   const { userId } = useAuth();
   const { location, address, startDate, endDate, activity } =
     useLocalSearchParams();
 
   const parsedStartDate = new Date(startDate as string);
   const parsedEndDate = new Date(endDate as string);
+
+  useEffect(() => {
+    const requestLocation = async () => {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Brak dostępu do lokalizacji");
+        return;
+      }
+
+      const userLocation = await Location.getCurrentPositionAsync({});
+      const coords = {
+        latitude: userLocation.coords.latitude,
+        longitude: userLocation.coords.longitude,
+      };
+
+      console.log("📍 Lokalizacja do eventu:", coords);
+      setLocationCoords(coords);
+    };
+
+    requestLocation();
+  }, []);
 
   const handleGenderSwitchChange = (value: boolean) => {
     setGenderSplit(value);
@@ -30,9 +57,8 @@ const DetailsForm = () => {
       return;
     }
 
-    if (!userId) {
-      Alert.alert("Błąd", "Brak zalogowanego użytkownika");
-      console.log("❌ Brak userId w AuthContext");
+    if (!userId || !locationCoords) {
+      Alert.alert("Błąd", "Brakuje danych użytkownika lub lokalizacji");
       return;
     }
 
@@ -47,6 +73,8 @@ const DetailsForm = () => {
       minAge,
       maxAge,
       creatorId: userId,
+      latitude: locationCoords.latitude,
+      longitude: locationCoords.longitude,
     };
 
     console.log("📤 Wysyłanie eventData:", eventData);

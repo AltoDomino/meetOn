@@ -17,7 +17,8 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.domino96.meetOn",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "Aplikacja potrzebuje Twojej lokalizacji, aby pokazać wydarzenia w pobliżu."
       }
     },
     "android": {
@@ -29,7 +30,8 @@
       "useNextNotificationsApi": true,
       "package": "com.domino96.meetOn",
       "permissions": [
-        "NOTIFICATIONS"
+        "NOTIFICATIONS",
+        "ACCESS_FINE_LOCATION"
       ]
     },
     "web": {

@@ -8,6 +8,8 @@ const FormDataSend = async (DataForm: {
   spots: string;
   activity: string;
   creatorId: number;
+  latitude?: number;
+  longitude?: number;
 }) => {
   try {
     const res = await fetch(
@@ -18,7 +20,7 @@ const FormDataSend = async (DataForm: {
         body: JSON.stringify(DataForm),
       }
     );
-
+    console.log(DataForm, "dane wydarzenia");
     if (res.status === 201) {
       console.log("Dane:", DataForm);
       Alert.alert("Sukces", "Dane wysłane");

@@ -14,11 +14,9 @@ import styles from "../../styles/CreateEvent.styles";
 import { activityImages } from "../Activity/Activities";
 
 export default function CreateEvent() {
-  const [events, setEvents] = useState<any[]>([]);
   const [choosenActivity, setChoosenSelectedActivity] = useState<string | null>(
     null
   );
-  const [error, setError] = useState("");
   const { userName } = useAuth();
   const { activities, setActivities } = useActivity();
 
@@ -32,14 +30,6 @@ export default function CreateEvent() {
     fetchActivities();
   }, [userName]);
 
-  const renderEvent = ({ item }: any) => (
-    <View style={styles.eventCard}>
-      <Text style={styles.eventTitle}>{item.activity}</Text>
-      <Text>Lokalizacja: {item.location}</Text>
-      <Text>Data: {item.date}</Text>
-      <Text>Miejsca: {item.spots}</Text>
-    </View>
-  );
 
   const renderActivityTile = ({ item }: { item: string }) => {
     const isSelected = choosenActivity === item;
@@ -113,20 +103,6 @@ const handleCreateEvent = () => {
       >
         <Text style={styles.createButtonText}>Stwórz swoje wydarzenie</Text>
       </TouchableOpacity>
-
-      {error !== "" && (
-        <Text style={{ color: "red", marginTop: 10 }}>{error}</Text>
-      )}
-
-      {events.length === 0 ? (
-        <Text style={styles.emptyText}>Brak Twoich wydarzeń</Text>
-      ) : (
-        <FlatList
-          data={events}
-          renderItem={renderEvent}
-          keyExtractor={(item, index) => index.toString()}
-        />
-      )}
     </View>
   );
 }

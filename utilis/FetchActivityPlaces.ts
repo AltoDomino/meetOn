@@ -1,6 +1,6 @@
-  const apiKey = "AIzaSyBYfWHFf7y7CHtddfWhCQX3u9TqPBbmND8";
+const apiKey = "AIzaSyBYfWHFf7y7CHtddfWhCQX3u9TqPBbmND8";
 
-  export type Place = {
+export type Place = {
   placeId: string;
   name: string;
   address?: string;
@@ -15,9 +15,13 @@ export default async function fetchPlaces(
   lng: number
 ): Promise<Place[]> {
   try {
+    console.log("🔍 keyword:", keyword);
+    console.log("📍 latitude:", lat);
+    console.log("📍 longitude:", lng);
+
     // 🔍 1. Wyszukiwanie miejsc
     const searchResponse = await fetch(
-      `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&radius=30000&keyword=${encodeURIComponent(
+      `https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lng}&rankby=distance&keyword=${encodeURIComponent(
         keyword
       )}&key=${apiKey}`
     );
