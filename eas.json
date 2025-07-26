@@ -3,14 +3,17 @@
     "version": ">= 3.0.0"
   },
   "build": {
-    "apk": {
+    "production": {
       "android": {
         "buildType": "apk"
       },
       "env": {
         "KOTLIN_VERSION": "1.9.22"
       },
-      "distribution": "internal"
+      "distribution": "store"
     }
+  },
+  "submit": {
+    "production": {}
   }
 }
