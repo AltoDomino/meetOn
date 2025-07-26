@@ -1,6 +1,6 @@
 buildscript {
   ext {
-    kotlinVersion = System.getenv("KOTLIN_VERSION") ?: '1.9.22'
+    kotlinVersion = "1.9.22" 
     buildToolsVersion = "34.0.0"
     minSdkVersion = 23
     compileSdkVersion = 34
@@ -21,7 +21,6 @@ buildscript {
   }
 }
 
-// Ustawienie ścieżki do React Native
 def reactNativeAndroidDir = new File(
   providers.exec {
     workingDir(rootDir)
@@ -33,7 +32,6 @@ def reactNativeAndroidDir = new File(
 allprojects {
   repositories {
     maven {
-      // Wszystko z React Native (JS, Obj-C, Android) z npm
       url(reactNativeAndroidDir)
     }
     google()
@@ -42,6 +40,5 @@ allprojects {
   }
 }
 
-// Wtyczki Expo i React Native
 apply plugin: "expo-root-project"
 apply plugin: "com.facebook.react.rootproject"
