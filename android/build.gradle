@@ -1,28 +1,35 @@
+// Top-level build file where you can add configuration options common to all sub-projects/modules.
+
+// Dodajemy zmienną kotlinVersion z ENV lub domyślną
+ext.kotlinVersion = System.getenv("KOTLIN_VERSION") ?: '1.9.10'
+
 buildscript {
+  ext.kotlin_version = rootProject.ext.kotlinVersion 
+
   repositories {
     google()
     mavenCentral()
   }
   dependencies {
-    classpath('com.android.tools.build:gradle:8.0.2') // Upewnij się, że masz konkretną wersję
-    classpath('com.facebook.react:react-native-gradle-plugin')
-    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
-    classpath('com.google.gms:google-services:4.3.15') // ✅ Dodane - plugin do Firebase
+    classpath 'com.google.gms:google-services:4.4.1'
+    classpath 'com.android.tools.build:gradle:8.2.2'
+    classpath 'com.facebook.react:react-native-gradle-plugin'
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
   }
 }
 
-// ✅ Poprawny sposób pobrania ścieżki react-native/package.json
-def stdoutBuffer = new ByteArrayOutputStream()
-exec {
-  commandLine "node", "--print", "require.resolve('react-native/package.json')"
-  standardOutput = stdoutBuffer
-}
-def reactNativePackageJson = stdoutBuffer.toString().trim()
-def reactNativeAndroidDir = new File(reactNativePackageJson).getParentFile().getParentFile()
+def reactNativeAndroidDir = new File(
+  providers.exec {
+    workingDir(rootDir)
+    commandLine("node", "--print", "require.resolve('react-native/package.json')")
+  }.standardOutput.asText.get().trim(),
+  "../android"
+)
 
 allprojects {
   repositories {
     maven {
+      // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
       url(reactNativeAndroidDir)
     }
     google()
