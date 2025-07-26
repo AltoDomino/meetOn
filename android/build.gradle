@@ -1,6 +1,11 @@
 buildscript {
   ext {
     kotlinVersion = System.getenv("KOTLIN_VERSION") ?: '1.9.22'
+    buildToolsVersion = "34.0.0"
+    minSdkVersion = 23
+    compileSdkVersion = 34
+    targetSdkVersion = 34
+    ndkVersion = "26.1.10909125"
   }
 
   repositories {
@@ -12,10 +17,11 @@ buildscript {
     classpath 'com.google.gms:google-services:4.4.1'
     classpath 'com.android.tools.build:gradle:8.2.2'
     classpath 'com.facebook.react:react-native-gradle-plugin'
-    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlinVersion}"
+    classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion"
   }
 }
 
+// Ustawienie ścieżki do React Native
 def reactNativeAndroidDir = new File(
   providers.exec {
     workingDir(rootDir)
@@ -27,7 +33,7 @@ def reactNativeAndroidDir = new File(
 allprojects {
   repositories {
     maven {
-      // All of React Native (JS, Obj-C sources, Android binaries) is installed from npm
+      // Wszystko z React Native (JS, Obj-C, Android) z npm
       url(reactNativeAndroidDir)
     }
     google()
@@ -36,5 +42,6 @@ allprojects {
   }
 }
 
+// Wtyczki Expo i React Native
 apply plugin: "expo-root-project"
 apply plugin: "com.facebook.react.rootproject"
