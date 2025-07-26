@@ -71,7 +71,8 @@ const ChatBox: React.FC<ChatBoxProps> = ({ messages, onSend }) => {
           value={input}
           onChangeText={setInput}
           placeholder="Napisz wiadomość..."
-          style={styles.input}
+          placeholderTextColor="gray"
+          style={[styles.input, { color: "black" }]} 
         />
         <TouchableOpacity onPress={handleSend} style={styles.sendButton}>
           <Text style={styles.sendButtonText}>➤</Text>

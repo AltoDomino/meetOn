@@ -6,7 +6,10 @@ import { router, useLocalSearchParams } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
   FlatList,
+  KeyboardAvoidingView,
   Linking,
+  Platform,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -16,19 +19,7 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { styles } from "../../styles/form.styles";
 
 export default function PlaceDateform() {
-  const formatDate = (date: {
-    toLocaleString: (
-      arg0: string,
-      arg1: {
-        weekday: string;
-        year: string;
-        month: string;
-        day: string;
-        hour: string;
-        minute: string;
-      }
-    ) => any;
-  }) => {
+  const formatDate = (date: Date) => {
     return date.toLocaleString("pl-PL", {
       weekday: "short",
       year: "numeric",
@@ -40,11 +31,9 @@ export default function PlaceDateform() {
   };
 
   const { activity: choosenActivity, customOnly } = useLocalSearchParams();
-
   const newActivity = Array.isArray(choosenActivity)
     ? choosenActivity[0]
     : choosenActivity;
-
   const isCustomOnly = customOnly === "true";
 
   const [places, setPlaces] = useState<Place[]>([]);
@@ -172,8 +161,16 @@ export default function PlaceDateform() {
     });
   };
 
-  return (
-    <View style={styles.container}>
+return (
+  <KeyboardAvoidingView
+    behavior={Platform.OS === "ios" ? "padding" : "height"}
+    style={{ flex: 1 }}
+    keyboardVerticalOffset={80} 
+  >
+    <ScrollView
+      contentContainerStyle={[styles.container, { paddingBottom: 120 }]}
+      keyboardShouldPersistTaps="handled"
+    >
       {!isCustomOnly && (
         <>
           <Text style={styles.label}>Sugerowane lokalizacje:</Text>
@@ -199,8 +196,10 @@ export default function PlaceDateform() {
           marginTop: 8,
           marginBottom: 16,
           fontSize: 16,
+          color: "black",
         }}
         placeholder="Wpisz własną lokalizację"
+        placeholderTextColor="gray"
         value={customLocation}
         onChangeText={setCustomLocation}
       />
@@ -240,6 +239,8 @@ export default function PlaceDateform() {
       />
 
       <BottomButton title="Szczegóły Wydarzenia" onPress={handleSubmit} />
-    </View>
-  );
+    </ScrollView>
+  </KeyboardAvoidingView>
+);
+
 }

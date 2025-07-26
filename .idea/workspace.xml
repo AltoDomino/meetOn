@@ -6,12 +6,15 @@
   <component name="ChangeListManager">
     <list default="true" id="f8f0bf5b-7ad0-40cb-94ee-cdf641474b64" name="Changes" comment="">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app.json" beforeDir="false" afterPath="$PROJECT_DIR$/app.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(auth)/CreateEvent.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/CreateEvent.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/(auth)/Event.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/Event.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/CreateEvent/DetailsForm.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/CreateEvent/DetailsForm.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/CreateEvent/SendDataform.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/CreateEvent/SendDataform.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/utilis/FetchActivityPlaces.ts" beforeDir="false" afterPath="$PROJECT_DIR$/utilis/FetchActivityPlaces.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(auth)/Profile.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/Profile.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(main)/Login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(main)/Login.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(main)/Registration.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(main)/Registration.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/CreateEvent/PlaceDateform.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/CreateEvent/PlaceDateform.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/InviteFriends/SendFriendRequest.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/InviteFriends/SendFriendRequest.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/ChatBox.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/ChatBox.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/eas.json" beforeDir="false" afterPath="$PROJECT_DIR$/eas.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package-lock.json" beforeDir="false" afterPath="$PROJECT_DIR$/package-lock.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/package.json" beforeDir="false" afterPath="$PROJECT_DIR$/package.json" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

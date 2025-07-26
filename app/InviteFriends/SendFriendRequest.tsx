@@ -46,9 +46,10 @@ export default function SendFriendRequest({
     <View style={styles.container}>
       <TextInput
         placeholder="Login znajomego"
+        placeholderTextColor="gray"
         value={receiverName}
         onChangeText={setReceiverName}
-        style={styles.input}
+        style={[styles.input, { color: "black" }]}
       />
       <Button title="Wyślij zaproszenie" onPress={handleSendRequest} />
     </View>

@@ -5,8 +5,6 @@ import { Controller, useForm } from "react-hook-form";
 import {
   Alert,
   ImageBackground,
-  KeyboardAvoidingView,
-  Platform,
   Text,
   TextInput,
   TouchableOpacity,
@@ -37,13 +35,14 @@ const Login = () => {
         },
         body: JSON.stringify(dataLog),
       });
-console.log(dataLog)
+
+      console.log(dataLog);
+
       if (res.status === 200) {
         const data = await res.json();
         setUserName(data.userName);
         setUserId(data.userId);
 
-        // 🔍 Sprawdź zainteresowania z backendu i ustaw flagę
         const interestsRes = await fetch(
           `${BACKEND_URL}/api/interests/${data.userId}`
         );
@@ -77,10 +76,7 @@ console.log(dataLog)
       style={styles.background}
       resizeMode="cover"
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        style={styles.centeredContainer}
-      >
+      <View style={styles.centeredContainer}>
         <View style={styles.form}>
           <Text style={styles.label}>Email:</Text>
           <Controller
@@ -89,13 +85,13 @@ console.log(dataLog)
             rules={{ required: true }}
             render={({ field: { onChange, value } }) => (
               <TextInput
-                style={styles.input}
+                style={[styles.input, { color: "black" }]}
                 placeholder="Email"
                 value={value}
                 onChangeText={onChange}
                 keyboardType="email-address"
                 autoCapitalize="none"
-                placeholderTextColor="#ccc"
+                placeholderTextColor="gray"
               />
             )}
           />
@@ -107,13 +103,13 @@ console.log(dataLog)
             rules={{ required: true }}
             render={({ field: { onChange, value } }) => (
               <TextInput
-                style={styles.input}
-                placeholder="Password"
+                style={[styles.input, { color: "black" }]}
+                placeholder="Hasło"
                 value={value}
                 onChangeText={onChange}
                 secureTextEntry
                 autoCapitalize="none"
-                placeholderTextColor="#ccc"
+                placeholderTextColor="gray"
               />
             )}
           />
@@ -134,7 +130,7 @@ console.log(dataLog)
             <Text style={styles.registerButtonText}>ZAREJESTRUJ SIĘ</Text>
           </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+      </View>
     </ImageBackground>
   );
 };

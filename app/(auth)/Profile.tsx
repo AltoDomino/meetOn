@@ -158,7 +158,7 @@ export default function ProfileScreen() {
         <Text style={styles.saveButtonText}>Zapisz zmiany</Text>
       </TouchableOpacity>
 
-      <View style={styles.subscriptionSection}>
+      {/* <View style={styles.subscriptionSection}>
         <Text style={styles.label}>Subskrypcja</Text>
         <Text style={{ marginBottom: 10 }}>
           {subscriptionActive
@@ -173,7 +173,7 @@ export default function ProfileScreen() {
             <Text style={styles.subscribeButtonText}>Wykup subskrypcję</Text>
           </TouchableOpacity>
         )}
-      </View>
+      </View> */}
     </ScrollView>
   );
 }

@@ -104,8 +104,9 @@ const Registration = () => {
               }}
               render={({ field: { onChange, value } }) => (
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { color: "black" }]}
                   placeholder="Nazwa użytkownika"
+                  placeholderTextColor="gray"
                   value={value}
                   onChangeText={onChange}
                   autoCapitalize="none"
@@ -129,8 +130,9 @@ const Registration = () => {
               }}
               render={({ field: { onChange, value } }) => (
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { color: "black" }]}
                   placeholder="Email"
+                  placeholderTextColor="gray"
                   keyboardType="email-address"
                   autoCapitalize="none"
                   onChangeText={onChange}
@@ -155,8 +157,9 @@ const Registration = () => {
               }}
               render={({ field: { onChange, value } }) => (
                 <TextInput
-                  style={styles.input}
+                  style={[styles.input, { color: "black" }]}
                   placeholder="Hasło"
+                  placeholderTextColor="gray"
                   secureTextEntry
                   onChangeText={onChange}
                   value={value}
@@ -210,7 +213,7 @@ const Registration = () => {
                     style={[styles.input, { justifyContent: "center" }]}
                     onPress={() => setShowDatePicker(true)}
                   >
-                    <Text>
+                    <Text style={{ color: "black" }}>
                       {value
                         ? value.toLocaleDateString()
                         : "Wybierz datę urodzenia"}

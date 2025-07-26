@@ -5,12 +5,16 @@ import { useEffect, useState } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ActivityProvider } from "../context/ActivityContext";
 import { AuthProvider } from "../context/AuthContext";
+import { usePersistentLocation } from "@/hooks/usePersistentLocation";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
   const [splashDone, setSplashDone] = useState(false);
   useBackExit();
+
+  usePersistentLocation(); 
+
   useEffect(() => {
     if (splashDone) {
       SplashScreen.hideAsync();
