@@ -1,27 +1,30 @@
 import { Dimensions, StyleSheet } from "react-native";
 
-
-const screenWidth = Dimensions.get("window").width;
-const tileSize = (screenWidth - 60) / 2; 
-
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: "#0d1a4d",
     padding: 20,
     gap: 16,
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
+    borderWidth: 5,
+    borderColor: "#00C1F3",
     borderRadius: 12,
     padding: 12,
     marginBottom: 16,
-  },
-  label: {
     fontSize: 16,
-    fontWeight: "600",
-    marginBottom: 8,
+    color: "#E1F1FF",
+    backgroundColor: "#14265c",
+    
   },
+label: {
+  fontSize: 17,
+  fontWeight: "600",
+  marginBottom: 8,
+  color: "#14265c",
+  textAlign: "center", // <-- dodane wyrównanie do środka
+},
 
   counterContainer: {
     marginBottom: 20,
@@ -30,14 +33,14 @@ export const styles = StyleSheet.create({
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: "#f2f2f2",
+    backgroundColor: "#14265c",
     borderRadius: 12,
     paddingHorizontal: 16,
     paddingVertical: 10,
     marginTop: 8,
   },
   counterButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#00C1F3",
     borderRadius: 8,
     padding: 10,
   },
@@ -49,6 +52,7 @@ export const styles = StyleSheet.create({
   counterValue: {
     fontSize: 18,
     fontWeight: "600",
+    color: "#E1F1FF",
   },
   switchContainer: {
     flexDirection: "row",
@@ -56,75 +60,70 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     marginBottom: 20,
   },
-
+  switchLabelRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginBottom: 6,
+  },
   iconRow: {
     flexDirection: "row",
     justifyContent: "center",
     marginTop: 8,
     gap: 12,
   },
-
   submitButton: {
-    backgroundColor: "#007AFF", 
+    backgroundColor: "#00C1F3",
     paddingVertical: 14,
     paddingHorizontal: 24,
-    borderRadius: 12,
+    borderRadius: 16,
     alignItems: "center",
-    marginTop: 20,
+    shadowColor: "#00E6FB",
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 5,
   },
-
   submitButtonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: "bold",
-  },
-  switchLabelRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 6,
   },
   placeTileContainer: {
     width: "100%",
     alignItems: "center",
     marginBottom: 16,
   },
-
   placeTile: {
-    backgroundColor: "#B2FFFF", // jasno cyjanowy
+    backgroundColor: "#1c3c6b",
     padding: 16,
     borderRadius: 12,
-    width: Dimensions.get("window").width - 40,
+    width: Dimensions.get("window").width - 70,
     alignSelf: "center",
-    shadowColor: "#000",
+    shadowColor: "#00E6FB",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,
     elevation: 3,
   },
-
   placeText: {
-    fontSize: 16,
-    fontWeight: "bold",
-    color: "#333",
+    fontSize: 17,
+    fontWeight: "600",
+    color: "#B0DFFF",
     textAlign: "center",
   },
-
   placeAddress: {
-    fontSize: 12,
-    color: "#666",
+    fontSize: 13,
+    color: "#CFCFCF",
     textAlign: "center",
     marginTop: 6,
   },
-
   iconRowBottom: {
     flexDirection: "row",
     justifyContent: "center",
     marginTop: 8,
     gap: 10,
   },
-
   iconButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#00C1F3",
     padding: 8,
     borderRadius: 8,
   },
@@ -134,26 +133,23 @@ export const styles = StyleSheet.create({
     gap: 10,
     marginBottom: 16,
   },
-
   datePickerBox: {
     flex: 1,
-    borderWidth: 1,
-    borderColor: "#ccc",
+    borderWidth: 5,
+    borderColor: "#00C1F3",
     borderRadius: 12,
     padding: 12,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#14265c",
   },
-
   datePickerLabel: {
-    fontSize: 12,
+    fontSize: 13,
     fontWeight: "600",
-    color: "#555",
+    color: "#B0DFFF",
     marginBottom: 4,
   },
-
   datePickerText: {
-    fontSize: 14,
+    fontSize: 15,
     fontWeight: "500",
-    color: "#000",
+    color: "#E1F1FF",
   },
 });

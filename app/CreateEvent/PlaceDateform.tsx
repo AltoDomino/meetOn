@@ -3,13 +3,13 @@ import fetchPlaces, { Place } from "@/utilis/FetchActivityPlaces";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import {
+  Animated,
   FlatList,
   KeyboardAvoidingView,
   Linking,
   Platform,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
@@ -19,6 +19,24 @@ import DateTimePickerModal from "react-native-modal-datetime-picker";
 import { styles } from "../../styles/form.styles";
 
 export default function PlaceDateform() {
+  const fadeAnim = useRef(new Animated.Value(0)).current;
+  const translateY = useRef(new Animated.Value(20)).current;
+
+  useEffect(() => {
+    Animated.parallel([
+      Animated.timing(fadeAnim, {
+        toValue: 1,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+      Animated.timing(translateY, {
+        toValue: 0,
+        duration: 400,
+        useNativeDriver: true,
+      }),
+    ]).start();
+  }, []);
+
   const formatDate = (date: Date) => {
     return date.toLocaleString("pl-PL", {
       weekday: "short",
@@ -102,15 +120,15 @@ export default function PlaceDateform() {
           setCustomLocation("");
           setSelectedPlaceId(item.placeId);
         }}
-        style={[
-          styles.placeTileContainer,
-          isSelected && { backgroundColor: "#D6F6FF" },
-        ]}
+        style={styles.placeTileContainer}
       >
         <View
           style={[
             styles.placeTile,
-            isSelected && { backgroundColor: "#C0F0FF" },
+            isSelected && {
+              borderColor: "#00C1F3",
+              borderWidth: 6,
+            },
           ]}
         >
           <Text style={styles.placeText}>{item.name}</Text>
@@ -161,86 +179,87 @@ export default function PlaceDateform() {
     });
   };
 
-return (
-  <KeyboardAvoidingView
-    behavior={Platform.OS === "ios" ? "padding" : "height"}
-    style={{ flex: 1 }}
-    keyboardVerticalOffset={80} 
-  >
-    <ScrollView
-      contentContainerStyle={[styles.container, { paddingBottom: 120 }]}
-      keyboardShouldPersistTaps="handled"
+  return (
+    <KeyboardAvoidingView
+      behavior={Platform.OS === "ios" ? "padding" : undefined}
+      style={{ flex: 1 }}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 40 : 0}
     >
-      {!isCustomOnly && (
-        <>
-          <Text style={styles.label}>Sugerowane lokalizacje:</Text>
-          <View style={{ maxHeight: "45%" }}>
-            <FlatList
-              data={places}
-              keyExtractor={(item) => item.placeId}
-              renderItem={renderPlaceTile}
-              showsVerticalScrollIndicator={true}
-              ListEmptyComponent={<Text>Brak wyników</Text>}
-            />
-          </View>
-        </>
-      )}
+      <View style={{ flex: 1 }}>
+        {!isCustomOnly && (
+          <>
+            <Text style={styles.label}>Sugerowane lokalizacje:</Text>
+            <View style={{ maxHeight: Platform.OS === "ios" ? "54%" : "45%" }}>
+              <FlatList
+                data={places}
+                keyExtractor={(item) => item.placeId}
+                renderItem={renderPlaceTile}
+                showsVerticalScrollIndicator={true}
+                ListEmptyComponent={
+                  <Text style={{ color: "#fff" }}>Brak wyników</Text>
+                }
+              />
+            </View>
+          </>
+        )}
 
-      <Text style={styles.label}>Wpisz własną lokalizację:</Text>
-      <TextInput
-        style={{
-          borderWidth: 1,
-          borderColor: "#ccc",
-          borderRadius: 8,
-          padding: 10,
-          marginTop: 8,
-          marginBottom: 16,
-          fontSize: 16,
-          color: "black",
-        }}
-        placeholder="Wpisz własną lokalizację"
-        placeholderTextColor="gray"
-        value={customLocation}
-        onChangeText={setCustomLocation}
-      />
+        <Text style={styles.label}>Wpisz własną lokalizację:</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Wpisz własną lokalizację"
+          placeholderTextColor="gray"
+          value={customLocation}
+          onChangeText={setCustomLocation}
+        />
 
-      <Text style={styles.label}>Data i godzina wydarzenia:</Text>
-      <View style={styles.dateRow}>
-        <TouchableOpacity
-          style={styles.datePickerBox}
-          onPress={() => setStartPickerVisible(true)}
+        <Text style={styles.label}>Data i godzina wydarzenia:</Text>
+        <View style={styles.dateRow}>
+          <TouchableOpacity
+            style={styles.datePickerBox}
+            onPress={() => setStartPickerVisible(true)}
+          >
+            <Text style={styles.datePickerLabel}>Start</Text>
+            <Text style={styles.datePickerText}>{formatDate(startDate)}</Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            style={styles.datePickerBox}
+            onPress={() => setEndPickerVisible(true)}
+          >
+            <Text style={styles.datePickerLabel}>Koniec</Text>
+            <Text style={styles.datePickerText}>{formatDate(endDate)}</Text>
+          </TouchableOpacity>
+        </View>
+
+        <DateTimePickerModal
+          isVisible={isStartPickerVisible}
+          mode="datetime"
+          date={startDate}
+          onConfirm={handleStartConfirm}
+          onCancel={() => setStartPickerVisible(false)}
+        />
+        <DateTimePickerModal
+          isVisible={isEndPickerVisible}
+          mode="datetime"
+          date={endDate}
+          onConfirm={handleEndConfirm}
+          onCancel={() => setEndPickerVisible(false)}
+        />
+
+        <View
+          style={{
+            position: "absolute",
+            left: 0,
+            right: 0,
+            bottom: Platform.OS === "ios" ? 0 : 10,
+            paddingBottom: Platform.OS === "ios" ? 20 : 0,
+            paddingHorizontal: 20,
+            backgroundColor: "#fff",
+          }}
         >
-          <Text style={styles.datePickerLabel}>Start</Text>
-          <Text style={styles.datePickerText}>{formatDate(startDate)}</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.datePickerBox}
-          onPress={() => setEndPickerVisible(true)}
-        >
-          <Text style={styles.datePickerLabel}>Koniec</Text>
-          <Text style={styles.datePickerText}>{formatDate(endDate)}</Text>
-        </TouchableOpacity>
+          <BottomButton title="Szczegóły Wydarzenia" onPress={handleSubmit} />
+        </View>
       </View>
-
-      <DateTimePickerModal
-        isVisible={isStartPickerVisible}
-        mode="datetime"
-        date={startDate}
-        onConfirm={handleStartConfirm}
-        onCancel={() => setStartPickerVisible(false)}
-      />
-      <DateTimePickerModal
-        isVisible={isEndPickerVisible}
-        mode="datetime"
-        date={endDate}
-        onConfirm={handleEndConfirm}
-        onCancel={() => setEndPickerVisible(false)}
-      />
-
-      <BottomButton title="Szczegóły Wydarzenia" onPress={handleSubmit} />
-    </ScrollView>
-  </KeyboardAvoidingView>
-);
-
+    </KeyboardAvoidingView>
+  );
 }

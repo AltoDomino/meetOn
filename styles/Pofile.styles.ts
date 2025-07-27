@@ -2,9 +2,9 @@ import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   container: {
+    flex: 1,
     padding: 24,
     gap: 16,
-    backgroundColor: "#fff",
   },
   avatar: {
     width: 100,
@@ -14,25 +14,34 @@ export const styles = StyleSheet.create({
   },
   avatarHint: {
     textAlign: "center",
-    color: "#007AFF",
+    color: "#B0DFFF", // błękitny tekst
     marginTop: 8,
+    fontWeight: "500",
   },
   label: {
     fontWeight: "600",
     fontSize: 16,
+    color: "#B0DFFF", // jasny niebieski
+    alignSelf: "center",
   },
   input: {
-    borderWidth: 1,
-    borderColor: "#ccc",
-    borderRadius: 10,
-    padding: 10,
+    borderWidth: 3,
+    borderColor: "#00C1F3",
+    borderRadius: 12,
+    padding: 12,
     fontSize: 16,
+    backgroundColor: "#14265c", // ciemniejszy niebieski
+    color: "#E1F1FF", // jasny tekst
   },
   saveButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#00C1F3",
     padding: 14,
     borderRadius: 12,
     alignItems: "center",
+    shadowColor: "#00E6FB",
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 5,
   },
   saveButtonText: {
     color: "#fff",
@@ -42,7 +51,7 @@ export const styles = StyleSheet.create({
   subscriptionSection: {
     marginTop: 32,
     padding: 16,
-    backgroundColor: "#f2f2f2",
+    backgroundColor: "#14265c",
     borderRadius: 12,
   },
   subscribeButton: {

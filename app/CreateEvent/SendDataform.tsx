@@ -1,3 +1,4 @@
+
 import { Alert } from "react-native";
 
 const FormDataSend = async (DataForm: {
@@ -20,16 +21,15 @@ const FormDataSend = async (DataForm: {
         body: JSON.stringify(DataForm),
       }
     );
-    console.log(DataForm, "dane wydarzenia");
     if (res.status === 201) {
-      console.log("Dane:", DataForm);
-      Alert.alert("Sukces", "Dane wysłane");
+      Alert.alert("Stworzono Wydarzenie");
     } else if (res.status === 403) {
       Alert.alert("Błąd", "Niepoprawne dane");
     }
   } catch (error) {
     Alert.alert("Błąd", "Nie udało się połączyć z serwerem");
   }
+  
 };
 
 export default FormDataSend;

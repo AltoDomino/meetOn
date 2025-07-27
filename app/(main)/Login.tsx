@@ -9,6 +9,8 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import styles from "../../styles/Login.styles";
@@ -22,7 +24,14 @@ interface FormData {
 const BACKEND_URL = "https://meeton-backend-ffmo.onrender.com";
 
 const Login = () => {
-  const { setUserName, setUserId, setHasChosenActivities } = useAuth();
+  const {
+    setUserName,
+    setUserId,
+    setAvatar,
+    setDescription,
+    setHasChosenActivities,
+  } = useAuth();
+
   const { control, handleSubmit } = useForm<FormData>();
   const router = useRouter();
 
@@ -36,12 +45,13 @@ const Login = () => {
         body: JSON.stringify(dataLog),
       });
 
-      console.log(dataLog);
-
       if (res.status === 200) {
         const data = await res.json();
-        setUserName(data.userName);
-        setUserId(data.userId);
+
+        await setUserName(data.userName);
+        await setUserId(data.userId);
+        await setAvatar(data.avatar || null);
+        await setDescription(data.description || "");
 
         const interestsRes = await fetch(
           `${BACKEND_URL}/api/interests/${data.userId}`
@@ -49,7 +59,7 @@ const Login = () => {
         const interests = await interestsRes.json();
 
         if (interests && interests.length > 0) {
-          setHasChosenActivities(true);
+          await setHasChosenActivities(true);
         }
 
         const storedActivities = await loadActivities(data.userName);
@@ -60,12 +70,12 @@ const Login = () => {
           router.replace("/(main)/HomeScreen");
         }
       } else if (res.status === 422) {
-        Alert.alert("Błąd");
+        Alert.alert("Błąd", "Nieprawidłowe dane logowania");
       } else {
         Alert.alert("Coś poszło nie tak", `Status: ${res.status}`);
       }
     } catch (error) {
-      Alert.alert("Błąd połączenia", "Nie udało połączyć z serwerem.");
+      Alert.alert("Błąd połączenia", "Nie udało się połączyć z serwerem.");
       console.log(error, "error");
     }
   };
@@ -76,61 +86,67 @@ const Login = () => {
       style={styles.background}
       resizeMode="cover"
     >
-      <View style={styles.centeredContainer}>
-        <View style={styles.form}>
-          <Text style={styles.label}>Email:</Text>
-          <Controller
-            control={control}
-            name="email"
-            rules={{ required: true }}
-            render={({ field: { onChange, value } }) => (
-              <TextInput
-                style={[styles.input, { color: "black" }]}
-                placeholder="Email"
-                value={value}
-                onChangeText={onChange}
-                keyboardType="email-address"
-                autoCapitalize="none"
-                placeholderTextColor="gray"
-              />
-            )}
-          />
+      <KeyboardAvoidingView
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        style={{ flex: 1 }}
+        keyboardVerticalOffset={0}
+      >
+        <View style={styles.centeredContainer}>
+          <View style={styles.form}>
+            <Text style={styles.label}>Email:</Text>
+            <Controller
+              control={control}
+              name="email"
+              rules={{ required: true }}
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  style={[styles.input, { color: "black" }]}
+                  placeholder="Email"
+                  value={value}
+                  onChangeText={onChange}
+                  keyboardType="email-address"
+                  autoCapitalize="none"
+                  placeholderTextColor="gray"
+                />
+              )}
+            />
 
-          <Text style={styles.label}>Hasło:</Text>
-          <Controller
-            control={control}
-            name="password"
-            rules={{ required: true }}
-            render={({ field: { onChange, value } }) => (
-              <TextInput
-                style={[styles.input, { color: "black" }]}
-                placeholder="Hasło"
-                value={value}
-                onChangeText={onChange}
-                secureTextEntry
-                autoCapitalize="none"
-                placeholderTextColor="gray"
-              />
-            )}
-          />
+            <Text style={styles.label}>Hasło:</Text>
+            <Controller
+              control={control}
+              name="password"
+              rules={{ required: true }}
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  style={[styles.input, { color: "black" }]}
+                  placeholder="Hasło"
+                  value={value}
+                  onChangeText={onChange}
+                  secureTextEntry
+                  autoCapitalize="none"
+                  placeholderTextColor="gray"
+                />
+              )}
+            />
 
-          <TouchableOpacity
-            style={styles.loginButton}
-            onPress={handleSubmit(onSubmit)}
-          >
-            <Text style={styles.loginButtonText}>ZALOGUJ SIĘ</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.loginButton}
+              onPress={handleSubmit(onSubmit)}
+            >
+              <Text style={styles.loginButtonText}>ZALOGUJ SIĘ</Text>
+            </TouchableOpacity>
 
-          <Text style={styles.noAccountText}>Nie masz konta?</Text>
+            <Text style={styles.noAccountText}>Nie masz konta?</Text>
 
-          <TouchableOpacity
-            onPress={() => router.replace("./Registration")}
-            style={styles.registerButton}
-          >
-            <Text style={styles.registerButtonText}>ZAREJESTRUJ SIĘ</Text>
-          </TouchableOpacity>
+            <TouchableOpacity
+              onPress={() => router.replace("./Registration")}
+              style={styles.registerButton}
+            >
+              <Text style={styles.registerButtonText}>ZAREJESTRUJ SIĘ</Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
+      </KeyboardAvoidingView>
     </ImageBackground>
   );
 };

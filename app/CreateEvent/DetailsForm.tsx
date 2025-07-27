@@ -6,7 +6,7 @@ import * as Location from "expo-location";
 import React, { useEffect, useState } from "react";
 import { Alert, Switch, Text, TouchableOpacity, View } from "react-native";
 import { useAuth } from "../../context/AuthContext";
-import { styles } from "../../styles/form.styles";
+import { styles } from "../../styles/detailsForom.styles";
 import FormDataSend from "./SendDataform";
 
 const DetailsForm = () => {

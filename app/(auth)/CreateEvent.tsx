@@ -30,21 +30,28 @@ export default function CreateEvent() {
     fetchActivities();
   }, [userName]);
 
+  // Dodaj pusty kafelek jeśli nieparzysta liczba
+  const getFormattedActivities = () => {
+    if (activities.length % 2 === 0) return activities;
+    return [...activities, "___EMPTY___"];
+  };
 
   const renderActivityTile = ({ item }: { item: string }) => {
+    if (item === "___EMPTY___") {
+      return <View style={styles.activityTileWrapper} />;
+    }
+
     const isSelected = choosenActivity === item;
 
     return (
       <TouchableOpacity
-        style={[
-          styles.activityTileWrapper,
-          isSelected && { borderWidth: 2, borderColor: "#007AFF" },
-        ]}
+        style={styles.activityTileWrapper}
         onPress={() => setChoosenSelectedActivity(item)}
+        activeOpacity={0.8}
       >
         <ImageBackground
           source={activityImages[item]}
-          style={styles.activityTile}
+          style={[styles.activityTile, isSelected && { opacity: 0.6 }]}
           imageStyle={{ borderRadius: 12 }}
         >
           <Text style={styles.activityTileText}>{item}</Text>
@@ -53,32 +60,34 @@ export default function CreateEvent() {
     );
   };
 
-const handleCreateEvent = () => {
-  if (!choosenActivity) return;
+  const handleCreateEvent = () => {
+    if (!choosenActivity) return;
 
-  const mosirActivities = [
-    "Tenis ziemny",
-    "Piłka nożna",
-    "Koszykówka",
-    "Tenis stołowy",
-  ];
+    const mosirActivities = [
+      "Tenis ziemny",
+      "Piłka nożna",
+      "Koszykówka",
+      "Tenis stołowy",
+    ];
 
-  const isMosir = mosirActivities.includes(choosenActivity);
-  const isOther = choosenActivity === "Stwórz własne";
+    const isMosir = mosirActivities.includes(choosenActivity);
+    const isOther =
+      choosenActivity === "STWÓRZ WŁASNE" ||
+      choosenActivity === "ROWER"||
+      choosenActivity === "KONCERT"
 
-  const finalActivity = isMosir ? "mosir" : choosenActivity;
+    const finalActivity = isMosir ? "mosir" : choosenActivity;
 
-  router.push({
-    pathname: "/CreateEvent/PlaceDateform",
-    params: {
-      activity: finalActivity,
-      customOnly: isOther ? "true" : "false", // <-- Dodajemy parametr customOnly
-    },
-  });
+    router.push({
+      pathname: "/CreateEvent/PlaceDateform",
+      params: {
+        activity: finalActivity,
+        customOnly: isOther ? "true" : "false",
+      },
+    });
 
-  console.log("wybrana aktywność (przekazywana):", finalActivity);
-};
-
+    console.log("wybrana aktywność (przekazywana):", finalActivity);
+  };
 
   return (
     <View style={styles.container}>
@@ -86,9 +95,9 @@ const handleCreateEvent = () => {
         Wybierz aktywność aby stworzyć wydarzenie
       </Text>
       <FlatList
-        data={activities}
+        data={getFormattedActivities()}
         renderItem={renderActivityTile}
-        keyExtractor={(item) => item}
+        keyExtractor={(item, index) => `${item}-${index}`}
         numColumns={2}
         contentContainerStyle={styles.activitiesList}
       />

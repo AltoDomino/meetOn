@@ -15,9 +15,9 @@ import {
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import io from "socket.io-client";
-import type { Event } from "../(auth)/Event";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/EventScreenRoom.styles";
+import type { Event } from "../CreateEvent/Event";
 
 const socket = io("https://meeton-backend-ffmo.onrender.com", {
   transports: ["websocket"],
@@ -94,54 +94,56 @@ const EventRoomScreen = () => {
     currentEvent.creator?.userName === userName &&
     participants.length === 0;
 
-const handleDeleteEvent = () => {
-  Alert.alert(
-    "Usuń wydarzenie",
-    "Czy na pewno chcesz usunąć to wydarzenie? Tej operacji nie można cofnąć.",
-    [
-      {
-        text: "Anuluj",
-        style: "cancel",
-      },
-      {
-        text: "Usuń",
-        style: "destructive",
-        onPress: async () => {
-          if (!currentEvent) return;
+  const handleDeleteEvent = () => {
+    Alert.alert(
+      "Usuń wydarzenie",
+      "Czy na pewno chcesz usunąć to wydarzenie? Tej operacji nie można cofnąć.",
+      [
+        { text: "Anuluj", style: "cancel" },
+        {
+          text: "Usuń",
+          style: "destructive",
+          onPress: async () => {
+            if (!currentEvent) return;
 
-          try {
-            const res = await fetch(
-              `https://meeton-backend-ffmo.onrender.com/api/event/${currentEvent.id}`,
-              {
-                method: "DELETE",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ userId }),
+            try {
+              const res = await fetch(
+                `https://meeton-backend-ffmo.onrender.com/api/event/${currentEvent.id}`,
+                {
+                  method: "DELETE",
+                  headers: { "Content-Type": "application/json" },
+                  body: JSON.stringify({ userId }),
+                }
+              );
+
+              if (!res.ok) {
+                const errorData = await res.json();
+                throw new Error(
+                  errorData.error || "Błąd podczas usuwania wydarzenia"
+                );
               }
-            );
 
-            if (!res.ok) {
-              const errorData = await res.json();
-              throw new Error(errorData.error || "Błąd podczas usuwania wydarzenia");
+              Alert.alert("Wydarzenie zostało usunięte");
+              router.push("/screens/MyEvents");
+            } catch (error: unknown) {
+              Alert.alert(
+                "Błąd",
+                error instanceof Error ? error.message : "Nieznany błąd"
+              );
             }
-
-            Alert.alert("Sukces", "Wydarzenie zostało usunięte");
-            router.push("/screens/MyEvents");
-          } catch (error: unknown) {
-            Alert.alert(
-              "Błąd",
-              error instanceof Error ? error.message : "Nieznany błąd"
-            );
-          }
+          },
         },
-      },
-    ]
-  );
-};
+      ]
+    );
+  };
 
   return (
     <>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={{
+          flex: 1,
+          paddingBottom: Platform.OS === "android" ? insets.bottom + 20 : 0,
+        }}
         behavior={Platform.OS === "ios" ? "padding" : "height"}
         keyboardVerticalOffset={Platform.OS === "ios" ? insets.top + 80 : 0}
       >
@@ -149,12 +151,13 @@ const handleDeleteEvent = () => {
           <Stack.Screen
             options={{
               title: "Moje Wydarzenia",
-              headerStyle: { backgroundColor: "#00A9F4" },
+              headerStyle: {
+                backgroundColor: "#00A9F4",
+              },
               headerTintColor: "#fff",
             }}
           />
 
-          {/* HEADER */}
           <View style={styles.header}>
             <View style={styles.eventInfo}>
               <Text style={styles.title}>{location}</Text>
@@ -162,7 +165,7 @@ const handleDeleteEvent = () => {
                 {new Date(
                   Array.isArray(startDate) ? startDate[0] : startDate
                 ).toLocaleString()}{" "}
-                -{" "}
+                -
                 {new Date(
                   Array.isArray(endDate) ? endDate[0] : endDate
                 ).toLocaleTimeString()}
@@ -187,7 +190,6 @@ const handleDeleteEvent = () => {
             )}
           </View>
 
-          {/* UCZESTNICY */}
           <View style={styles.participantsContainer}>
             <Text style={styles.participantsTitle}>Uczestnicy wydarzenia:</Text>
             <FlatList
@@ -212,7 +214,6 @@ const handleDeleteEvent = () => {
             />
           </View>
 
-          {/* CHAT */}
           <View style={styles.chatContainer}>
             <ChatBox messages={messages} onSend={handleSendMessage} />
           </View>

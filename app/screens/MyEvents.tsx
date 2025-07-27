@@ -115,10 +115,12 @@ export default function MyEvents() {
     <View style={{ flex: 1 }}>
       <Stack.Screen
         options={{
-          title: "Twoje Wydarzenia",
+          title: "MOJE WYDARZENIA",
           headerStyle: {
             backgroundColor: "#00A9F4",
           },
+          headerTintColor: "#fff",
+          headerTitleAlign: "center",
         }}
       />
 

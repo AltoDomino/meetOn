@@ -17,7 +17,7 @@ import { styles } from "../../styles/HomeScreen.styles";
 
 export default function Home() {
   const router = useRouter();
-  const { userName } = useAuth();
+  const { userName, logout } = useAuth(); // <== dodaj logout
   const [modalVisible, setModalVisible] = useState(false);
 
   const handleActivity = () => {
@@ -27,6 +27,11 @@ export default function Home() {
   const handleModalConfirm = () => {
     setModalVisible(false);
     router.push("/Activity/Activity");
+  };
+
+  const handleLogout = async () => {
+    await logout(); // czyszczenie kontekstu / tokena
+    router.replace("/Login"); // przekierowanie np. na ekran powitalny
   };
 
   return (
@@ -47,7 +52,7 @@ export default function Home() {
           <View style={styles.contentContainer}>
             <Text style={styles.greeting}>Cześć</Text>
             <Text style={styles.greetingUser}>{userName}! 👋</Text>
-            <Text style={styles.header}>Włącz aktywności</Text>
+            <Text style={styles.header}>Włącz aktywność</Text>
             <Text style={styles.description}>
               meetOn pomoże Ci znaleźć ludzi, którzy chcą spędzać wolny czas tak
               jak Ty — planszówki, siatkówka, karaoke czy może bilard?
@@ -55,6 +60,15 @@ export default function Home() {
 
             <TouchableOpacity style={styles.button} onPress={handleActivity}>
               <Text style={styles.buttonText}>Przeglądaj aktywności</Text>
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={[styles.button, { backgroundColor: "#888" }]}
+              onPress={handleLogout}
+            >
+              <Text style={[styles.buttonText, { color: "#fff" }]}>
+                Wyloguj się
+              </Text>
             </TouchableOpacity>
           </View>
 

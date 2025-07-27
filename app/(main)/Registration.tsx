@@ -65,7 +65,7 @@ const Registration = () => {
         }
       );
       if (res.status === 201) {
-        Alert.alert("Sukces", "Dane wysłane");
+        Alert.alert("Zostałeś zarejestrowany, email weryfikacyjny został wysłany!");
       } else if (res.status === 403) {
         Alert.alert("Błąd", "Niepoprawne dane");
       }

@@ -37,7 +37,6 @@ export default function Activity() {
       });
 
       setHasChosenActivities(true);
-
       router.replace("/(auth)/YourActivities");
     } catch (error) {
       Alert.alert("Błąd", "Aktywności nie zostały dodane, spróbuj jeszcze raz");
@@ -105,7 +104,10 @@ export default function Activity() {
           keyExtractor={(item) => item}
           renderItem={renderItem}
           numColumns={2}
-          contentContainerStyle={styles.tilesContainer}
+          contentContainerStyle={[
+            styles.tilesContainer,
+            { paddingBottom: 100 }, // Odstęp od dolnego przycisku
+          ]}
         />
 
         {selectedActivities.length > 0 && (

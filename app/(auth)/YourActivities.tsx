@@ -7,6 +7,7 @@ import {
   ImageBackground,
   Text,
   View,
+  TouchableOpacity,
 } from "react-native";
 import { useActivity } from "../../context/ActivityContext";
 import { useAuth } from "../../context/AuthContext";
@@ -58,15 +59,17 @@ export default function YourActivities() {
   const renderItem = ({ item }: { item: string }) => {
     const imageSource = activityImages[item];
     return (
-      <View style={styles.tile}>
-        <ImageBackground
-          source={imageSource}
-          style={styles.imageBackground}
-          imageStyle={{ borderRadius: 12, opacity: 0.85 }}
-        >
-          <Text style={styles.tileText}>{item}</Text>
-        </ImageBackground>
-      </View>
+      <TouchableOpacity onLongPress={() => handleRemoveActivity(item)}>
+        <View style={styles.tile}>
+          <ImageBackground
+            source={imageSource}
+            style={styles.imageBackground}
+            imageStyle={{ borderRadius: 12, opacity: 0.85 }}
+          >
+            <Text style={styles.tileText}>{item}</Text>
+          </ImageBackground>
+        </View>
+      </TouchableOpacity>
     );
   };
 

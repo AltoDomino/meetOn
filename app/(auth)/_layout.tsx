@@ -15,51 +15,52 @@ export default function DrawerLayout() {
           </TouchableOpacity>
         ),
         headerStyle: {
-          backgroundColor: "#00A9F4"
+          backgroundColor: "#00A9F4",
         },
+        headerTintColor: "#fff",
         headerTitleAlign: "center",
       })}
     >
       <Drawer.Screen
         name="Profile"
         options={{
-          title: "👤 Profil",
-          drawerLabel: "👤 Profil",
+          title: "👤 PROFIL",
+          drawerLabel: "👤 PROFIL",
         }}
       />
-      <Drawer.Screen
+      {/* <Drawer.Screen
         name="FriendList"
         options={{
           title: "📨 Zaproś znajomych",
           drawerLabel: "📨 Zaproś znajomych",
         }}
-      />
+      /> */}
       <Drawer.Screen
         name="CreateEvent"
         options={{
-          title: "🗓️ Stwórz wydarzenie",
-          drawerLabel: "🗓️ Stwórz wydarzenie",
+          title: "🗓️ STWÓRZ WYDARZENIE",
+          drawerLabel: "🗓️ STWÓZ WYDARZENIE",
         }}
       />
       <Drawer.Screen
         name="Event"
         options={{
-          title: "📍 Wydarzenia",
-          drawerLabel: "📍 Wydarzenia",
+          title: "📍 WYDARZENIA",
+          drawerLabel: "📍 WYDARZENIA",
         }}
       />
       <Drawer.Screen
         name="YourActivities"
         options={{
-          title: "📝 Twoje Aktywności",
-          drawerLabel: "📝 Twoje Aktywności",
+          title: "📝 TWOJE AKTYWNOŚCI",
+          drawerLabel: "📝 TWOJE AKTYWNOŚCI",
         }}
       />
       <Drawer.Screen
         name="Logout"
         options={{
-          title: "🚪 Wyloguj się",
-          drawerLabel: "🚪 Wyloguj się",
+          title: "🚪 WYLOGUJ SIĘ",
+          drawerLabel: "🚪 WYLOGUJ SIĘ",
           drawerLabelStyle: { color: "red" },
           headerTitleStyle: { color: "red" },
         }}

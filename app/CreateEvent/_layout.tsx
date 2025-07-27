@@ -9,7 +9,7 @@ export default function FormLayout() {
       <Stack.Screen
         name="PlaceDateform"
         options={{
-          title: "Lokalizacja i czas",
+          title: "LOKALIZACJA I DATA",
           headerStyle: {
             backgroundColor: "#00A9F4",
           },
@@ -25,7 +25,7 @@ export default function FormLayout() {
       <Stack.Screen
         name="DetailsForm"
         options={{
-          title: "Szczegóły wydarzenia",
+          title: "SZCZEGÓŁY WYDARZENIA",
           headerStyle: {
             backgroundColor: "#00A9F4",
           },

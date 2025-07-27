@@ -1,3 +1,4 @@
+import BottomButton from "@/components/Bottombutton";
 import * as ImagePicker from "expo-image-picker";
 import React, { useState } from "react";
 import {
@@ -96,6 +97,7 @@ export default function ProfileScreen() {
       Alert.alert("❌ Błąd połączenia", "Spróbuj ponownie później.");
     }
   };
+
   const handleSubscription = () => {
     Alert.alert("Subskrypcja", "Zakup subskrypcji zakończony sukcesem!");
     setSubscriptionActive(true);
@@ -108,22 +110,22 @@ export default function ProfileScreen() {
           <Image
             source={{ uri: avatar }}
             style={{
-              width: 100,
-              height: 100,
-              borderRadius: 50,
-              marginBottom: 8,
+              width: 200,
+              height: 200,
+              borderRadius: 100,
+              marginBottom: 12,
             }}
           />
         ) : (
           <View
             style={{
-              width: 100,
-              height: 100,
-              borderRadius: 50,
+              width: 200,
+              height: 200,
+              borderRadius: 100,
               backgroundColor: "#ddd",
               justifyContent: "center",
               alignItems: "center",
-              marginBottom: 8,
+              marginBottom: 12,
             }}
           >
             <Text style={styles.avatarHint}>Zmień avatar</Text>
@@ -141,24 +143,17 @@ export default function ProfileScreen() {
       <Text style={styles.label}>Opis</Text>
       <TextInput
         value={description}
-        onChangeText={setDescription}
+        onChangeText={(text) => {
+          if (text.length <= 30) setDescription(text);
+        }}
         style={[styles.input, { height: 80 }]}
         multiline
       />
+
+      <BottomButton onPress={handleSave} title="Zapisz zmiany" />
+
       {/* 
-      <Text style={styles.label}>Nowe hasło</Text>
-      <TextInput
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        style={styles.input}
-      /> */}
-
-      <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
-        <Text style={styles.saveButtonText}>Zapisz zmiany</Text>
-      </TouchableOpacity>
-
-      {/* <View style={styles.subscriptionSection}>
+      <View style={styles.subscriptionSection}>
         <Text style={styles.label}>Subskrypcja</Text>
         <Text style={{ marginBottom: 10 }}>
           {subscriptionActive
@@ -173,7 +168,8 @@ export default function ProfileScreen() {
             <Text style={styles.subscribeButtonText}>Wykup subskrypcję</Text>
           </TouchableOpacity>
         )}
-      </View> */}
+      </View>
+      */}
     </ScrollView>
   );
 }

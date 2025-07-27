@@ -3,7 +3,7 @@ import SwitchButton from "@/utilis/SwitchButton";
 import { useFocusEffect } from "@react-navigation/native";
 import * as Location from "expo-location";
 import { router, useLocalSearchParams } from "expo-router";
-import React, { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -15,6 +15,7 @@ import {
 import { useActivity } from "../../context/ActivityContext";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/Event.styles";
+import EventDetails from "../screens/EventDetails";
 
 const BACKEND_URL = "https://meeton-backend-ffmo.onrender.com";
 
@@ -38,44 +39,34 @@ export default function Events() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [distanceFilter, setDistanceFilter] = useState<number | null>(30);
-  const [locationCoords, setLocationCoords] = useState<{
-    latitude: number;
-    longitude: number;
-  } | null>(null);
+  const [distanceFilter, setDistanceFilter] = useState<{ min: number; max: number }>({ min: 0, max: 30 });
+  const [locationCoords, setLocationCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [selectedParticipants, setSelectedParticipants] = useState([]);
 
   const { userId, hasChosenActivities } = useAuth();
   const { location, startDate, endDate } = useLocalSearchParams();
   const { activities } = useActivity();
 
-useEffect(() => {
-  const requestLocation = async () => {
-    try {
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      console.log("📋 Status lokalizacji:", status);
-
-      if (status !== "granted") {
-        Alert.alert("Brak dostępu do lokalizacji");
-        return;
+  useEffect(() => {
+    const requestLocation = async () => {
+      try {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== "granted") {
+          Alert.alert("Brak dostępu do lokalizacji");
+          return;
+        }
+        const userLocation = await Location.getCurrentPositionAsync({});
+        setLocationCoords({
+          latitude: userLocation.coords.latitude,
+          longitude: userLocation.coords.longitude,
+        });
+      } catch {
+        Alert.alert("Błąd", "Nie udało się pobrać lokalizacji.");
       }
-
-      const userLocation = await Location.getCurrentPositionAsync({});
-      const coords = {
-        latitude: userLocation.coords.latitude,
-        longitude: userLocation.coords.longitude,
-      };
-
-      console.log("✅ Uzyskano lokalizację:", coords);
-      setLocationCoords(coords);
-    } catch (error) {
-      console.error("❌ Błąd pobierania lokalizacji:", error);
-      Alert.alert("Błąd", "Nie udało się pobrać lokalizacji.");
-    }
-  };
-
-  requestLocation();
-}, []);
-
+    };
+    requestLocation();
+  }, []);
 
   useEffect(() => {
     const checkIfAlreadyInEvent = async () => {
@@ -84,43 +75,43 @@ useEffect(() => {
         const res = await fetch(`${BACKEND_URL}/api/event/joined?userId=${userId}`);
         const events = await res.json();
         if (events.length > 0 && !events[0].isCreator) {
-          const event = events[0];
           router.replace({
             pathname: "/screens/LocalEventRoom",
             params: {
-              eventId: event.id,
-              location: event.location,
-              startDate: event.startDate,
-              endDate: event.endDate,
+              eventId: events[0].id,
+              location: events[0].location,
+              startDate: events[0].startDate,
+              endDate: events[0].endDate,
             },
           });
         }
-      } catch (error) {
-        console.error("Błąd przy sprawdzaniu aktywnego wydarzenia:", error);
-      }
+      } catch {}
     };
     checkIfAlreadyInEvent();
   }, [userId]);
 
-  const fetchEvents = async (): Promise<void> => {
+  const fetchEvents = async () => {
     if (!userId || !locationCoords) return;
     try {
-      let url = `${BACKEND_URL}/api/events?userId=${userId}`;
-      if (distanceFilter && locationCoords) {
-        url += `&distance=${distanceFilter}`;
-        url += `&latitude=${locationCoords.latitude}&longitude=${locationCoords.longitude}`;
-      }
+      let url = `${BACKEND_URL}/api/events?userId=${userId}&minDistance=${distanceFilter.min}&distance=${distanceFilter.max}&latitude=${locationCoords.latitude}&longitude=${locationCoords.longitude}`;
       const res = await fetch(url);
       const data = await res.json();
-      if (!Array.isArray(data)) {
-        Alert.alert("Błąd", "Nie udało się pobrać wydarzeń.");
-        return;
-      }
       const now = new Date();
       const upcomingEvents = data.filter((event: Event) => new Date(event.endDate) > now);
       setEvents(upcomingEvents);
-    } catch (err) {
+    } catch {
       Alert.alert("Błąd", "Nie udało się połączyć z serwerem.");
+    }
+  };
+
+  const fetchEventParticipants = async (eventId: number) => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/participants?eventId=${eventId}`);
+      const data = await res.json();
+      setSelectedParticipants(data);
+      setModalVisible(true);
+    } catch (err) {
+      Alert.alert("Błąd", "Nie udało się pobrać uczestników wydarzenia.");
     }
   };
 
@@ -139,11 +130,9 @@ useEffect(() => {
     if (userId && activities.length > 0 && locationCoords) fetchEvents();
   }, [activities, locationCoords]);
 
-  useFocusEffect(
-    useCallback(() => {
-      if (userId && activities.length > 0 && locationCoords) fetchEvents();
-    }, [activities, locationCoords])
-  );
+  useFocusEffect(useCallback(() => {
+    if (userId && activities.length > 0 && locationCoords) fetchEvents();
+  }, [activities, locationCoords]));
 
   const joinEvent = async (eventId: number) => {
     if (!userId) return;
@@ -158,37 +147,15 @@ useEffect(() => {
         fetchEvents();
         router.push({
           pathname: "/screens/LocalEventRoom",
-          params: {
-            eventId,
-            location,
-            startDate,
-            endDate,
-          },
+          params: { eventId, location, startDate, endDate },
         });
       } else {
         const err = await res.json();
-        let message = err.error || "Nie udało się dołączyć do wydarzenia.";
-        if (message.includes("mężczyzn")) {
-          message = "Brak miejsc dla mężczyzn. Wydarzenie ma równy podział płci.";
-        } else if (message.includes("kobiet")) {
-          message = "Brak miejsc dla kobiet. Wydarzenie ma równy podział płci.";
-        } else if (message.includes("Brak miejsc")) {
-          message = "Wszystkie miejsca w wydarzeniu są już zajęte.";
-        } else if (message.includes("już dołączył")) {
-          message = "Już jesteś uczestnikiem tego wydarzenia.";
-        }
-        Alert.alert("Nie możesz dołączyć", message);
+        Alert.alert("Nie możesz dołączyć", err.error || "Błąd serwera");
       }
-    } catch (error) {
+    } catch {
       Alert.alert("Błąd", "Wystąpił problem z serwerem");
     }
-  };
-
-  const handleRefresh = async () => {
-    if (!userId) return;
-    setRefreshing(true);
-    await fetchEvents();
-    setRefreshing(false);
   };
 
   const renderItem = ({ item }: { item: Event }) => (
@@ -197,27 +164,23 @@ useEffect(() => {
         <View style={styles.eventInfo}>
           <Text style={styles.title}>{item.activity}</Text>
           <Text>📍 {item.location}</Text>
-          <Text>🕒 {new Date(item.startDate).toLocaleString()}</Text>
+          <Text>
+            🕒 {new Date(item.startDate).toLocaleDateString()} {new Date(item.startDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          </Text>
+          <Text>
+            🔚 {new Date(item.endDate).toLocaleDateString()} {new Date(item.endDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
+          </Text>
           <Text>👤 Twórca: {item.creator?.userName ?? "Nieznany"}</Text>
         </View>
         <View style={styles.participantsBox}>
           <Text style={styles.participantIcon}>👥</Text>
-          <Text style={styles.participantCount}>
-            {item.participantsCount}/{item.spots}
-          </Text>
+          <Text style={styles.participantCount}>{item.participantsCount}/{item.spots}</Text>
           <TouchableOpacity
             onPress={() => {
               if (item.isUserJoined || item.isCreator) {
                 router.push({
-                  pathname: item.isCreator
-                    ? "/screens/MyEventRoom"
-                    : "/screens/LocalEventRoom",
-                  params: {
-                    eventId: item.id,
-                    location: item.location,
-                    startDate: item.startDate,
-                    endDate: item.endDate,
-                  },
+                  pathname: item.isCreator ? "/screens/MyEventRoom" : "/screens/LocalEventRoom",
+                  params: { eventId: item.id, location: item.location, startDate: item.startDate, endDate: item.endDate },
                 });
               } else {
                 joinEvent(item.id);
@@ -225,9 +188,13 @@ useEffect(() => {
             }}
             style={styles.joinButton}
           >
-            <Text style={styles.joinButtonText}>
-              {item.isUserJoined || item.isCreator ? "Zobacz" : "Dołącz"}
-            </Text>
+            <Text style={styles.joinButtonText}>{item.isUserJoined || item.isCreator ? "ZOBACZ" : "DOŁĄCZ"}</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => fetchEventParticipants(item.id)}
+            style={[styles.joinButton, { backgroundColor: "#aaa" }]}
+          >
+            <Text style={styles.joinButtonText}>SZCZEGÓŁY</Text>
           </TouchableOpacity>
         </View>
       </View>
@@ -239,26 +206,15 @@ useEffect(() => {
       <View style={{ padding: 16, backgroundColor: "#f0f0f0" }}>
         <SwitchButton to="/screens/MyEvents" label="Twoje wydarzenia" />
         <View style={{ flexDirection: "row", justifyContent: "space-around", marginTop: 16 }}>
-          {[30, 50, 999].map((value) => (
-            <TouchableOpacity key={value} onPress={() => setDistanceFilter(value)}>
-              <Text
-                style={{
-                  backgroundColor: distanceFilter === value ? "#007AFF" : "#ccc",
-                  color: distanceFilter === value ? "#fff" : "#000",
-                  padding: 8,
-                  borderRadius: 8,
-                }}
-              >
-                {value === 30 ? "0-30 km" : value === 50 ? "30–50 km" : "50+ km"}
-              </Text>
+          {[{ label: "0–30 km", min: 0, max: 30 }, { label: "30–100 km", min: 30, max: 100 }, { label: "100+ km", min: 100, max: 9999 }].map(({ label, min, max }) => (
+            <TouchableOpacity key={label} onPress={() => setDistanceFilter({ min, max })}>
+              <Text style={{ backgroundColor: distanceFilter.min === min && distanceFilter.max === max ? "#007AFF" : "#ccc", color: distanceFilter.min === min && distanceFilter.max === max ? "#fff" : "#000", padding: 8, borderRadius: 8 }}>{label}</Text>
             </TouchableOpacity>
           ))}
         </View>
       </View>
       {loading ? (
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color="#000" />
-        </View>
+        <View style={styles.center}><ActivityIndicator size="large" color="#000" /></View>
       ) : (
         <FlatList
           data={events}
@@ -266,14 +222,15 @@ useEffect(() => {
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={{ padding: 16 }}
           refreshing={refreshing}
-          onRefresh={handleRefresh}
-          ListEmptyComponent={
-            <Text style={{ fontSize: 16, color: "#666", textAlign: "center", marginTop: 10 }}>
-              Brak aktualnych wydarzeń w pobliżu 😞
-            </Text>
-          }
+          // onRefresh={handleRefresh}
+          ListEmptyComponent={<Text style={{ fontSize: 16, color: "#666", textAlign: "center", marginTop: 10 }}>Brak aktualnych wydarzeń w pobliżu 😞</Text>}
         />
       )}
+      <EventDetails
+        visible={modalVisible}
+        onClose={() => setModalVisible(false)}
+        participants={selectedParticipants}
+      />
     </View>
   );
 }

@@ -6,18 +6,18 @@ import {
   Alert,
   FlatList,
   Image,
+  KeyboardAvoidingView,
   Modal,
+  Platform,
   Text,
   TouchableOpacity,
   View,
-  KeyboardAvoidingView,
-  Platform,
 } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import io from "socket.io-client";
-import type { Event } from "../(auth)/Event";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/EventScreenRoom.styles";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import type { Event } from "../CreateEvent/Event";
 
 const socket = io("https://meeton-backend-ffmo.onrender.com", {
   transports: ["websocket"],
@@ -135,13 +135,22 @@ const LocalEventRoom = () => {
       >
         <Stack.Screen
           options={{
-            title: "Wydarzenie",
-            headerStyle: { backgroundColor: "#00A9F4" },
+            title: "WYDARZENIE",
+            headerStyle: {
+              backgroundColor: "#00A9F4",
+            },
             headerTintColor: "#fff",
             headerLeft: () => null,
           }}
         />
-        <View style={styles.container}>
+        <View
+          style={[
+            styles.container,
+            {
+              paddingBottom: Platform.OS === "android" ? insets.bottom + 10 : 0,
+            },
+          ]}
+        >
           {/* Header */}
           <View style={styles.header}>
             <View style={styles.eventInfo}>
