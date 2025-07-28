@@ -4,13 +4,14 @@ import React from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   Alert,
+  Dimensions,
   ImageBackground,
+  Keyboard,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
-  KeyboardAvoidingView,
-  Platform,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import styles from "../../styles/Login.styles";
@@ -34,8 +35,9 @@ const Login = () => {
 
   const { control, handleSubmit } = useForm<FormData>();
   const router = useRouter();
-
+    const screenHeight = Dimensions.get("window").height;
   const onSubmit = async (dataLog: FormData) => {
+
     try {
       const res = await fetch(`${BACKEND_URL}/api/login`, {
         method: "POST",
@@ -81,15 +83,11 @@ const Login = () => {
   };
 
   return (
-    <ImageBackground
-      source={require("@/assets/images/meetOn.png")}
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
-        style={{ flex: 1 }}
-        keyboardVerticalOffset={0}
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+      <ImageBackground
+        source={require("@/assets/images/meetOn.png")}
+        style={[styles.background, { marginTop: -screenHeight * 0.08 }]}
+        resizeMode="cover"
       >
         <View style={styles.centeredContainer}>
           <View style={styles.form}>
@@ -146,8 +144,8 @@ const Login = () => {
             </TouchableOpacity>
           </View>
         </View>
-      </KeyboardAvoidingView>
-    </ImageBackground>
+      </ImageBackground>
+    </TouchableWithoutFeedback>
   );
 };
 

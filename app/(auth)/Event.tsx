@@ -15,7 +15,6 @@ import {
 import { useActivity } from "../../context/ActivityContext";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/Event.styles";
-import EventDetails from "../screens/EventDetails";
 
 const BACKEND_URL = "https://meeton-backend-ffmo.onrender.com";
 
@@ -190,12 +189,12 @@ export default function Events() {
           >
             <Text style={styles.joinButtonText}>{item.isUserJoined || item.isCreator ? "ZOBACZ" : "DOŁĄCZ"}</Text>
           </TouchableOpacity>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             onPress={() => fetchEventParticipants(item.id)}
             style={[styles.joinButton, { backgroundColor: "#aaa" }]}
           >
             <Text style={styles.joinButtonText}>SZCZEGÓŁY</Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     </View>
@@ -226,11 +225,6 @@ export default function Events() {
           ListEmptyComponent={<Text style={{ fontSize: 16, color: "#666", textAlign: "center", marginTop: 10 }}>Brak aktualnych wydarzeń w pobliżu 😞</Text>}
         />
       )}
-      <EventDetails
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        participants={selectedParticipants}
-      />
     </View>
   );
 }

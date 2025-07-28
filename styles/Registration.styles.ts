@@ -1,4 +1,6 @@
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
+
+const isAndroid = Platform.OS === "android";
 
 const styles = StyleSheet.create({
   background: {
@@ -23,24 +25,24 @@ const styles = StyleSheet.create({
 
   formContainer: {
     position: "absolute",
-    bottom: 80,
-    left: 30,
-    right: 30,
+    bottom: isAndroid ? 40 : 80,
+    left: isAndroid ? 40 : 30,
+    right: isAndroid ? 40 : 30,
     backgroundColor: "rgba(243, 243, 243, 0.08)",
-    borderTopLeftRadius: 12,
-    borderTopRightRadius: 12,
-    padding: 20,
+    borderTopLeftRadius: isAndroid ? 10 : 12,
+    borderTopRightRadius: isAndroid ? 10 : 12,
+    padding: isAndroid ? 14 : 20,
     shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: -2 },
-    shadowRadius: 8,
-    elevation: 10,
+    shadowRadius: isAndroid ? 6 : 8,
+    elevation: isAndroid ? 8 : 10,
   },
 
   input: {
-    height: 50,
+    height: isAndroid ? 44 : 50,
     borderColor: "#ccc",
     borderWidth: 1,
-    borderRadius: 12,
+    borderRadius: isAndroid ? 10 : 12,
     paddingHorizontal: 16,
     marginBottom: 16,
     fontSize: 16,
@@ -63,8 +65,8 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     paddingRight: 30,
     marginBottom: 16,
-    backgroundColor: "#fff", // białe tło
-    color: "#000", // czarny tekst
+    backgroundColor: "#fff",
+    color: "#000",
   },
 
   button: {

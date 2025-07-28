@@ -196,7 +196,7 @@ export default function PlaceDateform() {
                 renderItem={renderPlaceTile}
                 showsVerticalScrollIndicator={true}
                 ListEmptyComponent={
-                  <Text style={{ color: "#fff" }}>Brak wyników</Text>
+                  <Text style={{ color: "gray",textAlign: "center" }}>Ładowanie...</Text>
                 }
               />
             </View>

@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import io from "socket.io-client";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/EventScreenRoom.styles";
-import type { Event } from "../CreateEvent/Event";
+import type { Event } from "./MyEvents";
 
 const socket = io("https://meeton-backend-ffmo.onrender.com", {
   transports: ["websocket"],
@@ -136,9 +136,7 @@ const LocalEventRoom = () => {
         <Stack.Screen
           options={{
             title: "WYDARZENIE",
-            headerStyle: {
-              backgroundColor: "#00A9F4",
-            },
+            headerStyle: { backgroundColor: "#00A9F4" },
             headerTintColor: "#fff",
             headerLeft: () => null,
           }}
@@ -151,7 +149,32 @@ const LocalEventRoom = () => {
             },
           ]}
         >
-          {/* Header */}
+          {currentEvent?.creator && (
+            <View style={styles.creatorContainer}>
+              {currentEvent.creator.avatar && currentEvent.creator.avatar.trim() !== "" ? (
+                <Image
+                  source={{ uri: currentEvent.creator.avatar }}
+                  style={styles.creatorAvatar}
+                />
+              ) : (
+                <View style={styles.creatorInitial}>
+                  <Text style={styles.creatorInitialText}>
+                    {currentEvent.creator.userName?.charAt(0).toUpperCase()}
+                  </Text>
+                </View>
+              )}
+              <Text style={styles.creatorName}>{currentEvent.creator.userName}</Text>
+              {currentEvent.creator.age && (
+                <Text style={styles.creatorAge}>Wiek: {currentEvent.creator.age}</Text>
+              )}
+              {currentEvent.creator.description && (
+                <Text style={styles.creatorDescription}>
+                  {currentEvent.creator.description}
+                </Text>
+              )}
+            </View>
+          )}
+
           <View style={styles.header}>
             <View style={styles.eventInfo}>
               <Text style={styles.title}>
@@ -212,7 +235,6 @@ const LocalEventRoom = () => {
             </View>
           </View>
 
-          {/* Uczestnicy */}
           <View style={styles.participantsContainer}>
             <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
               <Text style={styles.participantsTitle}>
@@ -244,23 +266,31 @@ const LocalEventRoom = () => {
                         </Text>
                       )}
                     </View>
-                    <Text style={styles.userName}>{item.userName}</Text>
+                    <View style={{ flexDirection: "column", marginLeft: 10 }}>
+                      <Text style={styles.userName}>{item.userName}</Text>
+                      {item.age && (
+                        <Text style={{ color: "#777", fontSize: 12 }}>
+                          Wiek: {item.age}
+                        </Text>
+                      )}
+                    </View>
                   </TouchableOpacity>
                 )}
               />
             )}
           </View>
+
           <View style={styles.chatContainer}>
             <ChatBox messages={messages} onSend={handleSendMessage} />
           </View>
         </View>
       </KeyboardAvoidingView>
 
-      {/* Modal */}
       <Modal
         visible={modalVisible}
+        animationType="slide"
         transparent
-        animationType="fade"
+        statusBarTranslucent
         onRequestClose={() => setModalVisible(false)}
       >
         <View
@@ -311,6 +341,11 @@ const LocalEventRoom = () => {
             <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 5 }}>
               {selectedParticipant?.userName}
             </Text>
+            {selectedParticipant?.age && (
+              <Text style={{ color: "#444", marginBottom: 5 }}>
+                Wiek: {selectedParticipant.age}
+              </Text>
+            )}
             <Text style={{ textAlign: "center", color: "#666" }}>
               {selectedParticipant?.description || "Brak opisu"}
             </Text>

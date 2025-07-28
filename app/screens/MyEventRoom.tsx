@@ -28,6 +28,7 @@ type Participant = {
   userName: string;
   avatar: string | null;
   description: string;
+  age?: number; // <== Dodane pole
 };
 
 const EventRoomScreen = () => {
@@ -50,6 +51,8 @@ const EventRoomScreen = () => {
       const data = await res.json();
       setCurrentEvent(data);
       setParticipants(data.participants);
+      console.log(data.participants.map(p => p.age), "WIEEEEEEEEEEEEEEEEEEEEEEEEK");
+
     } catch (err) {
       console.error("Błąd pobierania szczegółów wydarzenia:", err);
     }
@@ -150,11 +153,12 @@ const EventRoomScreen = () => {
         <View style={styles.container}>
           <Stack.Screen
             options={{
-              title: "Moje Wydarzenia",
+              title: "MOJE WYDARZENIA",
               headerStyle: {
                 backgroundColor: "#00A9F4",
               },
               headerTintColor: "#fff",
+              headerTitleAlign: "center",
             }}
           />
 
@@ -165,7 +169,7 @@ const EventRoomScreen = () => {
                 {new Date(
                   Array.isArray(startDate) ? startDate[0] : startDate
                 ).toLocaleString()}{" "}
-                -
+                -{" "}
                 {new Date(
                   Array.isArray(endDate) ? endDate[0] : endDate
                 ).toLocaleTimeString()}
@@ -208,7 +212,14 @@ const EventRoomScreen = () => {
                       {item.userName?.charAt(0).toUpperCase()}
                     </Text>
                   </View>
-                  <Text style={styles.userName}>{item.userName}</Text>
+                  <View style={{ marginLeft: 10 }}>
+                    <Text style={styles.userName}>{item.userName}</Text>
+                    {item.age && (
+                      <Text style={{ color: "#777", fontSize: 12 }}>
+                        Wiek: {item.age}
+                      </Text>
+                    )}
+                  </View>
                 </TouchableOpacity>
               )}
             />
@@ -221,7 +232,12 @@ const EventRoomScreen = () => {
       </KeyboardAvoidingView>
 
       {selectedParticipant && (
-        <Modal visible={modalVisible} transparent animationType="fade">
+        <Modal
+          visible={modalVisible}
+          animationType="slide"
+          transparent
+          statusBarTranslucent
+        >
           <View
             style={{
               flex: 1,
@@ -270,6 +286,11 @@ const EventRoomScreen = () => {
               <Text style={{ fontSize: 18, fontWeight: "bold" }}>
                 {selectedParticipant.userName}
               </Text>
+              {selectedParticipant.age && (
+                <Text style={{ marginTop: 4, color: "#555" }}>
+                  Wiek: {selectedParticipant.age}
+                </Text>
+              )}
               <Text style={{ marginTop: 10, textAlign: "center" }}>
                 {selectedParticipant.description || "Brak opisu"}
               </Text>

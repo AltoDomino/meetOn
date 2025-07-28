@@ -98,7 +98,7 @@ export const styles = StyleSheet.create({
 
   leaveButton: {
     fontSize: 12,
-     color: "red",
+    color: "red",
     fontWeight: "500",
     textAlign: "center",
   },
@@ -106,14 +106,59 @@ export const styles = StyleSheet.create({
   leaveIcon: {
     marginTop: 2,
   },
+
   emptyText: {
-  textAlign: "center",
-  color: "#888",
-  fontSize: 16,
-  marginTop: 20,
-  fontStyle: "italic",
-},
-buttonContainer:{
-  gap:20
-}
+    textAlign: "center",
+    color: "#888",
+    fontSize: 16,
+    marginTop: 20,
+    fontStyle: "italic",
+  },
+
+  buttonContainer: {
+    gap: 20,
+  },
+
+  // 🔹 Dodane style dla twórcy wydarzenia
+  creatorContainer: {
+    alignItems: "flex-start",
+    padding: 2,
+    borderRadius: 12,
+  },
+  creatorAvatar: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginBottom: 8,
+  },
+  creatorInitial: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: "#4e54c8",
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: 8,
+  },
+  creatorInitialText: {
+    fontSize: 24,
+    color: "#fff",
+    fontWeight: "bold",
+  },
+  creatorName: {
+    fontWeight: "bold",
+    fontSize: 16,
+    color: "#333",
+  },
+  creatorAge: {
+    fontSize: 14,
+    color: "#555",
+  },
+  creatorDescription: {
+    textAlign: "center",
+    color: "#666",
+    fontSize: 13,
+    backgroundColor: "#4e54c8",
+    marginTop: 4,
+  },
 });

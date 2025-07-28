@@ -13,7 +13,7 @@ const DetailsForm = () => {
   const [GenderSplit, setGenderSplit] = useState(false);
   const [minAge, setMinAge] = useState(18);
   const [maxAge, setMaxAge] = useState(40);
-  const [spots, setSpots] = useState("");
+  const [spots, setSpots] = useState("1");
   const [locationCoords, setLocationCoords] = useState<{
     latitude: number;
     longitude: number;
