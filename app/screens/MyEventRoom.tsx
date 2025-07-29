@@ -17,7 +17,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import io from "socket.io-client";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/EventScreenRoom.styles";
-import type { Event } from "../CreateEvent/Event";
+import type { Event } from "./MyEvents";
 
 const socket = io("https://meeton-backend-ffmo.onrender.com", {
   transports: ["websocket"],
@@ -51,7 +51,6 @@ const EventRoomScreen = () => {
       const data = await res.json();
       setCurrentEvent(data);
       setParticipants(data.participants);
-      console.log(data.participants.map(p => p.age), "WIEEEEEEEEEEEEEEEEEEEEEEEEK");
 
     } catch (err) {
       console.error("Błąd pobierania szczegółów wydarzenia:", err);

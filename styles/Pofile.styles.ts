@@ -14,14 +14,14 @@ export const styles = StyleSheet.create({
   },
   avatarHint: {
     textAlign: "center",
-    color: "#B0DFFF", // błękitny tekst
+    color: "#000000ff", // błękitny tekst
     marginTop: 8,
     fontWeight: "500",
   },
   label: {
     fontWeight: "600",
     fontSize: 16,
-    color: "#B0DFFF", // jasny niebieski
+    color: "#000000ff", // jasny niebieski
     alignSelf: "center",
   },
   input: {

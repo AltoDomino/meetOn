@@ -142,7 +142,7 @@ export default function Events() {
         body: JSON.stringify({ userId, eventId }),
       });
       if (res.ok) {
-        Alert.alert("Sukces", "Dołączono do wydarzenia");
+        Alert.alert("Dołączono do wydarzenia");
         fetchEvents();
         router.push({
           pathname: "/screens/LocalEventRoom",

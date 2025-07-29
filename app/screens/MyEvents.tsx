@@ -16,18 +16,27 @@ import { styles } from "../../styles/Event.styles";
 const BACKEND_URL = "https://meeton-backend-ffmo.onrender.com";
 
 export type Event = {
+  spots: number;
   id: number;
   activity: string;
   location: string;
   startDate: string;
   endDate: string;
+  maxParticipants: number;
+  participantsCount: number;
+  participants: {
+    id: number;
+    userName: string;
+    avatar: string | null;
+    description: string | null;
+    age: number | null;
+  }[];
   creator: {
     userName: string;
+    avatar: string | null;
+    description: string | null;
+    age: number | null;
   };
-  participantsCount: number;
-  spots: number;
-  isUserJoined: boolean;
-  isCreator: boolean;
 };
 
 export default function MyEvents() {

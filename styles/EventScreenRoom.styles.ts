@@ -119,17 +119,24 @@ export const styles = StyleSheet.create({
     gap: 20,
   },
 
-  // 🔹 Dodane style dla twórcy wydarzenia
-  creatorContainer: {
-    alignItems: "flex-start",
-    padding: 2,
-    borderRadius: 12,
-  },
+creatorContainer: {
+  flexDirection: "row",
+  alignItems: "center",
+  marginBottom: 10,
+  backgroundColor: "#e8f7ff", // Jasnoniebieskie tło pasujące do #00A9F4
+  borderRadius: 12,
+  borderWidth: 1,
+  borderColor: "#00A9F4",
+  shadowColor: "#00A9F4",
+  shadowOffset: { width: 0, height: 2 },
+  shadowOpacity: 0.2,
+  shadowRadius: 4,
+  elevation: 3,
+},
   creatorAvatar: {
     width: 60,
     height: 60,
     borderRadius: 30,
-    marginBottom: 8,
   },
   creatorInitial: {
     width: 60,
@@ -138,7 +145,6 @@ export const styles = StyleSheet.create({
     backgroundColor: "#4e54c8",
     justifyContent: "center",
     alignItems: "center",
-    marginBottom: 8,
   },
   creatorInitialText: {
     fontSize: 24,
@@ -158,7 +164,10 @@ export const styles = StyleSheet.create({
     textAlign: "center",
     color: "#666",
     fontSize: 13,
-    backgroundColor: "#4e54c8",
     marginTop: 4,
   },
+  creatorTextContainer: {
+  marginLeft: 12, // odstęp od avatara
+  flexShrink: 1, // żeby nie wypychał poza ekran
+},
 });

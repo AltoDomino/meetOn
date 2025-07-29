@@ -133,7 +133,7 @@ export default function ProfileScreen() {
         )}
       </TouchableOpacity>
 
-      <Text style={styles.label}>Login</Text>
+      <Text style={styles.label}>Nazwa użytkownika</Text>
       <TextInput
         value={userName}
         onChangeText={setUserName}
@@ -144,10 +144,11 @@ export default function ProfileScreen() {
       <TextInput
         value={description}
         onChangeText={(text) => {
-          if (text.length <= 30) setDescription(text);
+          if (text.length <= 100) setDescription(text);
         }}
         style={[styles.input, { height: 80 }]}
         multiline
+        maxLength={100}
       />
 
       <BottomButton onPress={handleSave} title="Zapisz zmiany" />

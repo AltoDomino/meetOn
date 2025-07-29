@@ -6,13 +6,13 @@ import {
   Alert,
   FlatList,
   Image,
-  KeyboardAvoidingView,
   Modal,
   Platform,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
+import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import io from "socket.io-client";
 import { useAuth } from "../../context/AuthContext";
@@ -33,6 +33,8 @@ const LocalEventRoom = () => {
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<any>(null);
   const [isExpanded, setIsExpanded] = useState(false);
+  const [isCreatorDescModalVisible, setIsCreatorDescModalVisible] =
+    useState(false);
   const { userId, userName } = useAuth();
 
   const fetchEventDetails = async () => {
@@ -128,16 +130,21 @@ const LocalEventRoom = () => {
 
   return (
     <>
-      <KeyboardAvoidingView
+      <KeyboardAwareScrollView
         style={{ flex: 1 }}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
-        keyboardVerticalOffset={Platform.OS === "ios" ? insets.top + 80 : 0}
+        contentContainerStyle={{ flexGrow: 1 }}
+        enableOnAndroid={true}
+        keyboardShouldPersistTaps="handled"
+
       >
         <Stack.Screen
           options={{
-            title: "WYDARZENIE",
-            headerStyle: { backgroundColor: "#00A9F4" },
+            title: "WYDARZENIA",
+            headerStyle: {
+              backgroundColor: "#00A9F4",
+            },
             headerTintColor: "#fff",
+            headerTitleAlign: "center",
             headerLeft: () => null,
           }}
         />
@@ -151,7 +158,8 @@ const LocalEventRoom = () => {
         >
           {currentEvent?.creator && (
             <View style={styles.creatorContainer}>
-              {currentEvent.creator.avatar && currentEvent.creator.avatar.trim() !== "" ? (
+              {currentEvent.creator.avatar &&
+              currentEvent.creator.avatar.trim() !== "" ? (
                 <Image
                   source={{ uri: currentEvent.creator.avatar }}
                   style={styles.creatorAvatar}
@@ -163,15 +171,47 @@ const LocalEventRoom = () => {
                   </Text>
                 </View>
               )}
-              <Text style={styles.creatorName}>{currentEvent.creator.userName}</Text>
-              {currentEvent.creator.age && (
-                <Text style={styles.creatorAge}>Wiek: {currentEvent.creator.age}</Text>
-              )}
-              {currentEvent.creator.description && (
-                <Text style={styles.creatorDescription}>
-                  {currentEvent.creator.description}
+              <View style={styles.creatorTextContainer}>
+                <Text style={styles.creatorName}>
+                  {currentEvent.creator.userName}
                 </Text>
-              )}
+                {currentEvent.creator.age && (
+                  <Text style={styles.creatorAge}>
+                    Wiek: {currentEvent.creator.age}
+                  </Text>
+                )}
+                {currentEvent.creator.description && (
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      flexWrap: "wrap",
+                      alignItems: "center",
+                      marginTop: 4,
+                    }}
+                  >
+                    <Text style={styles.creatorDescription}>
+                      {currentEvent.creator.description.length > 10
+                        ? currentEvent.creator.description.slice(0, 10) + "..."
+                        : currentEvent.creator.description}
+                    </Text>
+                    {currentEvent.creator.description.length > 10 && (
+                      <TouchableOpacity
+                        onPress={() => setIsCreatorDescModalVisible(true)}
+                      >
+                        <Text
+                          style={{
+                            color: "#00A9F4",
+                            marginLeft: 6,
+                            fontWeight: "bold",
+                          }}
+                        >
+                          Rozwiń opis
+                        </Text>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                )}
+              </View>
             </View>
           )}
 
@@ -267,7 +307,22 @@ const LocalEventRoom = () => {
                       )}
                     </View>
                     <View style={{ flexDirection: "column", marginLeft: 10 }}>
-                      <Text style={styles.userName}>{item.userName}</Text>
+                      <View
+                        style={{ flexDirection: "row", alignItems: "center" }}
+                      >
+                        <Text style={styles.userName}>{item.userName}</Text>
+                        {item.id === userId && (
+                          <Text
+                            style={{
+                              marginLeft: 6,
+                              fontSize: 12,
+                              color: "#00A9F4",
+                            }}
+                          >
+                            👤
+                          </Text>
+                        )}
+                      </View>
                       {item.age && (
                         <Text style={{ color: "#777", fontSize: 12 }}>
                           Wiek: {item.age}
@@ -284,7 +339,52 @@ const LocalEventRoom = () => {
             <ChatBox messages={messages} onSend={handleSendMessage} />
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </KeyboardAwareScrollView>
+
+      {/* MODAL Z PEŁNYM OPISEM TWÓRCY */}
+      <Modal
+        visible={isCreatorDescModalVisible}
+        animationType="fade"
+        transparent
+        statusBarTranslucent
+        onRequestClose={() => setIsCreatorDescModalVisible(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: "center",
+            alignItems: "center",
+            backgroundColor: "rgba(0,0,0,0.6)",
+          }}
+        >
+          <View
+            style={{
+              backgroundColor: "#fff",
+              borderRadius: 16,
+              padding: 20,
+              width: "80%",
+              alignItems: "center",
+            }}
+          >
+            <Text style={{ fontSize: 16, color: "#333", textAlign: "center" }}>
+              {currentEvent?.creator?.description}
+            </Text>
+            <TouchableOpacity
+              onPress={() => setIsCreatorDescModalVisible(false)}
+              style={{
+                marginTop: 20,
+                padding: 10,
+                backgroundColor: "#00A9F4",
+                borderRadius: 8,
+              }}
+            >
+              <Text style={{ color: "white", fontWeight: "bold" }}>
+                Zamknij
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
 
       <Modal
         visible={modalVisible}
