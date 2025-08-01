@@ -1,17 +1,18 @@
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   otherMessage: {
     alignSelf: "flex-start",
     alignItems: "flex-start",
   },
-    chatWrapper: {
+  chatWrapper: {
     flex: 1,
     paddingHorizontal: 10,
     paddingBottom: 10,
+    backgroundColor: "#f9f9f9", // jasne tło całego czatu
   },
   listContent: {
-    paddingBottom: 60,
+    paddingBottom: 70,
   },
   messageRow: {
     marginVertical: 4,
@@ -40,29 +41,40 @@ export const styles = StyleSheet.create({
     marginTop: 4,
     alignSelf: "flex-end",
   },
-  inputRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginTop: 8,
-  },
-  input: {
-    flex: 1,
-    borderColor: "#ccc",
-    borderWidth: 1,
-    borderRadius: 20,
-    paddingHorizontal: 15,
-    paddingVertical: 8,
-    backgroundColor: "#fff",
-  },
+inputRow: {
+  flexDirection: "row",
+  alignItems: "center",
+  marginTop: 8,
+  paddingHorizontal: 6,
+  paddingBottom: Platform.OS === "android" ? 6 : 0, // ważne!
+  backgroundColor: "#fff",
+},
+
+input: {
+  flex: 1,
+  height: 40,
+  backgroundColor: "#fff",
+  borderRadius: 20,
+  paddingHorizontal: 16,
+  fontSize: 16,
+  borderColor: "#ccc",
+  borderWidth: 1,
+  color: "black",
+},
+
   sendButton: {
     marginLeft: 10,
     backgroundColor: "#00A9F4",
-    padding: 10,
+    paddingVertical: 10,
+    paddingHorizontal: 12,
     borderRadius: 20,
+    justifyContent: "center",
+    alignItems: "center",
+    height: 42,
   },
   sendButtonText: {
     color: "#fff",
     fontWeight: "bold",
     fontSize: 16,
-  }
+  },
 });

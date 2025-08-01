@@ -187,7 +187,7 @@ export default function Events() {
             }}
             style={styles.joinButton}
           >
-            <Text style={styles.joinButtonText}>{item.isUserJoined || item.isCreator ? "ZOBACZ" : "DOŁĄCZ"}</Text>
+            <Text style={styles.joinButtonText}>{item.isUserJoined || item.isCreator ? "PODGLĄD" : "DOŁĄCZ"}</Text>
           </TouchableOpacity>
           {/* <TouchableOpacity
             onPress={() => fetchEventParticipants(item.id)}

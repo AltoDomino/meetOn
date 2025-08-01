@@ -105,7 +105,7 @@ export default function MyEvents() {
             style={styles.joinButton}
             onPress={() => handleJoin(item)}
           >
-            <Text style={styles.joinButtonText}>Zobacz</Text>
+            <Text style={styles.joinButtonText}>PODGLĄD</Text>
           </TouchableOpacity>
         </View>
       </View>

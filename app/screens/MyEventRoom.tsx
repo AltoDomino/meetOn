@@ -16,7 +16,7 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import io from "socket.io-client";
 import { useAuth } from "../../context/AuthContext";
-import { styles } from "../../styles/EventScreenRoom.styles";
+import { styles } from "../../styles/MyEventRoom.styles";
 import type { Event } from "./MyEvents";
 
 const socket = io("https://meeton-backend-ffmo.onrender.com", {
@@ -39,6 +39,8 @@ const EventRoomScreen = () => {
   const [participants, setParticipants] = useState<Participant[]>([]);
   const { userId, userName } = useAuth();
   const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
+  const [isExpanded, setIsExpanded] = useState(false);
+
   const [selectedParticipant, setSelectedParticipant] =
     useState<Participant | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -60,7 +62,13 @@ const EventRoomScreen = () => {
   useEffect(() => {
     fetchEventDetails();
   }, []);
-
+const fetchParticipantDetails = async (participantId: number) => {
+  const participant = participants.find((p) => p.id === participantId);
+  if (participant) {
+    setSelectedParticipant(participant);
+    setModalVisible(true);
+  }
+};
   useEffect(() => {
     if (!eventId || typeof eventId !== "string") return;
 
@@ -194,34 +202,67 @@ const EventRoomScreen = () => {
           </View>
 
           <View style={styles.participantsContainer}>
-            <Text style={styles.participantsTitle}>Uczestnicy wydarzenia:</Text>
-            <FlatList
-              data={participants}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={styles.participantCard}
-                  onPress={() => {
-                    setSelectedParticipant(item);
-                    setModalVisible(true);
-                  }}
-                >
-                  <View style={styles.avatar}>
-                    <Text style={styles.avatarText}>
-                      {item.userName?.charAt(0).toUpperCase()}
-                    </Text>
-                  </View>
-                  <View style={{ marginLeft: 10 }}>
-                    <Text style={styles.userName}>{item.userName}</Text>
-                    {item.age && (
-                      <Text style={{ color: "#777", fontSize: 12 }}>
-                        Wiek: {item.age}
-                      </Text>
-                    )}
-                  </View>
-                </TouchableOpacity>
-              )}
-            />
+            <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
+              <Text style={styles.participantsTitle}>
+                {isExpanded ? "Ukryj uczestników ▲" : "Pokaż uczestników ▼"}
+              </Text>
+            </TouchableOpacity>
+
+            {isExpanded && (
+              <FlatList
+                data={participants}
+                keyExtractor={(item) => item.id.toString()}
+                ListEmptyComponent={
+                  <Text style={styles.emptyText}>Brak uczestników</Text>
+                }
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    onPress={() => fetchParticipantDetails(item.id)}
+                    style={styles.participantCard}
+                  >
+                    <View style={styles.avatar}>
+                      {item.avatar && item.avatar.trim() !== "" ? (
+                        <Image
+                          source={{ uri: item.avatar }}
+                          style={{
+                            width: 40,
+                            height: 40,
+                            borderRadius: 20,
+                          }}
+                        />
+                      ) : (
+                        <Text style={styles.avatarText}>
+                          {item.userName?.charAt(0).toUpperCase()}
+                        </Text>
+                      )}
+                    </View>
+                    <View style={{ flexDirection: "column", marginLeft: 10 }}>
+                      <View
+                        style={{ flexDirection: "row", alignItems: "center" }}
+                      >
+                        <Text style={styles.userName}>{item.userName}</Text>
+                        {item.id === userId && (
+                          <Text
+                            style={{
+                              marginLeft: 6,
+                              fontSize: 12,
+                              color: "#00A9F4",
+                            }}
+                          >
+                            👤
+                          </Text>
+                        )}
+                      </View>
+                      {item.age && (
+                        <Text style={{ color: "#777", fontSize: 12 }}>
+                          Wiek: {item.age}
+                        </Text>
+                      )}
+                    </View>
+                  </TouchableOpacity>
+                )}
+              />
+            )}
           </View>
 
           <View style={styles.chatContainer}>

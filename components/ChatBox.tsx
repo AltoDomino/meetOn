@@ -1,3 +1,4 @@
+// ChatBox.tsx
 import React, { useEffect, useRef, useState } from "react";
 import {
   FlatList,
@@ -40,7 +41,10 @@ const ChatBox: React.FC<ChatBoxProps> = ({ messages, onSend }) => {
 
     return (
       <View
-        style={[styles.messageRow, isMine ? styles.myMessage : styles.otherMessage]}
+        style={[
+          styles.messageRow,
+          isMine ? styles.myMessage : styles.otherMessage,
+        ]}
       >
         <View style={styles.bubble}>
           <Text style={styles.sender}>{isMine ? "Ty" : item.sender}</Text>
@@ -72,7 +76,7 @@ const ChatBox: React.FC<ChatBoxProps> = ({ messages, onSend }) => {
           onChangeText={setInput}
           placeholder="Napisz wiadomość..."
           placeholderTextColor="gray"
-          style={[styles.input, { color: "black" }]} 
+          style={styles.input}
         />
         <TouchableOpacity onPress={handleSend} style={styles.sendButton}>
           <Text style={styles.sendButtonText}>➤</Text>

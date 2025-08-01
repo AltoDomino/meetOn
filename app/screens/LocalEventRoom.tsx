@@ -6,13 +6,14 @@ import {
   Alert,
   FlatList,
   Image,
+  KeyboardAvoidingView,
   Modal,
   Platform,
+  SafeAreaView,
   Text,
   TouchableOpacity,
   View,
 } from "react-native";
-import { KeyboardAwareScrollView } from "react-native-keyboard-aware-scroll-view";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import io from "socket.io-client";
 import { useAuth } from "../../context/AuthContext";
@@ -128,344 +129,341 @@ const LocalEventRoom = () => {
     router.replace("./MyEvents");
   };
 
-  return (
-    <>
-      <KeyboardAwareScrollView
-        style={{ flex: 1 }}
-        contentContainerStyle={{ flexGrow: 1 }}
-        enableOnAndroid={true}
-        keyboardShouldPersistTaps="handled"
+return (
+  <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
+      behavior={Platform.OS === "ios" ? "padding" : "height"}
+      keyboardVerticalOffset={Platform.OS === "ios" ? 50 : 0}
+    >
+      <Stack.Screen
+        options={{
+          title: "WYDARZENIA",
+          headerStyle: {
+            backgroundColor: "#00A9F4",
+          },
+          headerTintColor: "#fff",
+          headerTitleAlign: "center",
+          headerLeft: () => null,
+        }}
+      />
+      <View style={[styles.container, { flex: 1 }]}>
+        {/* Twórca wydarzenia */}
+        {currentEvent?.creator && (
+          <View style={styles.creatorContainer}>
+            {currentEvent.creator.avatar &&
+            currentEvent.creator.avatar.trim() !== "" ? (
+              <Image
+                source={{ uri: currentEvent.creator.avatar }}
+                style={styles.creatorAvatar}
+              />
+            ) : (
+              <View style={styles.creatorInitial}>
+                <Text style={styles.creatorInitialText}>
+                  {currentEvent.creator.userName?.charAt(0).toUpperCase()}
+                </Text>
+              </View>
+            )}
+            <View style={styles.creatorTextContainer}>
+              <Text style={styles.creatorName}>
+                {currentEvent.creator.userName}
+              </Text>
+              {currentEvent.creator.age && (
+                <Text style={styles.creatorAge}>
+                  Wiek: {currentEvent.creator.age}
+                </Text>
+              )}
+              {currentEvent.creator.description && (
+                <View
+                  style={{
+                    flexDirection: "row",
+                    flexWrap: "wrap",
+                    alignItems: "center",
+                    marginTop: 4,
+                  }}
+                >
+                  <Text style={styles.creatorDescription}>
+                    {currentEvent.creator.description.length > 10
+                      ? currentEvent.creator.description.slice(0, 10) + "..."
+                      : currentEvent.creator.description}
+                  </Text>
+                  {currentEvent.creator.description.length > 10 && (
+                    <TouchableOpacity
+                      onPress={() => setIsCreatorDescModalVisible(true)}
+                    >
+                      <Text
+                        style={{
+                          color: "#00A9F4",
+                          marginLeft: 6,
+                          fontWeight: "bold",
+                        }}
+                      >
+                        Rozwiń opis
+                      </Text>
+                    </TouchableOpacity>
+                  )}
+                </View>
+              )}
+            </View>
+          </View>
+        )}
 
-      >
-        <Stack.Screen
-          options={{
-            title: "WYDARZENIA",
-            headerStyle: {
-              backgroundColor: "#00A9F4",
-            },
-            headerTintColor: "#fff",
-            headerTitleAlign: "center",
-            headerLeft: () => null,
-          }}
-        />
-        <View
-          style={[
-            styles.container,
-            {
-              paddingBottom: Platform.OS === "android" ? insets.bottom + 10 : 0,
-            },
-          ]}
+        {/* Szczegóły wydarzenia */}
+        <View style={styles.header}>
+          <View style={styles.eventInfo}>
+            <Text style={styles.title}>
+              {currentEvent?.location || "Brak lokalizacji"}
+            </Text>
+            <Text>
+              {currentEvent?.startDate
+                ? new Date(currentEvent.startDate).toLocaleDateString()
+                : ""}{" "}
+              {" • "}
+              {currentEvent?.startDate
+                ? new Date(currentEvent.startDate).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : ""}{" "}
+              {" - "}
+              {currentEvent?.endDate
+                ? new Date(currentEvent.endDate).toLocaleTimeString([], {
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })
+                : ""}
+            </Text>
+          </View>
+
+          <View style={styles.buttonContainer}>
+            <TouchableOpacity
+              style={styles.leaveButtonWrapper}
+              onPress={handleLeave}
+            >
+              <View style={styles.leaveTextWrapper}>
+                <Text style={styles.leaveButton}>Opuść</Text>
+                <Text style={styles.leaveButton}>wydarzenie</Text>
+              </View>
+              <Ionicons
+                name="exit-outline"
+                size={18}
+                color="#999"
+                style={styles.leaveIcon}
+              />
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.leaveButtonWrapper}
+              onPress={handleSwitch}
+            >
+              <View style={styles.leaveTextWrapper}>
+                <Text style={styles.leaveButton}>Moje</Text>
+                <Text style={styles.leaveButton}>wydarzenia</Text>
+              </View>
+              <Ionicons
+                name="swap-vertical-outline"
+                size={18}
+                color="#999"
+                style={styles.leaveIcon}
+              />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Lista uczestników */}
+        <View style={styles.participantsContainer}>
+          <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
+            <Text style={styles.participantsTitle}>
+              {isExpanded ? "Ukryj uczestników ▲" : "Pokaż uczestników ▼"}
+            </Text>
+          </TouchableOpacity>
+
+          {isExpanded && (
+            <FlatList
+              data={participants}
+              keyExtractor={(item) => item.id.toString()}
+              ListEmptyComponent={
+                <Text style={styles.emptyText}>Brak uczestników</Text>
+              }
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => fetchParticipantDetails(item.id)}
+                  style={styles.participantCard}
+                >
+                  <View style={styles.avatar}>
+                    {item.avatar && item.avatar.trim() !== "" ? (
+                      <Image
+                        source={{ uri: item.avatar }}
+                        style={{ width: 40, height: 40, borderRadius: 20 }}
+                      />
+                    ) : (
+                      <Text style={styles.avatarText}>
+                        {item.userName?.charAt(0).toUpperCase()}
+                      </Text>
+                    )}
+                  </View>
+                  <View style={{ flexDirection: "column", marginLeft: 10 }}>
+                    <View
+                      style={{ flexDirection: "row", alignItems: "center" }}
+                    >
+                      <Text style={styles.userName}>{item.userName}</Text>
+                      {item.id === userId && (
+                        <Text
+                          style={{
+                            marginLeft: 6,
+                            fontSize: 12,
+                            color: "#00A9F4",
+                          }}
+                        >
+                          👤
+                        </Text>
+                      )}
+                    </View>
+                    {item.age && (
+                      <Text style={{ color: "#777", fontSize: 12 }}>
+                        Wiek: {item.age}
+                      </Text>
+                    )}
+                  </View>
+                </TouchableOpacity>
+              )}
+            />
+          )}
+        </View>
+        <View style={[styles.chatContainer, { flex: 1, justifyContent: "flex-end" }]}>
+          <ChatBox messages={messages} onSend={handleSendMessage} />
+        </View>
+
+        <Modal
+          visible={isCreatorDescModalVisible}
+          animationType="fade"
+          transparent
+          statusBarTranslucent
+          onRequestClose={() => setIsCreatorDescModalVisible(false)}
         >
-          {currentEvent?.creator && (
-            <View style={styles.creatorContainer}>
-              {currentEvent.creator.avatar &&
-              currentEvent.creator.avatar.trim() !== "" ? (
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "rgba(0,0,0,0.6)",
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#fff",
+                borderRadius: 16,
+                padding: 20,
+                width: "80%",
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{ fontSize: 16, color: "#333", textAlign: "center" }}
+              >
+                {currentEvent?.creator?.description}
+              </Text>
+              <TouchableOpacity
+                onPress={() => setIsCreatorDescModalVisible(false)}
+                style={{
+                  marginTop: 20,
+                  padding: 10,
+                  backgroundColor: "#00A9F4",
+                  borderRadius: 8,
+                }}
+              >
+                <Text style={{ color: "white", fontWeight: "bold" }}>
+                  Zamknij
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
+
+        <Modal
+          visible={modalVisible}
+          animationType="slide"
+          transparent
+          statusBarTranslucent
+          onRequestClose={() => setModalVisible(false)}
+        >
+          <View
+            style={{
+              flex: 1,
+              justifyContent: "center",
+              alignItems: "center",
+              backgroundColor: "rgba(0,0,0,0.6)",
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#fff",
+                borderRadius: 16,
+                padding: 20,
+                width: "80%",
+                alignItems: "center",
+              }}
+            >
+              {selectedParticipant?.avatarUrl &&
+              selectedParticipant.avatarUrl.trim() !== "" ? (
                 <Image
-                  source={{ uri: currentEvent.creator.avatar }}
-                  style={styles.creatorAvatar}
+                  source={{ uri: selectedParticipant.avatarUrl }}
+                  style={{
+                    width: 200,
+                    height: 200,
+                    borderRadius: 60,
+                    marginBottom: 16,
+                  }}
                 />
               ) : (
-                <View style={styles.creatorInitial}>
-                  <Text style={styles.creatorInitialText}>
-                    {currentEvent.creator.userName?.charAt(0).toUpperCase()}
+                <View
+                  style={{
+                    width: 120,
+                    height: 120,
+                    borderRadius: 60,
+                    backgroundColor: "#ccc",
+                    justifyContent: "center",
+                    alignItems: "center",
+                    marginBottom: 16,
+                  }}
+                >
+                  <Text style={{ fontSize: 48 }}>
+                    {selectedParticipant?.userName?.charAt(0).toUpperCase()}
                   </Text>
                 </View>
               )}
-              <View style={styles.creatorTextContainer}>
-                <Text style={styles.creatorName}>
-                  {currentEvent.creator.userName}
+              <Text
+                style={{ fontSize: 20, fontWeight: "bold", marginBottom: 5 }}
+              >
+                {selectedParticipant?.userName}
+              </Text>
+              {selectedParticipant?.age && (
+                <Text style={{ color: "#444", marginBottom: 5 }}>
+                  Wiek: {selectedParticipant.age}
                 </Text>
-                {currentEvent.creator.age && (
-                  <Text style={styles.creatorAge}>
-                    Wiek: {currentEvent.creator.age}
-                  </Text>
-                )}
-                {currentEvent.creator.description && (
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      flexWrap: "wrap",
-                      alignItems: "center",
-                      marginTop: 4,
-                    }}
-                  >
-                    <Text style={styles.creatorDescription}>
-                      {currentEvent.creator.description.length > 10
-                        ? currentEvent.creator.description.slice(0, 10) + "..."
-                        : currentEvent.creator.description}
-                    </Text>
-                    {currentEvent.creator.description.length > 10 && (
-                      <TouchableOpacity
-                        onPress={() => setIsCreatorDescModalVisible(true)}
-                      >
-                        <Text
-                          style={{
-                            color: "#00A9F4",
-                            marginLeft: 6,
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Rozwiń opis
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                )}
-              </View>
-            </View>
-          )}
-
-          <View style={styles.header}>
-            <View style={styles.eventInfo}>
-              <Text style={styles.title}>
-                {currentEvent?.location || "Brak lokalizacji"}
+              )}
+              <Text style={{ textAlign: "center", color: "#666" }}>
+                {selectedParticipant?.description || "Brak opisu"}
               </Text>
-              <Text>
-                {currentEvent?.startDate
-                  ? new Date(currentEvent.startDate).toLocaleDateString()
-                  : ""}{" "}
-                {" • "}
-                {currentEvent?.startDate
-                  ? new Date(currentEvent.startDate).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
-                  : ""}{" "}
-                {" - "}
-                {currentEvent?.endDate
-                  ? new Date(currentEvent.endDate).toLocaleTimeString([], {
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })
-                  : ""}
-              </Text>
-            </View>
-
-            <View style={styles.buttonContainer}>
               <TouchableOpacity
-                style={styles.leaveButtonWrapper}
-                onPress={handleLeave}
+                onPress={() => setModalVisible(false)}
+                style={{
+                  marginTop: 20,
+                  padding: 10,
+                  backgroundColor: "#00A9F4",
+                  borderRadius: 8,
+                }}
               >
-                <View style={styles.leaveTextWrapper}>
-                  <Text style={styles.leaveButton}>Opuść</Text>
-                  <Text style={styles.leaveButton}>wydarzenie</Text>
-                </View>
-                <Ionicons
-                  name="exit-outline"
-                  size={18}
-                  color="#999"
-                  style={styles.leaveIcon}
-                />
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.leaveButtonWrapper}
-                onPress={handleSwitch}
-              >
-                <View style={styles.leaveTextWrapper}>
-                  <Text style={styles.leaveButton}>Moje</Text>
-                  <Text style={styles.leaveButton}>wydarzenia</Text>
-                </View>
-                <Ionicons
-                  name="swap-vertical-outline"
-                  size={18}
-                  color="#999"
-                  style={styles.leaveIcon}
-                />
+                <Text style={{ color: "white", fontWeight: "bold" }}>
+                  Zamknij
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
-
-          <View style={styles.participantsContainer}>
-            <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
-              <Text style={styles.participantsTitle}>
-                {isExpanded ? "Ukryj uczestników ▲" : "Pokaż uczestników ▼"}
-              </Text>
-            </TouchableOpacity>
-
-            {isExpanded && (
-              <FlatList
-                data={participants}
-                keyExtractor={(item) => item.id.toString()}
-                ListEmptyComponent={
-                  <Text style={styles.emptyText}>Brak uczestników</Text>
-                }
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    onPress={() => fetchParticipantDetails(item.id)}
-                    style={styles.participantCard}
-                  >
-                    <View style={styles.avatar}>
-                      {item.avatar && item.avatar.trim() !== "" ? (
-                        <Image
-                          source={{ uri: item.avatar }}
-                          style={{ width: 40, height: 40, borderRadius: 20 }}
-                        />
-                      ) : (
-                        <Text style={styles.avatarText}>
-                          {item.userName?.charAt(0).toUpperCase()}
-                        </Text>
-                      )}
-                    </View>
-                    <View style={{ flexDirection: "column", marginLeft: 10 }}>
-                      <View
-                        style={{ flexDirection: "row", alignItems: "center" }}
-                      >
-                        <Text style={styles.userName}>{item.userName}</Text>
-                        {item.id === userId && (
-                          <Text
-                            style={{
-                              marginLeft: 6,
-                              fontSize: 12,
-                              color: "#00A9F4",
-                            }}
-                          >
-                            👤
-                          </Text>
-                        )}
-                      </View>
-                      {item.age && (
-                        <Text style={{ color: "#777", fontSize: 12 }}>
-                          Wiek: {item.age}
-                        </Text>
-                      )}
-                    </View>
-                  </TouchableOpacity>
-                )}
-              />
-            )}
-          </View>
-
-          <View style={styles.chatContainer}>
-            <ChatBox messages={messages} onSend={handleSendMessage} />
-          </View>
-        </View>
-      </KeyboardAwareScrollView>
-
-      {/* MODAL Z PEŁNYM OPISEM TWÓRCY */}
-      <Modal
-        visible={isCreatorDescModalVisible}
-        animationType="fade"
-        transparent
-        statusBarTranslucent
-        onRequestClose={() => setIsCreatorDescModalVisible(false)}
-      >
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "rgba(0,0,0,0.6)",
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: "#fff",
-              borderRadius: 16,
-              padding: 20,
-              width: "80%",
-              alignItems: "center",
-            }}
-          >
-            <Text style={{ fontSize: 16, color: "#333", textAlign: "center" }}>
-              {currentEvent?.creator?.description}
-            </Text>
-            <TouchableOpacity
-              onPress={() => setIsCreatorDescModalVisible(false)}
-              style={{
-                marginTop: 20,
-                padding: 10,
-                backgroundColor: "#00A9F4",
-                borderRadius: 8,
-              }}
-            >
-              <Text style={{ color: "white", fontWeight: "bold" }}>
-                Zamknij
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      <Modal
-        visible={modalVisible}
-        animationType="slide"
-        transparent
-        statusBarTranslucent
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View
-          style={{
-            flex: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor: "rgba(0,0,0,0.6)",
-          }}
-        >
-          <View
-            style={{
-              backgroundColor: "#fff",
-              borderRadius: 16,
-              padding: 20,
-              width: "80%",
-              alignItems: "center",
-            }}
-          >
-            {selectedParticipant?.avatarUrl &&
-            selectedParticipant.avatarUrl.trim() !== "" ? (
-              <Image
-                source={{ uri: selectedParticipant.avatarUrl }}
-                style={{
-                  width: 200,
-                  height: 200,
-                  borderRadius: 60,
-                  marginBottom: 16,
-                }}
-              />
-            ) : (
-              <View
-                style={{
-                  width: 120,
-                  height: 120,
-                  borderRadius: 60,
-                  backgroundColor: "#ccc",
-                  justifyContent: "center",
-                  alignItems: "center",
-                  marginBottom: 16,
-                }}
-              >
-                <Text style={{ fontSize: 48 }}>
-                  {selectedParticipant?.userName?.charAt(0).toUpperCase()}
-                </Text>
-              </View>
-            )}
-            <Text style={{ fontSize: 20, fontWeight: "bold", marginBottom: 5 }}>
-              {selectedParticipant?.userName}
-            </Text>
-            {selectedParticipant?.age && (
-              <Text style={{ color: "#444", marginBottom: 5 }}>
-                Wiek: {selectedParticipant.age}
-              </Text>
-            )}
-            <Text style={{ textAlign: "center", color: "#666" }}>
-              {selectedParticipant?.description || "Brak opisu"}
-            </Text>
-            <TouchableOpacity
-              onPress={() => setModalVisible(false)}
-              style={{
-                marginTop: 20,
-                padding: 10,
-                backgroundColor: "#00A9F4",
-                borderRadius: 8,
-              }}
-            >
-              <Text style={{ color: "white", fontWeight: "bold" }}>
-                Zamknij
-              </Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-    </>
+        </Modal>
+        
+      </View>
+    </KeyboardAvoidingView>
+  </SafeAreaView>
   );
 };
 
