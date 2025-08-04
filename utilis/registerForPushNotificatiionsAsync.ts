@@ -2,7 +2,6 @@ import Constants from "expo-constants";
 import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
 
-// 👉 Konfiguracja kanału powiadomień — WYMAGANE dla Androida
 Notifications.setNotificationChannelAsync("default", {
   name: "default",
   importance: Notifications.AndroidImportance.MAX,
@@ -30,17 +29,21 @@ export const registerPushToken = async (userId: number) => {
   }
 
   try {
-    const tokenData = await Notifications.getExpoPushTokenAsync({
-      projectId: Constants.expoConfig?.extra?.eas?.projectId,
+    const expoTokenData = await Notifications.getExpoPushTokenAsync({
+      projectId: "21c25dfa-afc4-4d4a-9ce3-3d1a809d4dfe",
     });
 
-    const token = tokenData.data;
-    console.log("📨 Token push:", token);
+    const expoToken = expoTokenData.data;
+    console.log("📨 Expo Push Token:", expoToken);
+
+    const fcmTokenData = await Notifications.getDevicePushTokenAsync();
+    const fcmToken = fcmTokenData.data;
+    console.log("🔥 FCM Registration Token:", fcmToken);
 
     await fetch("https://meeton-backend-ffmo.onrender.com/api/push-token", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ userId, token }),
+      body: JSON.stringify({ userId, token: expoToken }),
     });
   } catch (error) {
     console.error("❌ Błąd podczas rejestracji tokena push:", error);

@@ -67,27 +67,38 @@ export default function Events() {
     requestLocation();
   }, []);
 
-  useEffect(() => {
-    const checkIfAlreadyInEvent = async () => {
-      if (!userId) return;
-      try {
-        const res = await fetch(`${BACKEND_URL}/api/event/joined?userId=${userId}`);
-        const events = await res.json();
-        if (events.length > 0 && !events[0].isCreator) {
-          router.replace({
-            pathname: "/screens/LocalEventRoom",
-            params: {
-              eventId: events[0].id,
-              location: events[0].location,
-              startDate: events[0].startDate,
-              endDate: events[0].endDate,
-            },
-          });
+  useFocusEffect(
+    useCallback(() => {
+      const checkIfAlreadyInEvent = async () => {
+        if (!userId) return;
+        console.log("📲 [checkIfAlreadyInEvent] userId:", userId);
+        try {
+          const res = await fetch(`${BACKEND_URL}/api/event/joined?userId=${userId}`);
+          const events = await res.json();
+          console.log("📡 Otrzymane events z backendu:", events);
+          const joinedEvent = events.find(
+            (e: Event) => e.isUserJoined && !e.isCreator
+          );
+          if (joinedEvent) {
+            console.log("🔁 Przekierowuję do pokoju wydarzenia:", joinedEvent.id);
+            router.replace({
+              pathname: "/screens/LocalEventRoom",
+              params: {
+                eventId: joinedEvent.id.toString(),
+                location: joinedEvent.location,
+                startDate: joinedEvent.startDate,
+                endDate: joinedEvent.endDate,
+              },
+            });
+          }
+        } catch (e) {
+          console.warn("Błąd przy sprawdzaniu eventu:", e);
         }
-      } catch {}
-    };
-    checkIfAlreadyInEvent();
-  }, [userId]);
+      };
+
+      checkIfAlreadyInEvent();
+    }, [userId])
+  );
 
   const fetchEvents = async () => {
     if (!userId || !locationCoords) return;
@@ -129,9 +140,11 @@ export default function Events() {
     if (userId && activities.length > 0 && locationCoords) fetchEvents();
   }, [activities, locationCoords]);
 
-  useFocusEffect(useCallback(() => {
-    if (userId && activities.length > 0 && locationCoords) fetchEvents();
-  }, [activities, locationCoords]));
+  useFocusEffect(
+    useCallback(() => {
+      if (userId && activities.length > 0 && locationCoords) fetchEvents();
+    }, [activities, locationCoords])
+  );
 
   const joinEvent = async (eventId: number) => {
     if (!userId) return;
@@ -163,12 +176,8 @@ export default function Events() {
         <View style={styles.eventInfo}>
           <Text style={styles.title}>{item.activity}</Text>
           <Text>📍 {item.location}</Text>
-          <Text>
-            🕒 {new Date(item.startDate).toLocaleDateString()} {new Date(item.startDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-          </Text>
-          <Text>
-            🔚 {new Date(item.endDate).toLocaleDateString()} {new Date(item.endDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}
-          </Text>
+          <Text>🕒 {new Date(item.startDate).toLocaleDateString()} {new Date(item.startDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</Text>
+          <Text>🔚 {new Date(item.endDate).toLocaleDateString()} {new Date(item.endDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</Text>
           <Text>👤 Twórca: {item.creator?.userName ?? "Nieznany"}</Text>
         </View>
         <View style={styles.participantsBox}>
@@ -179,7 +188,12 @@ export default function Events() {
               if (item.isUserJoined || item.isCreator) {
                 router.push({
                   pathname: item.isCreator ? "/screens/MyEventRoom" : "/screens/LocalEventRoom",
-                  params: { eventId: item.id, location: item.location, startDate: item.startDate, endDate: item.endDate },
+                  params: {
+                    eventId: item.id,
+                    location: item.location,
+                    startDate: item.startDate,
+                    endDate: item.endDate,
+                  },
                 });
               } else {
                 joinEvent(item.id);
@@ -187,14 +201,10 @@ export default function Events() {
             }}
             style={styles.joinButton}
           >
-            <Text style={styles.joinButtonText}>{item.isUserJoined || item.isCreator ? "PODGLĄD" : "DOŁĄCZ"}</Text>
+            <Text style={styles.joinButtonText}>
+              {item.isUserJoined || item.isCreator ? "PODGLĄD" : "DOŁĄCZ"}
+            </Text>
           </TouchableOpacity>
-          {/* <TouchableOpacity
-            onPress={() => fetchEventParticipants(item.id)}
-            style={[styles.joinButton, { backgroundColor: "#aaa" }]}
-          >
-            <Text style={styles.joinButtonText}>SZCZEGÓŁY</Text>
-          </TouchableOpacity> */}
         </View>
       </View>
     </View>
@@ -207,7 +217,12 @@ export default function Events() {
         <View style={{ flexDirection: "row", justifyContent: "space-around", marginTop: 16 }}>
           {[{ label: "0–30 km", min: 0, max: 30 }, { label: "30–100 km", min: 30, max: 100 }, { label: "100+ km", min: 100, max: 9999 }].map(({ label, min, max }) => (
             <TouchableOpacity key={label} onPress={() => setDistanceFilter({ min, max })}>
-              <Text style={{ backgroundColor: distanceFilter.min === min && distanceFilter.max === max ? "#007AFF" : "#ccc", color: distanceFilter.min === min && distanceFilter.max === max ? "#fff" : "#000", padding: 8, borderRadius: 8 }}>{label}</Text>
+              <Text style={{
+                backgroundColor: distanceFilter.min === min && distanceFilter.max === max ? "#007AFF" : "#ccc",
+                color: distanceFilter.min === min && distanceFilter.max === max ? "#fff" : "#000",
+                padding: 8,
+                borderRadius: 8,
+              }}>{label}</Text>
             </TouchableOpacity>
           ))}
         </View>
@@ -221,7 +236,6 @@ export default function Events() {
           keyExtractor={(item) => item.id.toString()}
           contentContainerStyle={{ padding: 16 }}
           refreshing={refreshing}
-          // onRefresh={handleRefresh}
           ListEmptyComponent={<Text style={{ fontSize: 16, color: "#666", textAlign: "center", marginTop: 10 }}>Brak aktualnych wydarzeń w pobliżu 😞</Text>}
         />
       )}
