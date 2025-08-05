@@ -1,17 +1,6 @@
 import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
 
-// Konfiguracja zachowania powiadomień (ważne na iOS)
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
-
 export const setupNotificationListener = () => {
   const router = useRouter();
   // Nasłuchiwanie na odebrane powiadomienie
