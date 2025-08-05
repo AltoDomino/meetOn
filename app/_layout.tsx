@@ -6,6 +6,18 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ActivityProvider } from "../context/ActivityContext";
 import { AuthProvider } from "../context/AuthContext";
 import { usePersistentLocation } from "@/hooks/usePersistentLocation";
+import * as Notifications from "expo-notifications"; 
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+    shouldShowBanner: true,
+    shouldShowInList: true,
+    shouldShowList: true, 
+  }),
+});
 
 SplashScreen.preventAutoHideAsync();
 
@@ -13,7 +25,7 @@ export default function RootLayout() {
   const [splashDone, setSplashDone] = useState(false);
   useBackExit();
 
-  usePersistentLocation(); 
+  usePersistentLocation();
 
   useEffect(() => {
     if (splashDone) {

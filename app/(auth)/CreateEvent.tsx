@@ -1,3 +1,4 @@
+import BottomButton from "@/components/Bottombutton";
 import { loadActivities } from "@/utilis/activityStoarage";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -73,8 +74,8 @@ export default function CreateEvent() {
     const isMosir = mosirActivities.includes(choosenActivity);
     const isOther =
       choosenActivity === "STWÓRZ WŁASNE" ||
-      choosenActivity === "ROWER"||
-      choosenActivity === "KONCERT"
+      choosenActivity === "ROWER" ||
+      choosenActivity === "KONCERT";
 
     const finalActivity = isMosir ? "mosir" : choosenActivity;
 
@@ -102,16 +103,12 @@ export default function CreateEvent() {
         contentContainerStyle={styles.activitiesList}
       />
 
-      <TouchableOpacity
-        style={[
-          styles.createButton,
-          !choosenActivity && { backgroundColor: "#ccc" },
-        ]}
-        onPress={handleCreateEvent}
-        disabled={!choosenActivity}
-      >
-        <Text style={styles.createButtonText}>Stwórz swoje wydarzenie</Text>
-      </TouchableOpacity>
+      {choosenActivity && (
+        <BottomButton
+          title="Stwórz swoje wydarzenie"
+          onPress={handleCreateEvent}
+        />
+      )}
     </View>
   );
 }
