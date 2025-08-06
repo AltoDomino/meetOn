@@ -20,7 +20,7 @@
         "backgroundColor": "#0d1a4d"
       },
       "edgeToEdgeEnabled": true,
-      "googleServicesFile": "./google-services.json",
+      "googleServicesFile": "./android/app/google-services.json",
       "permissions": ["NOTIFICATIONS", "ACCESS_FINE_LOCATION"]
     },
     "ios": {
@@ -57,7 +57,7 @@
             "targetSdkVersion": 35,
             "buildToolsVersion": "35.0.0",
             "minSdkVersion": 24,
-            "googleServicesFile": "./google-services.json"
+            "googleServicesFile": "./android/app/google-services.json"
           }
         }
       ],
@@ -70,7 +70,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "meeton-e7b62"
+        "projectId": "21c25dfa-afc4-4d4a-9ce3-3d1a809d4dfe"
       }
     },
     "owner": "domino96"

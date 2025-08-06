@@ -30,7 +30,7 @@ export const registerPushToken = async (userId: number) => {
 
   try {
     const expoTokenData = await Notifications.getExpoPushTokenAsync({
-      projectId: "meeton-e7b62",
+      projectId: "21c25dfa-afc4-4d4a-9ce3-3d1a809d4dfe",
     });
 
     const expoToken = expoTokenData.data;
