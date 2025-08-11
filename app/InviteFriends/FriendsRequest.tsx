@@ -42,7 +42,7 @@ export default function FriendRequests({ onAccepted }: Props) {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Otrzymane zaproszenia</Text>
+      <Text style={styles.title}>OTRZYMANE ZAPROSZENIA</Text>
       <FlatList
         data={requests}
         keyExtractor={(item) => item.requesterId.toString()}

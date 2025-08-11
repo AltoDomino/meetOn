@@ -28,13 +28,13 @@ export default function DrawerLayout() {
           drawerLabel: "👤 PROFIL",
         }}
       />
-      {/* <Drawer.Screen
+      <Drawer.Screen
         name="FriendList"
         options={{
-          title: "📨 Zaproś znajomych",
-          drawerLabel: "📨 Zaproś znajomych",
+          title: "📨 ZAPROŚ ZNAJOMYCH",
+          drawerLabel: "📨 ZAPROŚ ZNAJOMYCH",
         }}
-      /> */}
+      />
       <Drawer.Screen
         name="CreateEvent"
         options={{

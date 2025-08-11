@@ -41,26 +41,26 @@ export const styles = StyleSheet.create({
     marginTop: 4,
     alignSelf: "flex-end",
   },
-inputRow: {
-  flexDirection: "row",
-  alignItems: "center",
-  marginTop: 8,
-  paddingHorizontal: 6,
-  paddingBottom: Platform.OS === "android" ? 6 : 0, // ważne!
-  backgroundColor: "#fff",
-},
+  inputRow: {
+    flexDirection: "row",
+    alignItems: "center",
+    marginTop: 8,
+    paddingHorizontal: 6,
+    paddingBottom: Platform.OS === "android" ? 6 : 0, // ważne!
+    backgroundColor: "#fff",
+  },
 
-input: {
-  flex: 1,
-  height: 40,
-  backgroundColor: "#fff",
-  borderRadius: 20,
-  paddingHorizontal: 16,
-  fontSize: 16,
-  borderColor: "#ccc",
-  borderWidth: 1,
-  color: "black",
-},
+  input: {
+    flex: 1,
+    height: 40,
+    borderColor: "#9ddff3ff",
+    backgroundColor: "#ffffffff",
+    color: "#000000ff",
+    borderRadius: 20,
+    paddingHorizontal: 16,
+    fontSize: 16,
+    borderWidth: 1,
+  },
 
   sendButton: {
     marginLeft: 10,

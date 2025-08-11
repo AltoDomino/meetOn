@@ -45,7 +45,7 @@ export default function SendFriendRequest({
   return (
     <View style={styles.container}>
       <TextInput
-        placeholder="Login znajomego"
+        placeholder="LOGIN ZNAJOMEGO"
         placeholderTextColor="gray"
         value={receiverName}
         onChangeText={setReceiverName}
@@ -60,7 +60,9 @@ const styles = StyleSheet.create({
   container: { padding: 20 },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
+    borderColor: "#9ddff3ff",
+    backgroundColor: "#ffffffff",
+    color: "#000000ff",
     borderRadius: 6,
     padding: 10,
     marginBottom: 10,

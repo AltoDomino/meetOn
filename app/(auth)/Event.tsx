@@ -1,3 +1,4 @@
+// src/screens/Events.tsx (zaktualizowany komponent – bez inline styles)
 import { registerPushToken } from "@/utilis/registerForPushNotificatiionsAsync";
 import SwitchButton from "@/utilis/SwitchButton";
 import { useFocusEffect } from "@react-navigation/native";
@@ -39,7 +40,8 @@ export default function Events() {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [distanceFilter, setDistanceFilter] = useState<{ min: number; max: number }>({ min: 0, max: 30 });
-  const [locationCoords, setLocationCoords] = useState<{ latitude: number; longitude: number } | null>(null);
+  const [locationCoords, setLocationCoords] =
+    useState<{ latitude: number; longitude: number } | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedParticipants, setSelectedParticipants] = useState([]);
 
@@ -71,16 +73,13 @@ export default function Events() {
     useCallback(() => {
       const checkIfAlreadyInEvent = async () => {
         if (!userId) return;
-        console.log("📲 [checkIfAlreadyInEvent] userId:", userId);
         try {
           const res = await fetch(`${BACKEND_URL}/api/event/joined?userId=${userId}`);
           const events = await res.json();
-          console.log("📡 Otrzymane events z backendu:", events);
           const joinedEvent = events.find(
             (e: Event) => e.isUserJoined && !e.isCreator
           );
           if (joinedEvent) {
-            console.log("🔁 Przekierowuję do pokoju wydarzenia:", joinedEvent.id);
             router.replace({
               pathname: "/screens/LocalEventRoom",
               params: {
@@ -95,7 +94,6 @@ export default function Events() {
           console.warn("Błąd przy sprawdzaniu eventu:", e);
         }
       };
-
       checkIfAlreadyInEvent();
     }, [userId])
   );
@@ -107,23 +105,25 @@ export default function Events() {
       const res = await fetch(url);
       const data = await res.json();
       const now = new Date();
-      const upcomingEvents = data.filter((event: Event) => new Date(event.endDate) > now);
+      const upcomingEvents = data.filter(
+        (event: Event) => new Date(event.endDate) > now
+      );
       setEvents(upcomingEvents);
     } catch {
       Alert.alert("Błąd", "Nie udało się połączyć z serwerem.");
     }
   };
 
-  const fetchEventParticipants = async (eventId: number) => {
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/participants?eventId=${eventId}`);
-      const data = await res.json();
-      setSelectedParticipants(data);
-      setModalVisible(true);
-    } catch (err) {
-      Alert.alert("Błąd", "Nie udało się pobrać uczestników wydarzenia.");
-    }
-  };
+  // const fetchEventParticipants = async (eventId: number) => {
+  //   try {
+  //     const res = await fetch(`${BACKEND_URL}/api/participants?eventId=${eventId}`);
+  //     const data = await res.json();
+  //     setSelectedParticipants(data);
+  //     setModalVisible(true);
+  //   } catch (err) {
+  //     Alert.alert("Błąd", "Nie udało się pobrać uczestników wydarzenia.");
+  //   }
+  // };
 
   useEffect(() => {
     if (!userId || !locationCoords) return;
@@ -176,18 +176,36 @@ export default function Events() {
         <View style={styles.eventInfo}>
           <Text style={styles.title}>{item.activity}</Text>
           <Text>📍 {item.location}</Text>
-          <Text>🕒 {new Date(item.startDate).toLocaleDateString()} {new Date(item.startDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</Text>
-          <Text>🔚 {new Date(item.endDate).toLocaleDateString()} {new Date(item.endDate).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" })}</Text>
+          <Text>
+            🕒 {new Date(item.startDate).toLocaleDateString()}{" "}
+            {new Date(item.startDate).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </Text>
+          <Text>
+            🔚 {new Date(item.endDate).toLocaleDateString()}{" "}
+            {new Date(item.endDate).toLocaleTimeString([], {
+              hour: "2-digit",
+              minute: "2-digit",
+            })}
+          </Text>
           <Text>👤 Twórca: {item.creator?.userName ?? "Nieznany"}</Text>
         </View>
+
         <View style={styles.participantsBox}>
           <Text style={styles.participantIcon}>👥</Text>
-          <Text style={styles.participantCount}>{item.participantsCount}/{item.spots}</Text>
+          <Text style={styles.participantCount}>
+            {item.participantsCount}/{item.spots}
+          </Text>
+
           <TouchableOpacity
             onPress={() => {
               if (item.isUserJoined || item.isCreator) {
                 router.push({
-                  pathname: item.isCreator ? "/screens/MyEventRoom" : "/screens/LocalEventRoom",
+                  pathname: item.isCreator
+                    ? "/screens/MyEventRoom"
+                    : "/screens/LocalEventRoom",
                   params: {
                     eventId: item.id,
                     location: item.location,
@@ -211,32 +229,55 @@ export default function Events() {
   );
 
   return (
-    <View style={{ flex: 1 }}>
-      <View style={{ padding: 16, backgroundColor: "#f0f0f0" }}>
-        <SwitchButton to="/screens/MyEvents" label="Twoje wydarzenia" />
-        <View style={{ flexDirection: "row", justifyContent: "space-around", marginTop: 16 }}>
-          {[{ label: "0–30 km", min: 0, max: 30 }, { label: "30–100 km", min: 30, max: 100 }, { label: "100+ km", min: 100, max: 9999 }].map(({ label, min, max }) => (
-            <TouchableOpacity key={label} onPress={() => setDistanceFilter({ min, max })}>
-              <Text style={{
-                backgroundColor: distanceFilter.min === min && distanceFilter.max === max ? "#007AFF" : "#ccc",
-                color: distanceFilter.min === min && distanceFilter.max === max ? "#fff" : "#000",
-                padding: 8,
-                borderRadius: 8,
-              }}>{label}</Text>
-            </TouchableOpacity>
-          ))}
+    <View style={styles.container}>
+      <View style={styles.header}>
+        <View style={styles.switchWrapper}>
+          <SwitchButton to="/screens/MyEvents" label="TWOJE WYDARZENIA " />
+        </View>
+
+        <View style={styles.filterRow}>
+          {[
+            { label: "0–30 km", min: 0, max: 30 },
+            { label: "30–100 km", min: 30, max: 100 },
+            { label: "100+ km", min: 100, max: 9999 },
+          ].map(({ label, min, max }) => {
+            const active =
+              distanceFilter.min === min && distanceFilter.max === max;
+            return (
+              <TouchableOpacity
+                key={label}
+                onPress={() => setDistanceFilter({ min, max })}
+                style={[styles.filterChip, active && styles.filterChipActive]}
+              >
+                <Text
+                  style={[styles.filterChipText, active && styles.filterChipTextActive]}
+                >
+                  {label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
         </View>
       </View>
+
       {loading ? (
-        <View style={styles.center}><ActivityIndicator size="large" color="#000" /></View>
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color="#000" />
+        </View>
       ) : (
         <FlatList
           data={events}
           renderItem={renderItem}
           keyExtractor={(item) => item.id.toString()}
-          contentContainerStyle={{ padding: 16 }}
+          contentContainerStyle={styles.listContent}
           refreshing={refreshing}
-          ListEmptyComponent={<Text style={{ fontSize: 16, color: "#666", textAlign: "center", marginTop: 10 }}>Brak aktualnych wydarzeń w pobliżu 😞</Text>}
+          onRefresh={() => {
+            setRefreshing(true);
+            fetchEvents().finally(() => setRefreshing(false));
+          }}
+          ListEmptyComponent={
+            <Text style={styles.emptyText}>Brak aktualnych wydarzeń 😞</Text>
+          }
         />
       )}
     </View>

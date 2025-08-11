@@ -93,7 +93,7 @@ export default function CreateEvent() {
   return (
     <View style={styles.container}>
       <Text style={styles.sectionTitle}>
-        Wybierz aktywność aby stworzyć wydarzenie
+        WYBIERZ AKTYWNOŚĆ ABY STWORZYĆ WYDARZENIE 
       </Text>
       <FlatList
         data={getFormattedActivities()}

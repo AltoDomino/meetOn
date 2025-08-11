@@ -1,3 +1,4 @@
+import BottomButton from "@/components/Bottombutton";
 import { loadActivities, saveActivities } from "@/utilis/activityStoarage";
 import { router } from "expo-router";
 import React, { useEffect } from "react";
@@ -6,14 +7,13 @@ import {
   FlatList,
   ImageBackground,
   Text,
-  View,
   TouchableOpacity,
+  View,
 } from "react-native";
 import { useActivity } from "../../context/ActivityContext";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/YourActivites.styles";
 import { activityImages } from "../Activity/Activities";
-import BottomButton from "@/components/Bottombutton";
 
 export default function YourActivities() {
   const { userName, userId } = useAuth();
@@ -75,7 +75,7 @@ export default function YourActivities() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Twoje aktywności</Text>
+      <Text style={styles.title}></Text>
 
       <FlatList
         data={activities}
@@ -86,7 +86,7 @@ export default function YourActivities() {
       />
 
       <BottomButton
-        title="Dodaj nową aktywność"
+        title="DODAJ NOWĄ AKTYWNOŚĆ"
         onPress={() => router.push("/Activity/Activity")}
       />
     </View>

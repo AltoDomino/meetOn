@@ -1,46 +1,34 @@
+// FriendList.styles.ts
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  container: { padding: 20 },
+  container: {
+    flex: 1,
+    backgroundColor: "#c5def3ff",
+    padding: 20,
+  },
   title: {
     fontSize: 20,
-    fontWeight: "bold",
-    marginBottom: 10,
-    marginTop: 20,
+    fontWeight: "600",
+    color: "#000000ff",
+    textAlign: "center",
+    marginVertical: 16,
   },
-    card: {
+  card: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "#14265c",
+    borderRadius: 12,
     padding: 12,
-    marginBottom: 10,
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3,
-  },
-  friendCard: {
-    flexDirection: "row",
-    alignItems: "center",
-    backgroundColor: "#fff",
-    padding: 12,
-    marginBottom: 10,
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3,
+    marginBottom: 12,
   },
   avatar: {
-    backgroundColor: "#4e54c8",
     width: 48,
     height: 48,
     borderRadius: 24,
-    alignItems: "center",
+    backgroundColor: "#00C1F3",
     justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   avatarText: {
@@ -50,10 +38,11 @@ export const styles = StyleSheet.create({
   },
   userInfo: {
     flex: 1,
+    justifyContent: "center",
   },
   userName: {
-    fontSize: 18,
+    fontSize: 17,
     fontWeight: "600",
-    marginBottom: 4,
+    color: "#E1F1FF",
   },
 });

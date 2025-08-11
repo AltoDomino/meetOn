@@ -1,27 +1,32 @@
+// FriendsRequest.styles.ts
 import { StyleSheet } from "react-native";
+
 export const styles = StyleSheet.create({
-  container: { padding: 20 },
-  title: { fontSize: 20, fontWeight: "bold", marginBottom: 10 },
+  container: {
+    marginBottom: 24,
+  },
+  title: {
+    fontSize: 18,
+    fontWeight: "600",
+    color: "#000000ff",
+    textAlign: "center",
+    marginBottom: 12,
+  },
   card: {
     flexDirection: "row",
     alignItems: "center",
-    backgroundColor: "#fff",
+    backgroundColor: "#14265c",
+    borderRadius: 12,
     padding: 12,
-    marginBottom: 10,
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.2,
-    shadowRadius: 3,
-    elevation: 3,
+    marginBottom: 12,
   },
   avatar: {
-    backgroundColor: "#4e54c8",
     width: 48,
     height: 48,
     borderRadius: 24,
-    alignItems: "center",
+    backgroundColor: "#00C1F3",
     justifyContent: "center",
+    alignItems: "center",
     marginRight: 12,
   },
   avatarText: {
@@ -31,21 +36,24 @@ export const styles = StyleSheet.create({
   },
   userInfo: {
     flex: 1,
+    justifyContent: "center",
   },
   userName: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: "600",
-    marginBottom: 4,
+    color: "#E1F1FF",
+    marginBottom: 8,
   },
   acceptButton: {
-    backgroundColor: "#4CAF50",
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 6,
+    backgroundColor: "#00C1F3",
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    borderRadius: 8,
     alignSelf: "flex-start",
   },
   buttonText: {
     color: "#fff",
+    fontSize: 14,
     fontWeight: "bold",
   },
 });

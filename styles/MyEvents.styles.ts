@@ -1,75 +1,30 @@
-// ../../styles/Event.styles.ts (NOWY/UZUPEŁNIONY plik stylów)
+// styles/MyEvents.styles.ts
 import { StyleSheet, Platform } from "react-native";
 
 const colors = {
-  bg: "#c5def3ff",
-  card: "#ffffff",
+  bg: "#F9F9F9",
+  card: "#FFFFFF",
   primary: "#1E3A8A",
   accent: "#007AFF",
   text: "#0B1220",
   muted: "#4B5563",
   border: "rgba(0,0,0,0.08)",
-  chipBg: "#cccccc",
 };
 
 export const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: colors.bg,
-  },
-
-  header: {
-    padding: 16,
-    backgroundColor: colors.bg,
-  },
-
-  switchWrapper: {
-    // miejsce na ewentualne marginesy dla SwitchButton
-  },
-
-  filterRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
-    marginTop: 16,
-  },
-
-  filterChip: {
-    backgroundColor: colors.chipBg,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-  },
-
-  filterChipActive: {
-    backgroundColor: colors.accent,
-  },
-
-  filterChipText: {
-    color: "#000",
-    fontWeight: "600",
-  },
-
-  filterChipTextActive: {
-    color: "#fff",
-  },
-
   center: {
     flex: 1,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: colors.bg,
   },
 
-  listContent: {
-    padding: 16,
-    paddingBottom: 24,
-  },
-
-  // KARTA WYDARZENIA
   card: {
-    backgroundColor: colors.card,
+    backgroundColor: colors.bg,
     borderRadius: 16,
-    padding: 14,
+    padding: 16,
     marginBottom: 14,
+    marginHorizontal: 12, // ⬅️ żeby nie dochodziło do krawędzi ekranu
     borderWidth: 1,
     borderColor: colors.border,
     ...(Platform.OS === "ios"
@@ -85,11 +40,11 @@ export const styles = StyleSheet.create({
   cardRow: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "flex-start",
   },
 
   eventInfo: {
     flex: 1,
+    paddingRight: 12,
   },
 
   title: {
@@ -99,9 +54,26 @@ export const styles = StyleSheet.create({
     marginBottom: 4,
   },
 
+  locationText: {
+    fontSize: 14,
+    color: colors.muted,
+    marginBottom: 4,
+  },
+
+  dateText: {
+    fontSize: 14,
+    color: colors.muted,
+    marginBottom: 4,
+  },
+
+  creatorText: {
+    fontSize: 14,
+    color: colors.text,
+  },
+
   participantsBox: {
     alignItems: "center",
-    marginLeft: 12,
+    justifyContent: "center",
   },
 
   participantIcon: {
@@ -111,15 +83,14 @@ export const styles = StyleSheet.create({
 
   participantCount: {
     fontSize: 14,
-    fontWeight: "600",
     color: colors.text,
-    marginBottom: 6,
+    marginBottom: 8,
   },
 
   joinButton: {
-    paddingVertical: 6,
-    paddingHorizontal: 12,
     backgroundColor: colors.accent,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
     borderRadius: 8,
   },
 
@@ -129,10 +100,16 @@ export const styles = StyleSheet.create({
     fontSize: 14,
   },
 
+  listHeader: {
+    paddingHorizontal: 12, // ⬅️ żeby przycisk SwitchButton też miał odstęp
+    marginBottom: 16,
+    backgroundColor: colors.bg,
+  },
+
   emptyText: {
     fontSize: 16,
     color: colors.muted,
     textAlign: "center",
-    marginTop: 10,
+    marginTop: 20,
   },
 });

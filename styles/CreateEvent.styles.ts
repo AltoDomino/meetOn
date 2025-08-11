@@ -1,10 +1,18 @@
+// Activities.styles.ts
 import { StyleSheet } from "react-native";
+
 const styles = StyleSheet.create({
-  container: { flex: 1, padding: 20 },
+  container: {
+    flex: 1,
+    padding: 20,
+    backgroundColor: "#c5def3ff",
+  },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: "bold",
+    fontWeight: "600",
+    color: "#000000ff",
     marginBottom: 10,
+    textAlign: "center",
   },
   activitiesList: {
     gap: 12,
@@ -18,9 +26,11 @@ const styles = StyleSheet.create({
     height: 100,
     justifyContent: "center",
     alignItems: "center",
+    backgroundColor: "#14265c",
+    borderRadius: 12,
   },
   activityTileText: {
-    color: "#fff",
+    color: "#E1F1FF",
     fontWeight: "bold",
     fontSize: 16,
     textShadowColor: "#000",
@@ -28,7 +38,7 @@ const styles = StyleSheet.create({
     textShadowRadius: 3,
   },
   createButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#00C1F3",
     padding: 16,
     borderRadius: 12,
     alignItems: "center",
@@ -40,7 +50,7 @@ const styles = StyleSheet.create({
     fontWeight: "700",
   },
   eventCard: {
-    backgroundColor: "#f1f1f1",
+    backgroundColor: "#14265c",
     padding: 16,
     borderRadius: 12,
     marginBottom: 12,
@@ -48,14 +58,15 @@ const styles = StyleSheet.create({
   eventTitle: {
     fontSize: 18,
     fontWeight: "600",
+    color: "#E1F1FF",
     marginBottom: 4,
   },
   emptyText: {
     textAlign: "center",
     marginTop: 40,
     fontSize: 16,
-    color: "#888",
+    color: "#B0DFFF",
   },
 });
 
-export default styles
+export default styles;

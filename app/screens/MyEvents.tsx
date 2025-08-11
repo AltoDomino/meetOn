@@ -11,7 +11,7 @@ import {
   View,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
-import { styles } from "../../styles/Event.styles";
+import { styles } from "@/styles/MyEvents.styles";
 
 const BACKEND_URL = "https://meeton-backend-ffmo.onrender.com";
 
@@ -57,6 +57,7 @@ export default function MyEvents() {
       console.error("Błąd pobierania wydarzeń:", err);
     }
   };
+
   const handleJoin = (event: Event) => {
     router.push({
       pathname: "./MyEventRoom",
@@ -74,6 +75,7 @@ export default function MyEvents() {
       fetchEvents();
     }, [])
   );
+
   useEffect(() => {
     if (!userId) return;
     registerPushToken(userId);
@@ -92,9 +94,9 @@ export default function MyEvents() {
       <View style={styles.cardRow}>
         <View style={styles.eventInfo}>
           <Text style={styles.title}>{item.activity}</Text>
-          <Text>📍 {item.location}</Text>
-          <Text>🕒 {new Date(item.startDate).toLocaleString()}</Text>
-          <Text>👤 Twórca: {item.creator.userName}</Text>
+          <Text style={styles.locationText}>📍 {item.location}</Text>
+          <Text style={styles.dateText}>🕒 {new Date(item.startDate).toLocaleString()}</Text>
+          <Text style={styles.creatorText}>👤 Twórca: {item.creator.userName}</Text>
         </View>
         <View style={styles.participantsBox}>
           <Text style={styles.participantIcon}>👥</Text>
@@ -137,23 +139,16 @@ export default function MyEvents() {
         data={events}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={{ padding: 16 }}
+        contentContainerStyle={styles.listHeader}
         refreshing={refreshing}
         onRefresh={handleRefresh}
         ListHeaderComponent={
-          <View style={{ marginBottom: 16 }}>
-            <SwitchButton to="/(auth)/Event" label="Wydarzenia w okolicy" />
+          <View style={styles.listHeader}>
+            <SwitchButton to="/(auth)/Event" label="INNE WYDARZENIA" />
           </View>
         }
         ListEmptyComponent={
-          <Text
-            style={{
-              fontSize: 16,
-              color: "#666",
-              textAlign: "center",
-              marginTop: 20,
-            }}
-          >
+          <Text style={styles.emptyText}>
             Brak Twoich wydarzeń 😞
           </Text>
         }

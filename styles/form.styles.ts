@@ -3,19 +3,19 @@ import { Dimensions, StyleSheet } from "react-native";
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: "#0d1a4d",
+    backgroundColor: "#c5def3ff",
     padding: 20,
     gap: 16,
   },
   input: {
     borderWidth: 5,
-    borderColor: "#00C1F3",
     borderRadius: 12,
     padding: 12,
     marginBottom: 16,
     fontSize: 16,
-    color: "#E1F1FF",
-    backgroundColor: "#14265c",
+    borderColor: "#9ddff3ff",
+    backgroundColor: "#ffffffff",
+    color: "#000000ff",
     
   },
 label: {

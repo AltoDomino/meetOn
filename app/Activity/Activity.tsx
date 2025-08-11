@@ -90,14 +90,14 @@ export default function Activity() {
     <>
       <Stack.Screen
         options={{
-          title: "Wybierz aktywność",
+          title: "WYBIERZ AKTYWNOŚĆ",
           headerStyle: { backgroundColor: "#00A9F4" },
           headerTintColor: "#fff",
         }}
       />
 
       <View style={styles.container}>
-        <Text style={styles.title}>Wybierz formę aktywności</Text>
+        <Text style={styles.title}>WYBIERZ FROMĘ AKTYWNOŚCI</Text>
 
         <FlatList
           data={Object.keys(activityImages)}
