@@ -14,7 +14,7 @@ ext {
   }
 
   dependencies {
-    classpath("com.android.tools.build:gradle:8.3.0") // ✅ KONKRETNA wersja Gradle pluginu
+    classpath("com.android.tools.build:gradle:8.3.0")
     classpath("com.google.gms:google-services:4.4.1") // ✅ Firebase
     classpath("com.facebook.react:react-native-gradle-plugin")
     classpath("org.jetbrains.kotlin:kotlin-gradle-plugin")
