@@ -56,4 +56,59 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     fontWeight: "bold",
   },
+  dropHeader: {
+  marginTop: 8,
+  marginBottom: 6,
+  paddingVertical: 8,
+  paddingHorizontal: 12,
+  borderRadius: 10,
+  alignSelf: "flex-start",
+  backgroundColor: "rgba(0,0,0,0.06)",
+},
+dropHeaderText: {
+  fontWeight: "600",
+},
+listContent: {
+  paddingTop: 4,
+},
+ignoreButton: {
+  backgroundColor: "#dc2626", // czerwony
+  paddingVertical: 6,
+  paddingHorizontal: 10,
+  borderRadius: 8,
+},
+
+modalOverlay: {
+  flex: 1,
+  justifyContent: "center",
+  alignItems: "center",
+  backgroundColor: "rgba(0,0,0,0.5)",
+},
+
+modalBox: {
+  backgroundColor: "#fff",
+  padding: 20,
+  borderRadius: 12,
+  width: "80%",
+},
+
+modalText: {
+  fontSize: 16,
+  textAlign: "center",
+},
+
+confirmButton: {
+  backgroundColor: "#dc2626",
+  paddingVertical: 8,
+  paddingHorizontal: 16,
+  borderRadius: 8,
+},
+
+cancelButton: {
+  backgroundColor: "#6b7280",
+  paddingVertical: 8,
+  paddingHorizontal: 16,
+  borderRadius: 8,
+},
+
 });

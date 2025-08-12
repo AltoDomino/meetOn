@@ -1,10 +1,9 @@
-// src/screens/Events.tsx (zaktualizowany komponent – bez inline styles)
 import { registerPushToken } from "@/utilis/registerForPushNotificatiionsAsync";
 import SwitchButton from "@/utilis/SwitchButton";
 import { useFocusEffect } from "@react-navigation/native";
 import * as Location from "expo-location";
 import { router, useLocalSearchParams } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -26,28 +25,52 @@ export type Event = {
   location: string;
   startDate: string;
   endDate: string;
-  creator: {
-    id: number | null;
-    userName: string;
-  };
+  creator: { id: number | null; userName: string };
   participantsCount: number;
   isUserJoined: boolean;
   isCreator: boolean;
 };
 
+type DistOption = { label: string; min: number; max: number };
+
+const DISTANCES: DistOption[] = [
+  { label: "0–30 km", min: 0, max: 30 },
+  { label: "30–100 km", min: 30, max: 100 },
+  { label: "100+ km", min: 100, max: 9999 },
+];
+
 export default function Events() {
   const [events, setEvents] = useState<Event[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [distanceFilter, setDistanceFilter] = useState<{ min: number; max: number }>({ min: 0, max: 30 });
-  const [locationCoords, setLocationCoords] =
-    useState<{ latitude: number; longitude: number } | null>(null);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedParticipants, setSelectedParticipants] = useState([]);
+  const [distanceFilter, setDistanceFilter] = useState<{
+    min: number;
+    max: number;
+  }>({ min: 0, max: 30 });
+  const [locationCoords, setLocationCoords] = useState<{
+    latitude: number;
+    longitude: number;
+  } | null>(null);
 
-  const { userId, hasChosenActivities } = useAuth();
+  // banner “zapisano”
+  const [saveMsg, setSaveMsg] = useState<string | null>(null);
+
+  const { userId, hasChosenActivities, token } = useAuth();
   const { location, startDate, endDate } = useLocalSearchParams();
   const { activities } = useActivity();
+
+  const currentLabel = useMemo(() => {
+    const opt = DISTANCES.find(
+      (d) => d.min === distanceFilter.min && d.max === distanceFilter.max
+    );
+    return opt?.label ?? "";
+  }, [distanceFilter]);
+
+  // mapowanie zakresu na promień (km) do zapisania
+  const radiusKm = useMemo(() => {
+    if (distanceFilter.max === 9999) return 9999;
+    return distanceFilter.max; // 30 lub 100
+  }, [distanceFilter]);
 
   useEffect(() => {
     const requestLocation = async () => {
@@ -74,7 +97,9 @@ export default function Events() {
       const checkIfAlreadyInEvent = async () => {
         if (!userId) return;
         try {
-          const res = await fetch(`${BACKEND_URL}/api/event/joined?userId=${userId}`);
+          const res = await fetch(
+            `${BACKEND_URL}/api/event/joined?userId=${userId}`
+          );
           const events = await res.json();
           const joinedEvent = events.find(
             (e: Event) => e.isUserJoined && !e.isCreator
@@ -101,7 +126,7 @@ export default function Events() {
   const fetchEvents = async () => {
     if (!userId || !locationCoords) return;
     try {
-      let url = `${BACKEND_URL}/api/events?userId=${userId}&minDistance=${distanceFilter.min}&distance=${distanceFilter.max}&latitude=${locationCoords.latitude}&longitude=${locationCoords.longitude}`;
+      const url = `${BACKEND_URL}/api/events?userId=${userId}&minDistance=${distanceFilter.min}&distance=${distanceFilter.max}&latitude=${locationCoords.latitude}&longitude=${locationCoords.longitude}`;
       const res = await fetch(url);
       const data = await res.json();
       const now = new Date();
@@ -113,17 +138,6 @@ export default function Events() {
       Alert.alert("Błąd", "Nie udało się połączyć z serwerem.");
     }
   };
-
-  // const fetchEventParticipants = async (eventId: number) => {
-  //   try {
-  //     const res = await fetch(`${BACKEND_URL}/api/participants?eventId=${eventId}`);
-  //     const data = await res.json();
-  //     setSelectedParticipants(data);
-  //     setModalVisible(true);
-  //   } catch (err) {
-  //     Alert.alert("Błąd", "Nie udało się pobrać uczestników wydarzenia.");
-  //   }
-  // };
 
   useEffect(() => {
     if (!userId || !locationCoords) return;
@@ -167,6 +181,42 @@ export default function Events() {
       }
     } catch {
       Alert.alert("Błąd", "Wystąpił problem z serwerem");
+    }
+  };
+
+  // 🔔 zapis preferencji powiadomień dla aktualnego zakresu
+  const saveNotifyPrefs = async () => {
+    if (!userId) return;
+    try {
+      const res = await fetch(
+        `${BACKEND_URL}/api/users/${userId}/notification-prefs`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}), // 👈 autoryzacja JWT
+          },
+          body: JSON.stringify({
+            notificationRadiusKm: radiusKm,
+            customNotifyEnabled: false,
+            customNotifyLat: null,
+            customNotifyLng: null,
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        const text = await res.text();
+        console.warn("Save prefs failed:", res.status, text);
+        throw new Error(`HTTP ${res.status}`);
+      }
+
+      setSaveMsg(
+        `Powiadomienia dla zakresu ${currentLabel} zostały zapisane ✅`
+      );
+      setTimeout(() => setSaveMsg(null), 2500);
+    } catch (e) {
+      Alert.alert("Błąd", "Nie udało się zapisać preferencji powiadomień.");
     }
   };
 
@@ -231,16 +281,29 @@ export default function Events() {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View style={styles.switchWrapper}>
-          <SwitchButton to="/screens/MyEvents" label="TWOJE WYDARZENIA " />
+        <View
+          style={[
+            styles.switchWrapper,
+            {
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            },
+          ]}
+        >
+          <SwitchButton to="/screens/MyEvents" label="TWOJE WYDARZENIA" />
+          {/* 🔔 Dzwoneczek */}
+          <TouchableOpacity
+            onPress={saveNotifyPrefs}
+            style={styles.bellButton}
+            accessibilityLabel="Zapisz powiadomienia dla wybranego zakresu"
+          >
+            <Text style={styles.bellIcon}>🔔</Text>
+          </TouchableOpacity>
         </View>
 
         <View style={styles.filterRow}>
-          {[
-            { label: "0–30 km", min: 0, max: 30 },
-            { label: "30–100 km", min: 30, max: 100 },
-            { label: "100+ km", min: 100, max: 9999 },
-          ].map(({ label, min, max }) => {
+          {DISTANCES.map(({ label, min, max }) => {
             const active =
               distanceFilter.min === min && distanceFilter.max === max;
             return (
@@ -250,7 +313,10 @@ export default function Events() {
                 style={[styles.filterChip, active && styles.filterChipActive]}
               >
                 <Text
-                  style={[styles.filterChipText, active && styles.filterChipTextActive]}
+                  style={[
+                    styles.filterChipText,
+                    active && styles.filterChipTextActive,
+                  ]}
                 >
                   {label}
                 </Text>
@@ -258,6 +324,13 @@ export default function Events() {
             );
           })}
         </View>
+
+        {/* Baner potwierdzający zapis */}
+        {saveMsg ? (
+          <View style={styles.saveBanner}>
+            <Text style={styles.saveBannerText}>{saveMsg}</Text>
+          </View>
+        ) : null}
       </View>
 
       {loading ? (
@@ -276,7 +349,9 @@ export default function Events() {
             fetchEvents().finally(() => setRefreshing(false));
           }}
           ListEmptyComponent={
-            <Text style={styles.emptyText}>Brak aktualnych wydarzeń 😞</Text>
+            <View style={styles.emptyContainer}>
+              <Text style={styles.emptyText}>Brak aktualnych wydarzeń 😞</Text>
+            </View>
           }
         />
       )}

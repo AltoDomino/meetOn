@@ -10,7 +10,7 @@
     "splash": {
       "image": "./assets/images/startMeetOn.png",
       "resizeMode": "contain",
-      "backgroundColor": "#0d1a4d"
+      "backgroundColor": "#01032f"
     },
     "android": {
       "package": "com.domino96.meetOn",
@@ -18,7 +18,7 @@
       "useNextNotificationsApi": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/startMeetOn.png",
-        "backgroundColor": "#0d1a4d"
+        "backgroundColor": "#01032f"
       },
       "edgeToEdgeEnabled": true,
       "googleServicesFile": "./android/app/google-services.json",

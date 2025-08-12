@@ -26,7 +26,33 @@ export const styles = StyleSheet.create({
   switchWrapper: {
     // miejsce na ewentualne marginesy dla SwitchButton
   },
+  bellButton: {
+    marginLeft: 12,
+    paddingVertical: 6,
+    paddingHorizontal: 10,
+    borderRadius: 10,
+    backgroundColor: "rgba(0,0,0,0.06)",
+  },
 
+  bellIcon: {
+    fontSize: 18,
+  },
+
+  saveBanner: {
+    marginTop: 12,
+    borderRadius: 10,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    backgroundColor: "rgba(0,122,255,0.12)", // lekki niebieski
+    alignSelf: "stretch",
+  },
+
+  saveBannerText: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: "#0B1220",
+    textAlign: "center",
+  },
   filterRow: {
     flexDirection: "row",
     justifyContent: "space-around",
@@ -129,10 +155,15 @@ export const styles = StyleSheet.create({
     fontSize: 14,
   },
 
-  emptyText: {
-    fontSize: 16,
-    color: colors.muted,
-    textAlign: "center",
-    marginTop: 10,
-  },
+emptyContainer: {
+  minHeight: 300, 
+  justifyContent: "center",
+  alignItems: "center",
+  paddingHorizontal: 20,
+},
+emptyText: {
+  fontSize: 16,
+  color: colors.muted,
+  textAlign: "center",
+},
 });

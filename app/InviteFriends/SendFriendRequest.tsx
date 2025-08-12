@@ -45,7 +45,7 @@ export default function SendFriendRequest({
   return (
     <View style={styles.container}>
       <TextInput
-        placeholder="LOGIN ZNAJOMEGO"
+        placeholder="Tu wpisz nazwę użytkwonnika..."
         placeholderTextColor="gray"
         value={receiverName}
         onChangeText={setReceiverName}

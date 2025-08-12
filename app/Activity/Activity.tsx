@@ -1,3 +1,4 @@
+import BottomButton from "@/components/Bottombutton";
 import { loadActivities, saveActivities } from "@/utilis/activityStoarage";
 import { router, Stack } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -14,7 +15,6 @@ import { useAuth } from "../../context/AuthContext";
 import styles from "../../styles/Activity.styles";
 import { activityImages } from "./Activities";
 import ActivityDataSend from "./SendActivity";
-import BottomButton from "@/components/Bottombutton";
 
 export default function Activity() {
   const { setActivities } = useActivity();
@@ -91,8 +91,11 @@ export default function Activity() {
       <Stack.Screen
         options={{
           title: "WYBIERZ AKTYWNOŚĆ",
-          headerStyle: { backgroundColor: "#00A9F4" },
+          headerStyle: {
+            backgroundColor: "#00A9F4",
+          },
           headerTintColor: "#fff",
+          headerTitleAlign: "center",
         }}
       />
 
@@ -111,10 +114,7 @@ export default function Activity() {
         />
 
         {selectedActivities.length > 0 && (
-          <BottomButton
-            title="Zapisz aktywność"
-            onPress={handleSaveActivity}
-          />
+          <BottomButton title="Zapisz aktywność" onPress={handleSaveActivity} />
         )}
       </View>
     </>

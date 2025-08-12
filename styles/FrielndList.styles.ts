@@ -45,4 +45,50 @@ export const styles = StyleSheet.create({
     fontWeight: "600",
     color: "#E1F1FF",
   },
+  chatButton: {
+  flexDirection: "row",
+  alignItems: "center",
+  gap: 6,
+  backgroundColor: "#2563eb",
+  paddingVertical: 6,
+  paddingHorizontal: 10,
+  borderRadius: 8,
+  alignSelf: "flex-start",
+  marginTop: 6,
+},
+chatButtonText: {
+  color: "#fff",
+  fontWeight: "600",
+},
+
+chatModalHeader: {
+  paddingTop: 52,
+  paddingBottom: 12,
+  paddingHorizontal: 16,
+  backgroundColor: "#0b1220",
+  flexDirection: "row",
+  alignItems: "center",
+  justifyContent: "space-between",
+},
+chatModalTitle: {
+  color: "#fff",
+  fontWeight: "700",
+  fontSize: 16,
+},
+chatModalClose: {
+  backgroundColor: "rgba(255,255,255,0.12)",
+  borderRadius: 8,
+  paddingVertical: 6,
+  paddingHorizontal: 10,
+},
+chatModalCloseText: {
+  color: "#fff",
+  fontWeight: "600",
+},
+  chatContainer: {
+    flex: 1,
+    justifyContent: "flex-end",
+    marginTop: 12,
+    paddingBottom: 8,
+  },
 });

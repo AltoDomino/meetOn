@@ -1,9 +1,9 @@
 // styles/MyEvents.styles.ts
-import { StyleSheet, Platform } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
 const colors = {
-  bg: "#F9F9F9",
-  card: "#FFFFFF",
+  bg: "#c5def3ff",
+  card: "#ffffff",
   primary: "#1E3A8A",
   accent: "#007AFF",
   text: "#0B1220",
@@ -12,6 +12,10 @@ const colors = {
 };
 
 export const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#c5def3ff",
+  },
   center: {
     flex: 1,
     justifyContent: "center",
@@ -19,12 +23,28 @@ export const styles = StyleSheet.create({
     backgroundColor: colors.bg,
   },
 
-  card: {
+  // Użyj tego w FlatList: contentContainerStyle={styles.listContent}
+  listContent: {
+    paddingHorizontal: 12,
+    paddingBottom: 16,
     backgroundColor: colors.bg,
+  },
+
+  // Używane jako ListHeaderComponent i (jeśli chcesz) też jako contentContainerStyle
+  listHeader: {
+    paddingHorizontal: 12,
+    paddingTop: 12,
+    paddingBottom: 16,
+    backgroundColor: colors.bg,
+  },
+
+  card: {
+    backgroundColor: colors.card,
     borderRadius: 16,
     padding: 16,
     marginBottom: 14,
-    marginHorizontal: 12, // ⬅️ żeby nie dochodziło do krawędzi ekranu
+    // jeśli nie podmienisz contentContainerStyle, zostaw lekkie marginesy kart:
+    marginHorizontal: 12,
     borderWidth: 1,
     borderColor: colors.border,
     ...(Platform.OS === "ios"
@@ -85,6 +105,7 @@ export const styles = StyleSheet.create({
     fontSize: 14,
     color: colors.text,
     marginBottom: 8,
+    fontWeight: "600",
   },
 
   joinButton: {
@@ -98,12 +119,6 @@ export const styles = StyleSheet.create({
     color: "#fff",
     fontWeight: "700",
     fontSize: 14,
-  },
-
-  listHeader: {
-    paddingHorizontal: 12, // ⬅️ żeby przycisk SwitchButton też miał odstęp
-    marginBottom: 16,
-    backgroundColor: colors.bg,
   },
 
   emptyText: {

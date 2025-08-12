@@ -95,8 +95,12 @@ export default function MyEvents() {
         <View style={styles.eventInfo}>
           <Text style={styles.title}>{item.activity}</Text>
           <Text style={styles.locationText}>📍 {item.location}</Text>
-          <Text style={styles.dateText}>🕒 {new Date(item.startDate).toLocaleString()}</Text>
-          <Text style={styles.creatorText}>👤 Twórca: {item.creator.userName}</Text>
+          <Text style={styles.dateText}>
+            🕒 {new Date(item.startDate).toLocaleString()}
+          </Text>
+          <Text style={styles.creatorText}>
+            👤 Twórca: {item.creator.userName}
+          </Text>
         </View>
         <View style={styles.participantsBox}>
           <Text style={styles.participantIcon}>👥</Text>
@@ -123,7 +127,7 @@ export default function MyEvents() {
   }
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={styles.container}>
       <Stack.Screen
         options={{
           title: "MOJE WYDARZENIA",
@@ -136,6 +140,7 @@ export default function MyEvents() {
       />
 
       <FlatList
+        style={styles.container} 
         data={events}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}
@@ -148,9 +153,7 @@ export default function MyEvents() {
           </View>
         }
         ListEmptyComponent={
-          <Text style={styles.emptyText}>
-            Brak Twoich wydarzeń 😞
-          </Text>
+          <Text style={styles.emptyText}>Brak twoich wydarzeń 😞</Text>
         }
       />
     </View>
