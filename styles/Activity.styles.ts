@@ -1,53 +1,72 @@
-import { StyleSheet } from "react-native";
-const styles = StyleSheet.create({
+import { Dimensions, StyleSheet } from "react-native";
+
+const screenWidth = Dimensions.get("window").width;
+const tileSize = (screenWidth - 60) / 2;
+const radius = 16;
+
+export default StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "#c5def3ff",
-    padding: 16,
   },
+
   title: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: "bold",
-    marginBottom: 16,
+    marginVertical: 16,
+    textAlign: "center", // WYŚRODKOWANE
+    color: "#000",
   },
+
   tilesContainer: {
-    gap: 12,
-  },
-  tileWrapper: {
-    flex: 1,
-    margin: 6,
-    height: 120,
-  },
-  tile: {
-    flex: 1,
+    flexDirection: "row",
+    flexWrap: "wrap",
     justifyContent: "center",
-    alignItems: "center",
-    borderRadius: 12,
+  },
+
+  // wrapper z klipowaniem – równe zaokrąglenia wszędzie
+  tileWrapper: {
+    margin: 8,
+    borderRadius: radius,
     overflow: "hidden",
   },
+
+  // obszar kafelka
+  tile: {
+    width: tileSize,
+    height: tileSize,
+    justifyContent: "center",
+    alignItems: "center",
+    backgroundColor: "transparent", // brak szarego tła pod obrazem
+    borderRadius: radius,
+  },
+
+  // obraz w kafelku: powiększony, żeby ukryć białe krawędzie PNG
+  tileImage: {
+    borderRadius: radius,
+    resizeMode: "cover",
+    transform: [{ scale: 1.05 }],
+    backgroundColor: "transparent",
+  },
+
+  // przy wybraniu – lekkie „wypłowienie” tylko obrazu
+  tileImageDim: {
+    opacity: 0.55,
+  },
+
+  // tekst na środku obrazka
   tileText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 18,
     fontWeight: "bold",
-    textShadowColor: "rgba(0, 0, 0, 0.7)",
-    textShadowOffset: { width: 1, height: 1 },
-    textShadowRadius: 4,
+    textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.6)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 2,
   },
-tileTextSelected: {
-  textDecorationLine: "underline",
-  color: "#fff", 
-},
-saveButton: {
-  backgroundColor: "#007AFF", 
-  padding: 16,
-  borderRadius: 12,
-  marginTop: 20,
-  alignItems: "center",
-},
-  saveButtonText: {
-    color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
+
+  // opcjonalnie inny kolor tekstu dla wybranego (możesz zostawić jak jest)
+  tileTextSelected: {
+    // color: "#ffe600",
   },
 });
-export default styles

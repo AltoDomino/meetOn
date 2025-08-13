@@ -57,22 +57,22 @@ export default function YourActivities() {
   };
 
   const renderItem = ({ item }: { item: string }) => {
-    const imageSource = activityImages[item];
     return (
-      <TouchableOpacity onLongPress={() => handleRemoveActivity(item)}>
-        <View style={styles.tile}>
-          <ImageBackground
-            source={imageSource}
-            style={styles.imageBackground}
-            imageStyle={{ borderRadius: 12, opacity: 0.85 }}
-          >
-            <Text style={styles.tileText}>{item}</Text>
-          </ImageBackground>
-        </View>
+      <TouchableOpacity
+        onLongPress={() => handleRemoveActivity(item)}
+        style={styles.tileWrapper}
+        activeOpacity={0.9}
+      >
+        <ImageBackground
+          source={activityImages[item]}
+          style={styles.tile}
+          imageStyle={styles.tileImage}
+        >
+          <Text style={styles.tileText}>{item}</Text>
+        </ImageBackground>
       </TouchableOpacity>
     );
   };
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}></Text>

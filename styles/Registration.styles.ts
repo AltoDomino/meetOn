@@ -18,9 +18,10 @@ const styles = StyleSheet.create({
   },
 
   logo: {
-    width: 260,
-    height: 120,
+    width: 100, // zmniejszone
+    height: 50, // zmniejszone
     marginBottom: 20,
+    backgroundColor: "transparent"
   },
 
   formContainer: {

@@ -15,9 +15,7 @@ import styles from "../../styles/CreateEvent.styles";
 import { activityImages } from "../Activity/Activities";
 
 export default function CreateEvent() {
-  const [choosenActivity, setChoosenSelectedActivity] = useState<string | null>(
-    null
-  );
+  const [choosenActivity, setChoosenSelectedActivity] = useState<string | null>(null);
   const { userName } = useAuth();
   const { activities, setActivities } = useActivity();
 
@@ -48,12 +46,15 @@ export default function CreateEvent() {
       <TouchableOpacity
         style={styles.activityTileWrapper}
         onPress={() => setChoosenSelectedActivity(item)}
-        activeOpacity={0.8}
+        activeOpacity={0.9}
       >
         <ImageBackground
           source={activityImages[item]}
-          style={[styles.activityTile, isSelected && { opacity: 0.6 }]}
-          imageStyle={{ borderRadius: 12 }}
+          style={styles.activityTile}
+          imageStyle={[
+            styles.activityTileImage,
+            isSelected && styles.activityTileImageDim, // przyciemnienie tylko obrazu
+          ]}
         >
           <Text style={styles.activityTileText}>{item}</Text>
         </ImageBackground>
@@ -64,13 +65,7 @@ export default function CreateEvent() {
   const handleCreateEvent = () => {
     if (!choosenActivity) return;
 
-    const mosirActivities = [
-      "Tenis ziemny",
-      "Piłka nożna",
-      "Koszykówka",
-      "Tenis stołowy",
-    ];
-
+    const mosirActivities = ["Tenis ziemny", "Piłka nożna", "Koszykówka", "Tenis stołowy"];
     const isMosir = mosirActivities.includes(choosenActivity);
     const isOther =
       choosenActivity === "STWÓRZ WŁASNE" ||
@@ -86,15 +81,12 @@ export default function CreateEvent() {
         customOnly: isOther ? "true" : "false",
       },
     });
-
-    console.log("wybrana aktywność (przekazywana):", finalActivity);
   };
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>
-        WYBIERZ AKTYWNOŚĆ ABY STWORZYĆ WYDARZENIE 
-      </Text>
+      <Text style={styles.sectionTitle}>WYBIERZ AKTYWNOŚĆ ABY STWORZYĆ WYDARZENIE</Text>
+
       <FlatList
         data={getFormattedActivities()}
         renderItem={renderActivityTile}
@@ -104,10 +96,7 @@ export default function CreateEvent() {
       />
 
       {choosenActivity && (
-        <BottomButton
-          title="Stwórz swoje wydarzenie"
-          onPress={handleCreateEvent}
-        />
+        <BottomButton title="Stwórz swoje wydarzenie" onPress={handleCreateEvent} />
       )}
     </View>
   );

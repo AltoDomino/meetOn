@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+
 import { useActivity } from "../../context/ActivityContext";
 import { useAuth } from "../../context/AuthContext";
 import styles from "../../styles/Activity.styles";
@@ -66,15 +67,20 @@ export default function Activity() {
 
   const renderItem = ({ item }: { item: string }) => {
     const isSelected = selectedActivities.includes(item);
+
     return (
       <TouchableOpacity
         onPress={() => toggleActivity(item)}
         style={styles.tileWrapper}
+        activeOpacity={0.9}
       >
         <ImageBackground
           source={activityImages[item]}
           style={styles.tile}
-          imageStyle={{ borderRadius: 12, opacity: isSelected ? 0.8 : 1 }}
+          imageStyle={[
+            styles.tileImage, // wspólne style obrazu
+            isSelected && styles.tileImageDim, // lekkie „wypłowienie” gdy wybrany
+          ]}
         >
           <Text
             style={[styles.tileText, isSelected && styles.tileTextSelected]}
@@ -100,7 +106,7 @@ export default function Activity() {
       />
 
       <View style={styles.container}>
-        <Text style={styles.title}>WYBIERZ FROMĘ AKTYWNOŚCI</Text>
+        <Text style={styles.title}>WYBIERZ FORMĘ AKTYWNOŚCI</Text>
 
         <FlatList
           data={Object.keys(activityImages)}

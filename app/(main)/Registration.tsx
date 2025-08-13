@@ -4,13 +4,15 @@ import { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   Alert,
-  ImageBackground,
+  Image,
   Keyboard,
   Text,
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  ActivityIndicator,
+  Modal,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import styles from "../../styles/Registration.styles";
@@ -18,6 +20,7 @@ import styles from "../../styles/Registration.styles";
 interface FormData {
   email: string;
   password: string;
+  confirmPassword: string;
   userName: string;
   gender: string;
   dateOfBirth: Date;
@@ -29,11 +32,13 @@ const Registration = () => {
   const {
     control,
     handleSubmit,
+    watch,
     formState: { errors },
   } = useForm<FormData>();
 
   const [open, setOpen] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
+  const [loading, setLoading] = useState(false); // <-- stan ładowania
 
   const [items, setItems] = useState([
     { label: "Wybierz płeć", value: "" },
@@ -42,6 +47,10 @@ const Registration = () => {
   ]);
 
   const onSubmit = async (dataReg: FormData) => {
+    // zapobiegaj wielokrotnym kliknięciom
+    if (loading) return;
+
+    // policz wiek
     const birthDate = new Date(dataReg.dateOfBirth);
     const today = new Date();
     let age = today.getFullYear() - birthDate.getFullYear();
@@ -50,12 +59,11 @@ const Registration = () => {
       age--;
     }
 
-    const finalData = {
-      ...dataReg,
-      age,
-    };
+    const finalData = { ...dataReg, age };
 
     try {
+      setLoading(true); // <-- start animacji
+
       const res = await fetch(
         "https://meeton-backend-ffmo.onrender.com/api/registration",
         {
@@ -64,30 +72,35 @@ const Registration = () => {
           body: JSON.stringify(finalData),
         }
       );
+
       if (res.status === 201) {
-        Alert.alert("Zostałeś zarejestrowany, email weryfikacyjny został wysłany!");
+        Alert.alert(
+          "Sukces",
+          "Zostałeś zarejestrowany, email weryfikacyjny został wysłany!"
+        );
       } else if (res.status === 403) {
         Alert.alert("Błąd", "Niepoprawne dane");
+      } else {
+        const text = await res.text().catch(() => "");
+        Alert.alert("Błąd", text || "Coś poszło nie tak");
       }
     } catch (error) {
       Alert.alert("Błąd", "Nie udało się połączyć z serwerem");
+    } finally {
+      setLoading(false); // <-- koniec animacji
     }
   };
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <View style={{ flex: 1, backgroundColor: "#0d1a4d" }}>
-        <ImageBackground
-          source={require("@/assets/images/ikonameeton.png")}
-          style={{
-            width: "100%",
-            height: 200,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: "#0d1a4d",
-          }}
-          resizeMode="contain"
-        />
+        <View style={{ alignItems: "center", marginTop: 40 }}>
+          <Image
+            source={require("@/assets/images/ikonameeton.png")}
+            style={styles.logo}
+            resizeMode="contain"
+          />
+        </View>
 
         <View style={[styles.centeredContainer, { paddingBottom: 24 }]}>
           <View style={styles.formContainer}>
@@ -97,10 +110,7 @@ const Registration = () => {
               name="userName"
               rules={{
                 required: "Nazwa użytkownika jest wymagana",
-                maxLength: {
-                  value: 8,
-                  message: "Login może mieć maksymalnie 8 znaków",
-                },
+                maxLength: { value: 8, message: "Login może mieć maksymalnie 8 znaków" },
               }}
               render={({ field: { onChange, value } }) => (
                 <TextInput
@@ -110,12 +120,11 @@ const Registration = () => {
                   value={value}
                   onChangeText={onChange}
                   autoCapitalize="none"
+                  editable={!loading}
                 />
               )}
             />
-            {errors.userName && (
-              <Text style={{ color: "red" }}>{errors.userName.message}</Text>
-            )}
+            {errors.userName && <Text style={{ color: "red" }}>{errors.userName.message}</Text>}
 
             <Text style={styles.label}>Email:</Text>
             <Controller
@@ -123,10 +132,7 @@ const Registration = () => {
               name="email"
               rules={{
                 required: "Email jest wymagany",
-                pattern: {
-                  value: /^[^@ ]+@[^@ ]+\.[^@ .]{2,}$/,
-                  message: "Nieprawidłowy adres email",
-                },
+                pattern: { value: /^[^@ ]+@[^@ ]+\.[^@ .]{2,}$/, message: "Nieprawidłowy adres email" },
               }}
               render={({ field: { onChange, value } }) => (
                 <TextInput
@@ -137,12 +143,11 @@ const Registration = () => {
                   autoCapitalize="none"
                   onChangeText={onChange}
                   value={value}
+                  editable={!loading}
                 />
               )}
             />
-            {errors.email && (
-              <Text style={{ color: "red" }}>{errors.email.message}</Text>
-            )}
+            {errors.email && <Text style={{ color: "red" }}>{errors.email.message}</Text>}
 
             <Text style={styles.label}>Hasło:</Text>
             <Controller
@@ -150,10 +155,7 @@ const Registration = () => {
               name="password"
               rules={{
                 required: "Hasło jest wymagane",
-                pattern: {
-                  value: /^(?=.*[A-Z])(?=.*\d).+$/,
-                  message: "Hasło musi zawierać dużą literę i cyfrę",
-                },
+                pattern: { value: /^(?=.*[A-Z])(?=.*\d).+$/, message: "Hasło musi zawierać dużą literę i cyfrę" },
               }}
               render={({ field: { onChange, value } }) => (
                 <TextInput
@@ -163,21 +165,41 @@ const Registration = () => {
                   secureTextEntry
                   onChangeText={onChange}
                   value={value}
+                  editable={!loading}
                 />
               )}
             />
-            {errors.password && (
-              <Text style={{ color: "red" }}>{errors.password.message}</Text>
+            {errors.password && <Text style={{ color: "red" }}>{errors.password.message}</Text>}
+
+            <Text style={styles.label}>Powtórz hasło:</Text>
+            <Controller
+              control={control}
+              name="confirmPassword"
+              rules={{
+                required: "Potwierdzenie hasła jest wymagane",
+                validate: (value) => value === watch("password") || "Hasła muszą być identyczne",
+              }}
+              render={({ field: { onChange, value } }) => (
+                <TextInput
+                  style={[styles.input, { color: "black" }]}
+                  placeholder="Powtórz hasło"
+                  placeholderTextColor="gray"
+                  secureTextEntry
+                  onChangeText={onChange}
+                  value={value}
+                  editable={!loading}
+                />
+              )}
+            />
+            {errors.confirmPassword && (
+              <Text style={{ color: "red" }}>{errors.confirmPassword.message}</Text>
             )}
 
             <Text style={styles.label}>Płeć:</Text>
             <Controller
               control={control}
               name="gender"
-              rules={{
-                validate: (value) =>
-                  value !== "" || "Wybór płci jest wymagany",
-              }}
+              rules={{ validate: (value) => value !== "" || "Wybór płci jest wymagany" }}
               render={({ field: { onChange, value } }) => (
                 <DropDownPicker
                   open={open}
@@ -190,16 +212,15 @@ const Registration = () => {
                   items={items}
                   setItems={setItems}
                   placeholder="Wybierz płeć"
-                  style={{ marginBottom: open ? 150 : 16 }}
+                  style={{ marginBottom: open ? 150 : 16, opacity: loading ? 0.6 : 1 }}
+                  disabled={loading}
                   zIndex={1000}
                   zIndexInverse={1000}
                   listMode="SCROLLVIEW"
                 />
               )}
             />
-            {errors.gender && (
-              <Text style={{ color: "red" }}>{errors.gender.message}</Text>
-            )}
+            {errors.gender && <Text style={{ color: "red" }}>{errors.gender.message}</Text>}
 
             <Text style={styles.label}>Data urodzenia:</Text>
             <Controller
@@ -210,13 +231,12 @@ const Registration = () => {
               render={({ field: { onChange, value } }) => (
                 <>
                   <TouchableOpacity
-                    style={[styles.input, { justifyContent: "center" }]}
-                    onPress={() => setShowDatePicker(true)}
+                    style={[styles.input, { justifyContent: "center", opacity: loading ? 0.6 : 1 }]}
+                    onPress={() => !loading && setShowDatePicker(true)}
+                    disabled={loading}
                   >
                     <Text style={{ color: "black" }}>
-                      {value
-                        ? value.toLocaleDateString()
-                        : "Wybierz datę urodzenia"}
+                      {value ? value.toLocaleDateString() : "Wybierz datę urodzenia"}
                     </Text>
                   </TouchableOpacity>
                   {showDatePicker && (
@@ -226,9 +246,7 @@ const Registration = () => {
                       display="default"
                       onChange={(event, selectedDate) => {
                         setShowDatePicker(false);
-                        if (selectedDate) {
-                          onChange(selectedDate);
-                        }
+                        if (selectedDate) onChange(selectedDate);
                       }}
                       maximumDate={new Date()}
                     />
@@ -238,19 +256,57 @@ const Registration = () => {
             />
 
             <TouchableOpacity
-              style={styles.button}
+              style={[styles.button, loading && { opacity: 0.7 }]}
               onPress={handleSubmit(onSubmit)}
+              disabled={loading}
+              activeOpacity={0.8}
             >
-              <Text style={styles.buttonText}>ZAREJESTRUJ</Text>
+              {loading ? (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <ActivityIndicator size="small" color="#fff" />
+                  <Text style={styles.buttonText}>Rejestruję…</Text>
+                </View>
+              ) : (
+                <Text style={styles.buttonText}>ZAREJESTRUJ</Text>
+              )}
             </TouchableOpacity>
 
             <View style={styles.link}>
-              <TouchableOpacity onPress={handleBack}>
-                <Text style={styles.linkText}>← Wróć do logowania</Text>
+              <TouchableOpacity onPress={handleBack} disabled={loading}>
+                <Text style={[styles.linkText, loading && { opacity: 0.6 }]}>
+                  ← Wróć do logowania
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
+
+        <Modal transparent visible={loading} animationType="fade" statusBarTranslucent>
+          <View
+            style={{
+              flex: 1,
+              backgroundColor: "rgba(0,0,0,0.35)",
+              justifyContent: "center",
+              alignItems: "center",
+            }}
+          >
+            <View
+              style={{
+                backgroundColor: "#0d1a4d",
+                paddingHorizontal: 24,
+                paddingVertical: 18,
+                borderRadius: 14,
+                alignItems: "center",
+                minWidth: 200,
+              }}
+            >
+              <ActivityIndicator size="large" color="#00A9F4" />
+              <Text style={{ color: "#EAF6FF", marginTop: 12, fontWeight: "600" }}>
+                Trwa rejestracja…
+              </Text>
+            </View>
+          </View>
+        </Modal>
       </View>
     </TouchableWithoutFeedback>
   );

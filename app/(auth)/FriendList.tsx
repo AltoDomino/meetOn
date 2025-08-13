@@ -144,7 +144,7 @@ export default function FriendsList() {
       <FriendRequests onAccepted={refreshWithDelay} />
       <SendFriendRequest onRequestSent={refreshWithDelay} />
 
-      <Text style={styles.title}>Twoi znajomi</Text>
+      <Text style={styles.title}>TWOI ZNAJOMI</Text>
       <FlatList
         data={friends}
         keyExtractor={(item) => item.id.toString()}

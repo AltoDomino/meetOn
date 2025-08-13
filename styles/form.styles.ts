@@ -10,8 +10,8 @@ export const styles = StyleSheet.create({
   input: {
     borderWidth: 5,
     borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
+    padding: 5,
+    marginBottom: 20,
     fontSize: 16,
     borderColor: "#9ddff3ff",
     backgroundColor: "#ffffffff",

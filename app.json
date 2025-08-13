@@ -22,7 +22,17 @@
       },
       "edgeToEdgeEnabled": true,
       "googleServicesFile": "./android/app/google-services.json",
-      "permissions": ["NOTIFICATIONS", "ACCESS_FINE_LOCATION"]
+      "permissions": ["NOTIFICATIONS", "ACCESS_FINE_LOCATION"],
+      "softwareKeyboardLayoutMode": "pan",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "data": [
+            { "scheme": "meeton" }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "ios": {
       "supportsTablet": true,
@@ -45,7 +55,7 @@
       [
         "expo-notifications",
         {
-          "icon": "./assets/images/ikonameeton.png",
+          "icon": "./assets/images/powiadomienie-meeton.png",
           "color": "#0d1a4d"
         }
       ],

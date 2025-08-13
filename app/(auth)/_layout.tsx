@@ -39,7 +39,7 @@ export default function DrawerLayout() {
         name="CreateEvent"
         options={{
           title: "🗓️ STWÓRZ WYDARZENIE",
-          drawerLabel: "🗓️ STWÓZ WYDARZENIE",
+          drawerLabel: "🗓️ STWÓRZ WYDARZENIE",
         }}
       />
       <Drawer.Screen
