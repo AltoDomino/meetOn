@@ -4,12 +4,12 @@
     "slug": "meetOn",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/startMeetOn.png",
+    "icon": "./assets/images/ikonkameeton.png",
     "scheme": "meeton",
     "userInterfaceStyle": "automatic",
     "splash": {
       "image": "./assets/images/startMeetOn.png",
-      "resizeMode": "contain",
+      "resizeMode": "cover",
       "backgroundColor": "#01032f"
     },
     "android": {
@@ -17,7 +17,7 @@
       "versionCode": 6,
       "useNextNotificationsApi": true,
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/startMeetOn.png",
+        "foregroundImage": "./assets/images/ikonkameeton.png",
         "backgroundColor": "#01032f"
       },
       "edgeToEdgeEnabled": true,

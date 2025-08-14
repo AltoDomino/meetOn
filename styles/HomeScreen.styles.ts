@@ -1,61 +1,58 @@
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  container: {
+  // pełnoekranowe tło z logo
+  backgroundImage: {
     flex: 1,
-    backgroundColor: "#c5def3ff",
-  },
-
-  logoContainer: {
     width: "100%",
-    paddingTop: 60,
-    paddingBottom: 10,
-    alignItems: "center",
+    height: "100%",
+    backgroundColor: "#01032f",
+  },
+  // przesunięcie obrazu tła w górę
+  backgroundImageInner: {
+    top: -90,
+    transform: [{ scale: 1 }]
   },
 
-  logo: {
-    width: "70%",
-    height: 150,
-    resizeMode: "contain",
-  },
-
-  contentContainer: {
+  // kontener na treść
+  overlay: {
     flex: 1,
-    justifyContent: "center", 
     alignItems: "center",
-    paddingHorizontal: 24,
-    bottom:80
+    paddingHorizontal: 20,
+    backgroundColor: "transparent",
   },
 
   greeting: {
-    fontSize: 70,
+    fontSize: 80,
     color: "#B0DFFF",
-    marginBottom: 4,
+    marginTop: -40, // przesunięcie w górę
   },
-
   greetingUser: {
-    fontSize: 40,
+    fontSize: 60,
     color: "#B0DFFF",
-    marginBottom: 20,
-      fontWeight: "bold", 
+    fontWeight: "bold",
+    marginTop: -5, // lekkie przesunięcie w górę
   },
-
   header: {
-    fontSize: 28,
+    fontSize: 35,
     fontWeight: "700",
     color: "#00E6FB",
     marginBottom: 16,
     textAlign: "center",
+    textShadowColor: "rgba(0,0,0,0.25)",
+    textShadowOffset: { width: 0, height: 2 },
+    textShadowRadius: 6,
   },
-
   description: {
     fontSize: 16,
     color: "#E1F1FF",
     textAlign: "center",
-    marginBottom: 30,
+    marginBottom: 28,
     lineHeight: 24,
+    textShadowColor: "rgba(0,0,0,0.2)",
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
-
   button: {
     backgroundColor: "#00C1F3",
     paddingVertical: 14,
@@ -67,20 +64,19 @@ export const styles = StyleSheet.create({
     shadowRadius: 10,
     elevation: 5,
   },
-
   buttonText: {
     color: "#fff",
     fontWeight: "700",
     fontSize: 16,
   },
 
+  // modal
   modalOverlay: {
     flex: 1,
     backgroundColor: "rgba(0,0,0,0.6)",
     justifyContent: "center",
     alignItems: "center",
   },
-
   modalContent: {
     margin: 20,
     backgroundColor: "#fff",
@@ -89,21 +85,18 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     elevation: 10,
   },
-
   modalText: {
     fontSize: 16,
     textAlign: "center",
     marginBottom: 20,
     color: "#333",
   },
-
   modalButton: {
     backgroundColor: "#0d1a4d",
     paddingVertical: 10,
     paddingHorizontal: 20,
     borderRadius: 8,
   },
-
   modalButtonText: {
     color: "#fff",
     fontWeight: "bold",

@@ -3,18 +3,16 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "scripts": {
-    "start": "expo start",
+    "start": "expo start --dev-client",
     "reset-project": "node ./scripts/reset-project.js",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "expo lint",
     "build:apk": "eas build -p android --profile preview",
-
     "eas-build-pre-install": "node -e \"require('fs').mkdirSync('android/app',{recursive:true}); require('fs').writeFileSync('android/app/google-services.json', Buffer.from(process.env.GOOGLE_SERVICES_JSON || '', 'base64'))\"",
     "eas-build-post-install": "node -e \"const fs=require('fs');const p='android/app/google-services.json'; console.log('google-services.json exists:', fs.existsSync(p)); if(fs.existsSync(p)){console.log('google-services.json size:', fs.statSync(p).size,'bytes')}\""
   },
-
   "dependencies": {
     "@expo/vector-icons": "^14.1.0",
     "@react-native-async-storage/async-storage": "2.1.2",

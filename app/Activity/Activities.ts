@@ -24,7 +24,7 @@ export const activityImages: Record<string, any> = {
 "POKER": require("../../assets/images/poker.png"),
 "KONCERT": require("../../assets/images/wyjście-na-koncert.png"),
 
-"Stwórz własne": require("../../assets/images/wlasne.png"),
+"STWÓRZ WŁASNE": require("../../assets/images/wlasne.png"),
 
 };
 export const getDefaultLocation = (activity: string): string | null => {
@@ -32,7 +32,7 @@ export const getDefaultLocation = (activity: string): string | null => {
     "Tenis ziemny",
     "Piłka nożna",
     "Koszykówka",
-    "Tenis stołowy"
+    "Tenis stołowy",
   ];
 
   return mosirActivities.includes(activity) ? "mosir" : null;

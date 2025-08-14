@@ -96,7 +96,7 @@ export default function CreateEvent() {
       />
 
       {choosenActivity && (
-        <BottomButton title="Stwórz swoje wydarzenie" onPress={handleCreateEvent} />
+        <BottomButton title="STWÓRZ WYDARZENIE" onPress={handleCreateEvent} />
       )}
     </View>
   );

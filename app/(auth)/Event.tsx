@@ -17,7 +17,7 @@ import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/Event.styles";
 
 const BACKEND_URL = "https://meeton-backend-ffmo.onrender.com";
-
+const UNLIMITED_RADIUS = 9999;
 export type Event = {
   spots: number;
   id: number;
@@ -36,7 +36,7 @@ type DistOption = { label: string; min: number; max: number };
 const DISTANCES: DistOption[] = [
   { label: "0–30 km", min: 0, max: 30 },
   { label: "30–100 km", min: 30, max: 100 },
-  { label: "100+ km", min: 100, max: 9999 },
+  { label: "100+ km", min: 100, max: UNLIMITED_RADIUS },
 ];
 
 export default function Events() {
@@ -66,10 +66,10 @@ export default function Events() {
     return opt?.label ?? "";
   }, [distanceFilter]);
 
-  // mapowanie zakresu na promień (km) do zapisania
+
   const radiusKm = useMemo(() => {
-    if (distanceFilter.max === 9999) return 9999;
-    return distanceFilter.max; // 30 lub 100
+    if (distanceFilter.max === UNLIMITED_RADIUS) return UNLIMITED_RADIUS;
+    return distanceFilter.max; 
   }, [distanceFilter]);
 
   useEffect(() => {
