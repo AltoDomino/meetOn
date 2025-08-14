@@ -1,0 +1,4 @@
+﻿<resources>
+  <!-- wybierz dowolny kolor tła ikony -->
+  <color name="iconBackground">#1E293B</color>
+</resources>

@@ -5,13 +5,19 @@
       "developmentClient": false,
       "distribution": "internal",
       "android": { "buildType": "apk" },
-      "env": { "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON" }
+      "env": {
+        "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON",
+        "NODE_ENV": "production"
+      }
     },
     "production": {
       "developmentClient": false,
-      "distribution": "store",
+      "distribution": "internal",
       "android": { "buildType": "apk" },
-      "env": { "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON" }
+      "env": {
+        "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON",
+        "NODE_ENV": "production"
+      }
     }
   }
 }
