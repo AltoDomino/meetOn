@@ -9,7 +9,7 @@ export const styles = StyleSheet.create({
     flex: 1,
     paddingHorizontal: 10,
     paddingBottom: 10,
-    backgroundColor: "#f9f9f9", // jasne tło całego czatu
+    backgroundColor: "#f9f9f9",
   },
   listContent: {
     paddingBottom: 70,
@@ -41,18 +41,21 @@ export const styles = StyleSheet.create({
     marginTop: 4,
     alignSelf: "flex-end",
   },
+
+  /* ⬇️ TU ZMIANA: przesunięcie inputu i przycisku 10 px niżej na iOS */
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 8,
+    marginTop: 5,
     paddingHorizontal: 6,
-    paddingBottom: Platform.OS === "android" ? 6 : 0, // ważne!
+    paddingBottom: Platform.OS === "android" ? 6 : 0,
     backgroundColor: "#fff",
+    transform: [{ translateY: Platform.OS === "ios" ? 10 : 0 }],
   },
 
   input: {
     flex: 1,
-    height: 40,
+    height: 30,
     borderColor: "#9ddff3ff",
     backgroundColor: "#ffffffff",
     color: "#000000ff",

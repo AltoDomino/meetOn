@@ -1,5 +1,5 @@
 {
-  "cli": { "version": ">=3.0.0" },
+  "cli": { "version": ">=3.0.0", "appVersionSource": "remote" },
   "build": {
     "preview": {
       "developmentClient": false,
@@ -7,7 +7,9 @@
       "android": { "buildType": "apk" },
       "env": {
         "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON",
-        "NODE_ENV": "production"
+        "NODE_ENV": "production",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "xxx.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "yyy.apps.googleusercontent.com"
       }
     },
     "production": {
@@ -16,7 +18,20 @@
       "android": { "buildType": "apk" },
       "env": {
         "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON",
-        "NODE_ENV": "production"
+        "NODE_ENV": "production",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "xxx.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "yyy.apps.googleusercontent.com"
+      }
+    },
+    "dev-client": {
+      "developmentClient": true,
+      "distribution": "internal",
+      "android": { "buildType": "apk" },
+      "env": {
+        "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON",
+        "NODE_ENV": "production",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "xxx.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "yyy.apps.googleusercontent.com"
       }
     }
   }
