@@ -1,4 +1,4 @@
-import BottomButton from "@/components/Bottombutton";
+import BottomButton from "../../components/BottomButton";
 import { loadActivities } from "@/utilis/activityStoarage";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -15,7 +15,9 @@ import styles from "../../styles/CreateEvent.styles";
 import { activityImages } from "../Activity/Activities";
 
 export default function CreateEvent() {
-  const [choosenActivity, setChoosenSelectedActivity] = useState<string | null>(null);
+  const [choosenActivity, setChoosenSelectedActivity] = useState<string | null>(
+    null
+  );
   const { userName } = useAuth();
   const { activities, setActivities } = useActivity();
 
@@ -65,7 +67,12 @@ export default function CreateEvent() {
   const handleCreateEvent = () => {
     if (!choosenActivity) return;
 
-    const mosirActivities = ["Tenis ziemny", "Piłka nożna", "Koszykówka", "Tenis stołowy"];
+    const mosirActivities = [
+      "Tenis ziemny",
+      "Piłka nożna",
+      "Koszykówka",
+      "Tenis stołowy",
+    ];
     const isMosir = mosirActivities.includes(choosenActivity);
     const isOther =
       choosenActivity === "STWÓRZ WŁASNE" ||
@@ -85,7 +92,9 @@ export default function CreateEvent() {
 
   return (
     <View style={styles.container}>
-      <Text style={styles.sectionTitle}>WYBIERZ AKTYWNOŚĆ ABY STWORZYĆ WYDARZENIE</Text>
+      <Text style={styles.sectionTitle}>
+        WYBIERZ AKTYWNOŚĆ ABY STWORZYĆ WYDARZENIE
+      </Text>
 
       <FlatList
         data={getFormattedActivities()}

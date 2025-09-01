@@ -1,4 +1,4 @@
-import BottomButton from "@/components/Bottombutton";
+import BottomButton from "../../components/BottomButton";
 import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { router, useLocalSearchParams } from "expo-router";
@@ -7,7 +7,7 @@ import React, { useEffect, useState } from "react";
 import { Alert, Switch, Text, TouchableOpacity, View } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/detailsForom.styles";
-import FormDataSend from "./SendDataform";
+import { FormDataSend } from "./SendDataform";
 
 const DetailsForm = () => {
   const [GenderSplit, setGenderSplit] = useState(false);

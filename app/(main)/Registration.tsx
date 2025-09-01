@@ -1,6 +1,6 @@
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   Alert,
@@ -38,7 +38,9 @@ const Registration = () => {
 
   const [open, setOpen] = useState(false);
   const [showDatePicker, setShowDatePicker] = useState(false);
-  const [loading, setLoading] = useState(false); // <-- stan ładowania
+  const [loading, setLoading] = useState(false);
+
+  const emailRef = useRef<TextInput>(null);
 
   const [items, setItems] = useState([
     { label: "Wybierz płeć", value: "" },
@@ -47,7 +49,6 @@ const Registration = () => {
   ]);
 
   const onSubmit = async (dataReg: FormData) => {
-    // zapobiegaj wielokrotnym kliknięciom
     if (loading) return;
 
     // policz wiek
@@ -59,35 +60,53 @@ const Registration = () => {
       age--;
     }
 
-    const finalData = { ...dataReg, age };
+    // lekkie czyszczenie danych po stronie klienta (serwer i tak normalizuje)
+    const finalData = {
+      ...dataReg,
+      userName: dataReg.userName.trim(),
+      email: dataReg.email.trim().toLowerCase(),
+      age,
+    };
 
     try {
-      setLoading(true); // <-- start animacji
+      setLoading(true);
 
-      const res = await fetch(
-        "https://meeton-backend-ffmo.onrender.com/api/registration",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(finalData),
-        }
-      );
+      const res = await fetch("https://meeton-backend-ffmo.onrender.com/api/registration", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+        },
+        body: JSON.stringify(finalData),
+      });
 
-      if (res.status === 201) {
-        Alert.alert(
-          "Sukces",
-          "Zostałeś zarejestrowany, email weryfikacyjny został wysłany!"
-        );
-      } else if (res.status === 403) {
-        Alert.alert("Błąd", "Niepoprawne dane");
+      // spróbuj JSON -> fallback na tekst
+      let payload: any = null;
+      const ct = res.headers.get("content-type") || "";
+      if (ct.includes("application/json")) {
+        payload = await res.json().catch(() => null);
       } else {
         const text = await res.text().catch(() => "");
-        Alert.alert("Błąd", text || "Coś poszło nie tak");
+        payload = text ? { message: text } : null;
       }
-    } catch (error) {
+      const msg = payload?.message || "";
+
+      if (res.status === 201) {
+        Alert.alert("Sukces", msg || "Zostałeś zarejestrowany, email weryfikacyjny został wysłany!");
+        // (opcjonalnie) automatyczny powrót do logowania:
+        // router.replace("/(main)/Login");
+      } else if (res.status === 409) {
+        Alert.alert("Email już istnieje", msg || "Ten adres e-mail jest już zarejestrowany.");
+        emailRef.current?.focus();
+      } else if (res.status === 400) {
+        Alert.alert("Błąd danych", msg || "Sprawdź wprowadzone dane.");
+      } else {
+        Alert.alert("Błąd", msg || "Coś poszło nie tak");
+      }
+    } catch (_error) {
       Alert.alert("Błąd", "Nie udało się połączyć z serwerem");
     } finally {
-      setLoading(false); // <-- koniec animacji
+      setLoading(false);
     }
   };
 
@@ -132,10 +151,14 @@ const Registration = () => {
               name="email"
               rules={{
                 required: "Email jest wymagany",
-                pattern: { value: /^[^@ ]+@[^@ ]+\.[^@ .]{2,}$/, message: "Nieprawidłowy adres email" },
+                pattern: {
+                  value: /^[^@ ]+@[^@ ]+\.[^@ .]{2,}$/,
+                  message: "Nieprawidłowy adres email",
+                },
               }}
               render={({ field: { onChange, value } }) => (
                 <TextInput
+                  ref={emailRef}
                   style={[styles.input, { color: "black" }]}
                   placeholder="Email"
                   placeholderTextColor="gray"
@@ -155,7 +178,11 @@ const Registration = () => {
               name="password"
               rules={{
                 required: "Hasło jest wymagane",
-                pattern: { value: /^(?=.*[A-Z])(?=.*\d).+$/, message: "Hasło musi zawierać dużą literę i cyfrę" },
+                // zgodnie z backendem: min. 8 znaków + 1 duża litera + 1 cyfra
+                pattern: {
+                  value: /^(?=.*[A-Z])(?=.*\d).{8,}$/,
+                  message: "Hasło musi mieć min. 8 znaków, 1 dużą literę i 1 cyfrę",
+                },
               }}
               render={({ field: { onChange, value } }) => (
                 <TextInput

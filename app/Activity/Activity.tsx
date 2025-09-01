@@ -1,4 +1,4 @@
-import BottomButton from "@/components/Bottombutton";
+import BottomButton from "../../components/BottomButton";
 import { loadActivities, saveActivities } from "@/utilis/activityStoarage";
 import { router, Stack } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -15,7 +15,7 @@ import { useActivity } from "../../context/ActivityContext";
 import { useAuth } from "../../context/AuthContext";
 import styles from "../../styles/Activity.styles";
 import { activityImages } from "./Activities";
-import ActivityDataSend from "./SendActivity";
+import ActivityDataSend from "@/utilis/SendActivity";
 
 export default function Activity() {
   const { setActivities } = useActivity();

@@ -1,4 +1,4 @@
-import BottomButton from "@/components/Bottombutton";
+import BottomButton from "../../components/BottomButton";
 import { loadActivities, saveActivities } from "@/utilis/activityStoarage";
 import { router } from "expo-router";
 import React, { useEffect } from "react";

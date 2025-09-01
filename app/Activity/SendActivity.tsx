@@ -3,7 +3,8 @@ type Props = {
   activities: string[];
 };
 
-const ActivityDataSend = async ({ userId, activities }: Props) => {
+// utils/api.ts
+export const ActivityDataSend = async ({ userId, activities }: Props) => {
   const response = await fetch(
     `https://meeton-backend-ffmo.onrender.com/api/interests/${userId}`,
     {
@@ -20,6 +21,4 @@ const ActivityDataSend = async ({ userId, activities }: Props) => {
   }
 
   return await response.json();
-};
-
-export default ActivityDataSend;
+}

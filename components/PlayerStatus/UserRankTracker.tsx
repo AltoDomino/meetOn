@@ -44,10 +44,10 @@ const RANK_IMAGES = {
 };
 
 const RANKS: RankDefinition[] = [
-  { id: 0, title: "Nowy na mieście", min: 0, max: 20, description: "Pierwsze kroki w społeczności.", icon: { type: "image", source: RANK_IMAGES.nowy } },
-  { id: 1, title: "Odkrywca dzielnic", min: 0, max: 20, requires: (ctx) => (ctx.uniqueLocations ?? 0) >= LOCATION_THRESHOLD_FOR_EXPLORER && ctx.completedEvents >= 10, description: "Był na kilku wydarzeniach w różnych miejscach.", icon: { type: "image", source: RANK_IMAGES.odkrywca } },
-  { id: 2, title: "Bywalec spotkań", min: 21, max: 40, description: "Regularnie uczestniczy w wydarzeniach.", icon: { type: "image", source: RANK_IMAGES.bywalec } },
-  { id: 3, title: "Miejski wyjadacz", min: 41, max: 70, description: "Miasto zna jak własną kieszeń.", icon: { type: "image", source: RANK_IMAGES.miejski } },
+  { id: 0, title: "Nowy na mieście", min: 0, max: 1, description: "Pierwsze kroki w społeczności.", icon: { type: "image", source: RANK_IMAGES.nowy } },
+  { id: 1, title: "Odkrywca dzielnic", min: 1, max: 2, requires: (ctx) => (ctx.uniqueLocations ?? 0) >= LOCATION_THRESHOLD_FOR_EXPLORER && ctx.completedEvents >= 10, description: "Był na kilku wydarzeniach w różnych miejscach.", icon: { type: "image", source: RANK_IMAGES.odkrywca } },
+  { id: 2, title: "Bywalec spotkań", min: 2, max: 3, description: "Regularnie uczestniczy w wydarzeniach.", icon: { type: "image", source: RANK_IMAGES.bywalec } },
+  { id: 3, title: "Miejski wyjadacz", min: 3, max: 4, description: "Miasto zna jak własną kieszeń.", icon: { type: "image", source: RANK_IMAGES.miejski } },
   { id: 4, title: "Twórca klimatu", min: 71, max: 120, description: "Często organizuje, przyciąga ludzi.", icon: { type: "image", source: RANK_IMAGES.tworca } },
   { id: 5, title: "Lider osiedla", min: 121, max: 200, description: "Bardzo aktywny lokalnie.", icon: { type: "image", source: RANK_IMAGES.lider } },
   { id: 6, title: "Dusza towarzystwa", min: 201, max: 300, description: "Zawsze obecny, robi klimat.", icon: { type: "image", source: RANK_IMAGES.dusza } },

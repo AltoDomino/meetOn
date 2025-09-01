@@ -1,7 +1,7 @@
-
+// utils/formHelpers.ts
 import { Alert } from "react-native";
 
-const FormDataSend = async (DataForm: {
+export const FormDataSend = async (DataForm: {
   location: string;
   address: string;
   startDate: string;
@@ -29,7 +29,4 @@ const FormDataSend = async (DataForm: {
   } catch (error) {
     Alert.alert("Błąd", "Nie udało się połączyć z serwerem");
   }
-  
 };
-
-export default FormDataSend;

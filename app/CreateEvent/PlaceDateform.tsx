@@ -1,4 +1,4 @@
-import BottomButton from "@/components/Bottombutton";
+import BottomButton from "../../components/BottomButton";
 import fetchPlaces, { Place } from "@/utilis/FetchActivityPlaces";
 import { Ionicons } from "@expo/vector-icons";
 import * as Location from "expo-location";
