@@ -1,5 +1,5 @@
 import BottomButton from "../../components/BottomButton";
-import { loadActivities } from "@/utilis/activityStoarage";
+import { loadActivities } from "../../utilis/activityStoarage";
 import { router } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {

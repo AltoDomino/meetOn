@@ -1,5 +1,5 @@
 // login.tsx
-import { loadActivities } from "@/utilis/activityStoarage";
+import { loadActivities } from "../../utilis/activityStoarage";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
