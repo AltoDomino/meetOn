@@ -2,7 +2,7 @@
   "expo": {
     "name": "meetOn",
     "slug": "meetOn",
-    "version": "1.0.0",
+    "version": "1.0.1",
     "orientation": "portrait",
     "icon": "./assets/images/ikonkameeton.png",
     "scheme": "meeton",
@@ -16,7 +16,7 @@
 
     "android": {
       "package": "com.domino96.meetOn",
-      "versionCode": 6,
+      "versionCode": 7,
       "useNextNotificationsApi": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/ikonkameeton.png",
