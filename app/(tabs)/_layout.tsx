@@ -1,4 +1,4 @@
-import { registerPushToken } from "@/utilis/registerForPushNotificatiionsAsync";
+import { registerPushTokens, subscribeTokenRefresh } from "@/utilis/registerForPushNotificatiionsAsync";
 import { setupNotificationListener } from "@/utilis/useNotificationListener";
 import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
@@ -27,20 +27,22 @@ export default function Index() {
   useEffect(() => {
     if (!userId) return;
 
-    registerPushToken(userId);
+    // Rejestracja tokenów i subskrypcja refreshu
+    registerPushTokens(userId);
+    const unsubTokenRefresh = subscribeTokenRefresh(userId);
 
     // Obsługa niestandardowego modala
-    const subscription = Notifications.addNotificationReceivedListener(
-      (notif) => {
-        setNotification(notif);
-        setVisible(true);
-      }
-    );
+    const subscription = Notifications.addNotificationReceivedListener((notif) => {
+      setNotification(notif);
+      setVisible(true);
+    });
 
     const unsubscribe = setupNotificationListener();
+
     return () => {
       subscription.remove();
       unsubscribe();
+      unsubTokenRefresh(); // 🔑 odpinamy listener token refresh
     };
   }, [userId]);
 

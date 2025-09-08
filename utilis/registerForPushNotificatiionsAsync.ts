@@ -1,125 +1,118 @@
-import { Platform } from "react-native";
+import { Platform, AppState } from "react-native";
 import Constants from "expo-constants";
-import * as Device from "expo-device";
 import * as Notifications from "expo-notifications";
+import messaging from "@react-native-firebase/messaging";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
-if (Platform.OS === "android") {
-  Notifications.setNotificationChannelAsync("default", {
-    name: "default",
-    importance: Notifications.AndroidImportance.MAX,
-    vibrationPattern: [0, 250, 250, 250],
-    lightColor: "#FF231F7C",
-  }).catch((e) => console.log("setNotificationChannelAsync error:", e));
-}
+type Tokens = { expoToken: string | null; fcmToken: string | null; apnsToken: string | null };
 
-type RegisterResult = {
-  expoToken: string | null;
-  fcmToken: string | null;  // Android
-  apnsToken: string | null; // iOS
-};
+const LAST_SENT_KEY = "lastSentPushTokens_v2";
 
-export const registerPushToken = async (userId: number): Promise<RegisterResult | null> => {
-  if (!Device.isDevice) {
-    console.log("🚫 To nie jest fizyczne urządzenie (simulator nie obsługuje pushy).");
-    return null;
-  }
-
-  // 1) Uprawnienia
-  try {
-    const { status: existing } = await Notifications.getPermissionsAsync();
-    let finalStatus = existing;
-
-if (existing !== "granted") {
+async function askPermissions(): Promise<boolean> {
+  const { status: existing } = await Notifications.getPermissionsAsync();
+  if (existing === "granted") return true;
   const { status } = await Notifications.requestPermissionsAsync({
-    ios: {
-      allowAlert: true,
-      allowBadge: true,
-      allowSound: true
-    }
+    ios: { allowAlert: true, allowBadge: true, allowSound: true },
   });
-  finalStatus = status;
+  return status === "granted";
 }
 
-
-    if (finalStatus !== "granted") {
-      console.log("🚫 Brak zgody na powiadomienia.");
-      return null;
-    }
-  } catch (e) {
-    console.error("❌ Błąd podczas sprawdzania/żądania uprawnień:", e);
-    return null;
-  }
-
-  // 2) Tokeny
+async function getTokens(): Promise<Tokens> {
   const ownership = Constants.appOwnership; // 'expo' | 'standalone'
   const projectId =
-    // SDK 53+: projectId z extra.eas lub easConfig (fallback to Twój ID)
     (Constants as any)?.expoConfig?.extra?.eas?.projectId ??
-    (Constants as any)?.easConfig?.projectId ??
-    "21c25dfa-afc4-4d4a-9ce3-3d1a809d4dfe";
+    (Constants as any)?.easConfig?.projectId;
 
+  // Expo token (działa przez serwery Expo)
   let expoToken: string | null = null;
-  let fcmToken: string | null = null;  // Android native/FCM
-  let apnsToken: string | null = null; // iOS native/APNs
-
   try {
-    // 2a) Expo Push Token — dostępny zarówno w Expo Go (iOS/Android),
-    // jak i w buildach EAS. Przydaje się do testów i do Expo Push Service.
-    const expoResp = await Notifications.getExpoPushTokenAsync({ projectId });
-    expoToken = expoResp.data;
-    console.log("📨 Expo Push Token:", expoToken);
-  } catch (e) {
-    // W starych środowiskach może nie zadziałać — nie przerywaj
-    console.log("ℹ️ getExpoPushTokenAsync error (niekrytyczne):", e);
-  }
-
-  try {
-    // 2b) Native token – tylko w buildzie (ownership !== 'expo')
-    if (ownership !== "expo") {
-      const native = await Notifications.getDevicePushTokenAsync();
-      // SDK 53: { type: 'ios'|'android', data: string }
-      const nativeData: any = (native as any)?.data ?? (native as any)?.token ?? null;
-      const nativeType: string | undefined = (native as any)?.type;
-
-      if (Platform.OS === "android") {
-        if (typeof nativeData === "string" && nativeData.length > 0) {
-          fcmToken = nativeData; // FCM
-          console.log("🔥 Android FCM token:", fcmToken);
-        }
-      } else if (Platform.OS === "ios") {
-        if (typeof nativeData === "string" && nativeData.length > 0) {
-          apnsToken = nativeData; // APNs
-          console.log("🍎 iOS APNs token:", apnsToken, "type:", nativeType);
-        }
-      }
-    } else {
-      console.log("ℹ️ ownership=expo (Expo Go) — brak natywnego tokena APNs/FCM.");
+    if (projectId) {
+      const t = await Notifications.getExpoPushTokenAsync({ projectId });
+      expoToken = t.data ?? null;
     }
-  } catch (e) {
-    console.log("ℹ️ getDevicePushTokenAsync error (native token):", e);
-  }
+  } catch {}
 
-  // 3) Wyślij do backendu
-  const payload = {
-    userId,
-    token: expoToken,     // Expo Push Token (może być null)
-    fcmToken,             // Android FCM (null na iOS)
-    apnsToken,            // iOS APNs (null na Androidzie lub w Expo Go)
-    platform: Platform.OS,
-    ownership,            // pomocne do debugowania po stronie backendu
-  };
+  // Natywne tokeny
+  let fcmToken: string | null = null;
+  let apnsToken: string | null = null;
 
-  console.log("➡️ Rejestruję w backendzie:", payload);
-
-  try {
-    await fetch("https://meeton-backend-ffmo.onrender.com/api/push-token", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
-  } catch (e) {
-    console.error("❌ Błąd wysyłki tokenu do backendu:", e);
+  if (ownership !== "expo") {
+    // Stabilny sposób na FCM
+    try {
+      fcmToken = await messaging().getToken();
+    } catch {}
+    try {
+      if (Platform.OS === "ios") {
+        const native = await Notifications.getDevicePushTokenAsync();
+        const nativeData: any = (native as any)?.data ?? (native as any)?.token ?? null;
+        apnsToken = typeof nativeData === "string" ? nativeData : null;
+      }
+    } catch {}
   }
 
   return { expoToken, fcmToken, apnsToken };
-};
+}
+
+async function sendToBackend(userId: number, tokens: Tokens) {
+  await fetch("https://meeton-backend-ffmo.onrender.com/api/push-token", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      userId,
+      token: tokens.expoToken,
+      fcmToken: tokens.fcmToken,
+      apnsToken: tokens.apnsToken,
+      platform: Platform.OS,
+      ownership: Constants.appOwnership,
+      appVersion: (Constants as any)?.expoConfig?.version ?? null,
+    }),
+  }).catch(() => {});
+}
+
+function shouldSendAgain(prev: any, next: any) {
+  return (
+    prev?.expoToken !== next.expoToken ||
+    prev?.fcmToken !== next.fcmToken ||
+    prev?.apnsToken !== next.apnsToken
+  );
+}
+
+/** Wołaj przy starcie aplikacji i po zalogowaniu. */
+export async function registerPushTokens(userId: number) {
+  const granted = await askPermissions();
+  if (!granted) return;
+
+  const tokens = await getTokens();
+  const prevJson = await AsyncStorage.getItem(LAST_SENT_KEY);
+  const prev = prevJson ? JSON.parse(prevJson) : null;
+
+  if (!prev || shouldSendAgain(prev, tokens)) {
+    await sendToBackend(userId, tokens);
+    await AsyncStorage.setItem(LAST_SENT_KEY, JSON.stringify(tokens));
+  }
+}
+
+/** Subskrybuj automatyczne odświeżanie FCM – ustaw w App.tsx */
+export function subscribeTokenRefresh(userId: number) {
+  // Dla FCM
+  const unsub = messaging().onTokenRefresh(async (newToken) => {
+    const prevJson = await AsyncStorage.getItem(LAST_SENT_KEY);
+    const prev = prevJson ? JSON.parse(prevJson) : null;
+    const next = { ...(prev ?? {}), fcmToken: newToken };
+    await sendToBackend(userId, next);
+    await AsyncStorage.setItem(LAST_SENT_KEY, JSON.stringify(next));
+  });
+
+  // Recheck przy powrocie z tła (czasem token zmienia się "po cichu")
+  const appStateHandler = async (state: string) => {
+    if (state === "active") {
+      await registerPushTokens(userId);
+    }
+  };
+  const sub = AppState.addEventListener("change", appStateHandler);
+
+  return () => {
+    unsub();
+    sub.remove();
+  };
+}
