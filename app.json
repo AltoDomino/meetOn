@@ -23,7 +23,7 @@
         "backgroundColor": "#01032f"
       },
       "edgeToEdgeEnabled": true,
-      "googleServicesFile": "./google-services.json",
+      "googleServicesFile": "./android/app/google-services.json",
       "permissions": ["NOTIFICATIONS", "ACCESS_FINE_LOCATION"],
       "softwareKeyboardLayoutMode": "pan",
       "intentFilters": [
