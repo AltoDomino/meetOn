@@ -1,4 +1,5 @@
-import { registerPushToken } from "@/utilis/registerForPushNotificatiionsAsync";
+import { styles } from "@/styles/MyEvents.styles";
+import { registerPushToken } from "@/utilis/registerForPushNotificationsAsync";
 import SwitchButton from "@/utilis/SwitchButton";
 import { useFocusEffect } from "@react-navigation/native";
 import { router, Stack } from "expo-router";
@@ -11,7 +12,6 @@ import {
   View,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
-import { styles } from "@/styles/MyEvents.styles";
 
 const BACKEND_URL = "https://meeton-backend-ffmo.onrender.com";
 
@@ -140,7 +140,7 @@ export default function MyEvents() {
       />
 
       <FlatList
-        style={styles.container} 
+        style={styles.container}
         data={events}
         renderItem={renderItem}
         keyExtractor={(item) => item.id.toString()}

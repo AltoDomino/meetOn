@@ -1,5 +1,8 @@
-import { registerPushTokens, subscribeTokenRefresh } from "@/utilis/registerForPushNotificatiionsAsync";
-import { setupNotificationListener } from "@/utilis/useNotificationListener";
+import {
+  registerPushToken,
+  subscribeTokenRefresh,
+} from "@/utilis/registerForPushNotificationsAsync";
+import { useNotificationListener } from "@/utilis/useNotificationListener";
 import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -24,25 +27,27 @@ export default function Index() {
   const [notification, setNotification] = useState<any>(null);
   const [visible, setVisible] = useState(false);
 
+  // ✅ hook wołamy na górze, nie w useEffect
+  useNotificationListener();
+
   useEffect(() => {
     if (!userId) return;
 
     // Rejestracja tokenów i subskrypcja refreshu
-    registerPushTokens(userId);
+    registerPushToken(userId);
     const unsubTokenRefresh = subscribeTokenRefresh(userId);
 
     // Obsługa niestandardowego modala
-    const subscription = Notifications.addNotificationReceivedListener((notif) => {
-      setNotification(notif);
-      setVisible(true);
-    });
-
-    const unsubscribe = setupNotificationListener();
+    const subscription = Notifications.addNotificationReceivedListener(
+      (notif) => {
+        setNotification(notif);
+        setVisible(true);
+      }
+    );
 
     return () => {
       subscription.remove();
-      unsubscribe();
-      unsubTokenRefresh(); // 🔑 odpinamy listener token refresh
+      unsubTokenRefresh();
     };
   }, [userId]);
 

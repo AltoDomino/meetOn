@@ -1,4 +1,4 @@
-import { registerPushToken } from "@/utilis/registerForPushNotificatiionsAsync";
+import { registerPushToken } from "@/utilis/registerForPushNotificationsAsync";
 import SwitchButton from "@/utilis/SwitchButton";
 import { useFocusEffect } from "@react-navigation/native";
 import * as Location from "expo-location";
@@ -66,10 +66,9 @@ export default function Events() {
     return opt?.label ?? "";
   }, [distanceFilter]);
 
-
   const radiusKm = useMemo(() => {
     if (distanceFilter.max === UNLIMITED_RADIUS) return UNLIMITED_RADIUS;
-    return distanceFilter.max; 
+    return distanceFilter.max;
   }, [distanceFilter]);
 
   useEffect(() => {

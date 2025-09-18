@@ -1,10 +1,10 @@
-import { useEffect, useState } from "react";
+import { registerPushToken } from "@/utilis/registerForPushNotificationsAsync";
+import { useNotificationListener } from "@/utilis/useNotificationListener";
 import * as Notifications from "expo-notifications";
-import { Modal, Text, View, Pressable, Image } from "react-native";
-import { useAuth } from "../context/AuthContext";
 import { useRouter } from "expo-router";
-import { registerPushToken } from "@/utilis/registerForPushNotificatiionsAsync";
-import { setupNotificationListener } from "@/utilis/useNotificationListener";
+import { useEffect, useState } from "react";
+import { Image, Modal, Pressable, Text, View } from "react-native";
+import { useAuth } from "../context/AuthContext";
 
 export default function NotificationHandler() {
   const { userId } = useAuth();
@@ -17,16 +17,17 @@ export default function NotificationHandler() {
 
     registerPushToken(userId);
 
-    const subscription = Notifications.addNotificationReceivedListener((notif) => {
-      setNotification(notif);
-      setVisible(true);
-    });
+    const subscription = Notifications.addNotificationReceivedListener(
+      (notif) => {
+        setNotification(notif);
+        setVisible(true);
+      }
+    );
 
-    const unsubscribe = setupNotificationListener();
+    useNotificationListener();
 
     return () => {
       subscription.remove();
-      unsubscribe();
     };
   }, [userId]);
 
@@ -84,9 +85,7 @@ export default function NotificationHandler() {
               borderRadius: 8,
             }}
           >
-            <Text style={{ color: "white", fontWeight: "bold" }}>
-              SPRAWDŹ
-            </Text>
+            <Text style={{ color: "white", fontWeight: "bold" }}>SPRAWDŹ</Text>
           </Pressable>
         </View>
       </View>

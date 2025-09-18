@@ -8,6 +8,7 @@ import { ActivityProvider } from "../context/ActivityContext";
 import { AuthProvider } from "../context/AuthContext";
 import { usePersistentLocation } from "@/hooks/usePersistentLocation";
 import * as Notifications from "expo-notifications";
+import { useNotificationListener } from "@/utilis/useNotificationListener"; // ✅ zmienione
 
 // Globalny handler dla powiadomień (Android/iOS)
 Notifications.setNotificationHandler({
@@ -17,7 +18,7 @@ Notifications.setNotificationHandler({
     shouldSetBadge: false,
     shouldShowBanner: true,
     shouldShowInList: true,
-    shouldShowList: true, 
+    shouldShowList: true,
   }),
 });
 
@@ -46,7 +47,8 @@ export default function RootLayout() {
 
   useBackExit();
   usePersistentLocation();
-  useNotifDebugLogs(); // 🔊 logi powiadomień
+  useNotifDebugLogs();
+  useNotificationListener(); // ✅ teraz działa jako hook, a nie wywołanie w useEffect
 
   useEffect(() => {
     if (splashDone) {

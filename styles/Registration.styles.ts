@@ -26,7 +26,7 @@ const styles = StyleSheet.create({
 
   formContainer: {
     position: "absolute",
-    bottom: isAndroid ? 40 : 80,
+    bottom: isAndroid ? 100 : 100,
     left: isAndroid ? 40 : 30,
     right: isAndroid ? 40 : 30,
     backgroundColor: "rgba(243, 243, 243, 0.08)",

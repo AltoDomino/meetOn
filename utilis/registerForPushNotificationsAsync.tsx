@@ -78,7 +78,7 @@ function shouldSendAgain(prev: any, next: any) {
 }
 
 /** Wołaj przy starcie aplikacji i po zalogowaniu. */
-export async function registerPushTokens(userId: number) {
+export async function registerPushToken(userId: number) {
   const granted = await askPermissions();
   if (!granted) return;
 
@@ -106,7 +106,7 @@ export function subscribeTokenRefresh(userId: number) {
   // Recheck przy powrocie z tła (czasem token zmienia się "po cichu")
   const appStateHandler = async (state: string) => {
     if (state === "active") {
-      await registerPushTokens(userId);
+      await registerPushToken(userId);
     }
   };
   const sub = AppState.addEventListener("change", appStateHandler);

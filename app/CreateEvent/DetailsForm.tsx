@@ -1,6 +1,6 @@
 import BottomButton from "../../components/BottomButton";
 import { Ionicons } from "@expo/vector-icons";
-import Slider from "@react-native-community/slider";
+import Slider from "@react-native-community/slider"; 
 import { router, useLocalSearchParams } from "expo-router";
 import * as Location from "expo-location";
 import React, { useEffect, useState } from "react";
