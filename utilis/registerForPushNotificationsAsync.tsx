@@ -37,7 +37,6 @@ async function getTokens(): Promise<Tokens> {
   let apnsToken: string | null = null;
 
   if (ownership !== "expo") {
-    // Stabilny sposób na FCM
     try {
       fcmToken = await messaging().getToken();
     } catch {}

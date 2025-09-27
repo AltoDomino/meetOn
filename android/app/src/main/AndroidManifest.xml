@@ -1,21 +1,21 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
-  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-  <uses-permission android:name="android.permission.INTERNET" />
-  <uses-permission android:name="android.permission.NOTIFICATIONS" />
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
-  <uses-permission android:name="android.permission.RECORD_AUDIO" />
-  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW" />
-  <uses-permission android:name="android.permission.VIBRATE" />
-  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+  <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION"/>
+  <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION"/>
+  <uses-permission android:name="android.permission.INTERNET"/>
+  <uses-permission android:name="android.permission.NOTIFICATIONS"/>
+  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
+  <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
+  <uses-permission android:name="android.permission.VIBRATE"/>
+  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
 
   <queries>
     <intent>
-      <action android:name="android.intent.action.VIEW" />
-      <category android:name="android.intent.category.BROWSABLE" />
-      <data android:scheme="https" />
+      <action android:name="android.intent.action.VIEW"/>
+      <category android:name="android.intent.category.BROWSABLE"/>
+      <data android:scheme="https"/>
     </intent>
   </queries>
 
@@ -27,29 +27,31 @@
       android:allowBackup="true"
       android:theme="@style/AppTheme"
       android:supportsRtl="true"
+      android:enableOnBackInvokedCallback="false"
       android:fullBackupContent="@xml/secure_store_backup_rules"
       android:dataExtractionRules="@xml/secure_store_data_extraction_rules">
 
+    <!-- ✅ Konflikt rozwiązany przez tools:replace -->
     <meta-data
         android:name="com.google.firebase.messaging.default_notification_color"
         android:resource="@color/notification_icon_color"
-        tools:replace="android:resource" />
+        tools:replace="android:resource"/>
     <meta-data
         android:name="com.google.firebase.messaging.default_notification_icon"
-        android:resource="@drawable/notification_icon" />
+        android:resource="@drawable/notification_icon"/>
 
-    <!-- Expo Notifications -->
+    <!-- Expo notifications -->
     <meta-data
         android:name="expo.modules.notifications.default_notification_color"
-        android:resource="@color/notification_icon_color" />
+        android:resource="@color/notification_icon_color"/>
     <meta-data
         android:name="expo.modules.notifications.default_notification_icon"
-        android:resource="@drawable/notification_icon" />
+        android:resource="@drawable/notification_icon"/>
 
-    <!-- Expo Updates -->
-    <meta-data android:name="expo.modules.updates.ENABLED" android:value="false" />
-    <meta-data android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="ALWAYS" />
-    <meta-data android:name="expo.modules.updates.EXPO_UPDATES_LAUNCH_WAIT_MS" android:value="0" />
+    <!-- Expo updates -->
+    <meta-data android:name="expo.modules.updates.ENABLED" android:value="false"/>
+    <meta-data android:name="expo.modules.updates.EXPO_UPDATES_CHECK_ON_LAUNCH" android:value="ALWAYS"/>
+    <meta-data android:name="expo.modules.updates.EXPO_UPDATES_LAUNCH_WAIT_MS" android:value="0"/>
 
     <activity
         android:name=".MainActivity"
@@ -61,26 +63,25 @@
         android:screenOrientation="portrait">
 
       <intent-filter>
-        <action android:name="android.intent.action.MAIN" />
-        <category android:name="android.intent.category.LAUNCHER" />
+        <action android:name="android.intent.action.MAIN"/>
+        <category android:name="android.intent.category.LAUNCHER"/>
       </intent-filter>
 
       <intent-filter>
-        <action android:name="android.intent.action.VIEW" />
-        <category android:name="android.intent.category.DEFAULT" />
-        <category android:name="android.intent.category.BROWSABLE" />
-        <data android:scheme="meeton" />
-        <data android:scheme="exp+meeton" />
+        <action android:name="android.intent.action.VIEW"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <data android:scheme="meeton"/>
+        <data android:scheme="exp+meeton"/>
       </intent-filter>
 
       <intent-filter data-generated="true">
-        <action android:name="android.intent.action.VIEW" />
-        <data android:scheme="meeton" />
-        <data android:scheme="exp+meeton" />
-        <category android:name="android.intent.category.BROWSABLE" />
-        <category android:name="android.intent.category.DEFAULT" />
+        <action android:name="android.intent.action.VIEW"/>
+        <data android:scheme="meeton"/>
+        <data android:scheme="exp+meeton"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <category android:name="android.intent.category.DEFAULT"/>
       </intent-filter>
-
     </activity>
   </application>
 </manifest>
