@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "547147710127",
+    "project_id": "meeton-e7b62",
+    "storage_bucket": "meeton-e7b62.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:547147710127:android:9af712ef0d0c4e6861de5a",
+        "android_client_info": {
+          "package_name": "com.domino96.meetOn"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDE9PLLThZdJeEEIgnTcsbQr9HH5I26GZk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
