@@ -1,16 +1,24 @@
 import { Platform, AppState } from "react-native";
 import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
-import messaging from "@react-native-firebase/messaging";
 import AsyncStorage from "@react-native-async-storage/async-storage";
+import { initializeApp, getApp, getApps } from "firebase/app";
+import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
+// Typy tokenów
 type Tokens = { expoToken: string | null; fcmToken: string | null; apnsToken: string | null };
 
 const LAST_SENT_KEY = "lastSentPushTokens_v2";
 
+// Inicjalizacja Firebase
+const firebaseConfig = Constants.expoConfig?.extra?.firebase;
+const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
+const messaging = getMessaging(app);
+
 async function askPermissions(): Promise<boolean> {
   const { status: existing } = await Notifications.getPermissionsAsync();
   if (existing === "granted") return true;
+
   const { status } = await Notifications.requestPermissionsAsync({
     ios: { allowAlert: true, allowBadge: true, allowSound: true },
   });
@@ -23,7 +31,7 @@ async function getTokens(): Promise<Tokens> {
     (Constants as any)?.expoConfig?.extra?.eas?.projectId ??
     (Constants as any)?.easConfig?.projectId;
 
-  // Expo token (działa przez serwery Expo)
+  // ✅ Expo token (do testów lub fallbacku)
   let expoToken: string | null = null;
   try {
     if (projectId) {
@@ -32,22 +40,21 @@ async function getTokens(): Promise<Tokens> {
     }
   } catch {}
 
-  // Natywne tokeny
+  // ✅ Firebase Cloud Messaging token
   let fcmToken: string | null = null;
-  let apnsToken: string | null = null;
+  try {
+    fcmToken = await getToken(messaging);
+  } catch {}
 
-  if (ownership !== "expo") {
-    try {
-      fcmToken = await messaging().getToken();
-    } catch {}
-    try {
-      if (Platform.OS === "ios") {
-        const native = await Notifications.getDevicePushTokenAsync();
-        const nativeData: any = (native as any)?.data ?? (native as any)?.token ?? null;
-        apnsToken = typeof nativeData === "string" ? nativeData : null;
-      }
-    } catch {}
-  }
+  // ✅ APNS token (dla iOS)
+  let apnsToken: string | null = null;
+  try {
+    if (Platform.OS === "ios") {
+      const native = await Notifications.getDevicePushTokenAsync();
+      const nativeData: any = (native as any)?.data ?? (native as any)?.token ?? null;
+      apnsToken = typeof nativeData === "string" ? nativeData : null;
+    }
+  } catch {}
 
   return { expoToken, fcmToken, apnsToken };
 }
@@ -91,18 +98,14 @@ export async function registerPushToken(userId: number) {
   }
 }
 
-/** Subskrybuj automatyczne odświeżanie FCM – ustaw w App.tsx */
+/** Subskrybuj odświeżanie tokenu i powrót aplikacji z tła */
 export function subscribeTokenRefresh(userId: number) {
-  // Dla FCM
-  const unsub = messaging().onTokenRefresh(async (newToken) => {
-    const prevJson = await AsyncStorage.getItem(LAST_SENT_KEY);
-    const prev = prevJson ? JSON.parse(prevJson) : null;
-    const next = { ...(prev ?? {}), fcmToken: newToken };
-    await sendToBackend(userId, next);
-    await AsyncStorage.setItem(LAST_SENT_KEY, JSON.stringify(next));
+  // 🔔 Foreground listener (np. pushy danych)
+  const unsub = onMessage(messaging, async (message) => {
+    console.log("Foreground message:", message);
   });
 
-  // Recheck przy powrocie z tła (czasem token zmienia się "po cichu")
+  // Recheck przy powrocie z tła
   const appStateHandler = async (state: string) => {
     if (state === "active") {
       await registerPushToken(userId);

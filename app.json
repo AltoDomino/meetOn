@@ -72,16 +72,11 @@
         {
           "ios": {
             "useModularHeaders": true,
-            "useFrameworks": "static",
+            "useFrameworks": "dynamic",
             "clangAllowNonModularIncludesInFrameworkModules": true,
             "buildLibraryForDistribution": true,
-            "extraPods": [
-              {
-                "name": "RNFBApp",
-                "path": "../node_modules/@react-native-firebase/app",
-                "modular_headers": true
-              }
-            ]
+            "otherCFlags": ["-Wno-non-modular-include-in-framework-module"],
+            "otherCPlusPlusFlags": ["-Wno-non-modular-include-in-framework-module"]
           },
           "android": {
             "kotlinVersion": "2.0.21",

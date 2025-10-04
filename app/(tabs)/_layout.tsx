@@ -114,7 +114,6 @@ export default function Index() {
     <>
       <Login />
 
-      {/* === Custom powiadomienie === */}
       <Modal visible={visible} transparent animationType="fade">
         <View
           style={{

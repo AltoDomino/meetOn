@@ -6,7 +6,7 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
+
   ScrollView,
   Text,
   TextInput,
@@ -16,7 +16,7 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/Pofile.styles";
 import { UserRankTracker } from "@/components/PlayerStatus/UserRankTracker";
-
+import Logout from "./Logout";
 const API_BASE = "https://meeton-backend-ffmo.onrender.com";
 
 const SaveButton = ({ onPress }: { onPress: () => void }) => (
@@ -135,11 +135,60 @@ export default function ProfileScreen() {
       Alert.alert("❌ Błąd połączenia", "Spróbuj ponownie później.");
     }
   };
-
+const DeleteButton = ({ onPress }: { onPress: () => void }) => (
+  <TouchableOpacity
+    onPress={onPress}
+    style={{
+      backgroundColor: "#E53935",
+      paddingVertical: 16,
+      borderRadius: 14,
+      alignItems: "center",
+      shadowColor: "#000",
+      shadowOpacity: Platform.OS === "ios" ? 0.08 : 0.12,
+      shadowRadius: 6,
+      elevation: 3,
+      marginTop: 20,
+    }}
+  >
+    <Text style={{ color: "#fff", fontWeight: "800", fontSize: 18 }}>
+      Usuń konto
+    </Text>
+  </TouchableOpacity>
+);
+    const handleDelete = () => {
+    Alert.alert(
+      "Potwierdzenie",
+      "Czy na pewno chcesz usunąć swoje konto? Tej operacji nie można cofnąć.",
+      [
+        { text: "Anuluj", style: "cancel" },
+        {
+          text: "Usuń",
+          style: "destructive",
+          onPress: async () => {
+            try {
+              const res = await fetch(`${API_BASE}/api/delete-account`, {
+                method: "DELETE",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ userId }),
+              });
+              if (res.ok) {
+                Alert.alert("✅ Konto usunięte", "Twoje konto zostało usunięte.");
+                Logout();
+              } else {
+                const data = await res.json();
+                Alert.alert("❌ Błąd", data.error || "Nie udało się usunąć konta.");
+              }
+            } catch (err) {
+              console.error("❌ Błąd usuwania konta:", err);
+              Alert.alert("❌ Błąd połączenia", "Spróbuj ponownie później.");
+            }
+          },
+        },
+      ]
+    );
+  };
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#c5def3ff" }}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
+      <KeyboardAvoidingView style={{ flex: 1, backgroundColor: "#c5def3ff" }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
         keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
       >
@@ -233,10 +282,10 @@ export default function ProfileScreen() {
             maxLength={100}
           />
           <SaveButton onPress={handleSave} />
-
+<DeleteButton onPress={handleDelete} />
           <View style={{ height: 24 }} />
         </ScrollView>
       </KeyboardAvoidingView>
-    </SafeAreaView>
   );
 }
+
