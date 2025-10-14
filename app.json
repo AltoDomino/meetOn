@@ -15,15 +15,12 @@
     "android": {
       "package": "com.domino96.meetOn",
       "versionCode": 9,
-      "useNextNotificationsApi": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/ikonkameeton.png",
         "backgroundColor": "#01032f"
       },
       "edgeToEdgeEnabled": true,
       "permissions": [
-        "NOTIFICATIONS",
-        "ACCESS_FINE_LOCATION",
         "NOTIFICATIONS",
         "ACCESS_FINE_LOCATION"
       ],
@@ -89,10 +86,6 @@
       }
     },
     "owner": "domino96",
-    "cli": {
-      "version": ">=3.0.0",
-      "appVersionSource": "remote"
-    },
     "updates": {
       "enabled": false,
       "url": "https://u.expo.dev/21c25dfa-afc4-4d4a-9ce3-3d1a809d4dfe"
