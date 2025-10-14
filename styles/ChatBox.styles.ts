@@ -1,40 +1,60 @@
 import { Platform, StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
-  otherMessage: {
-    alignSelf: "flex-start",
-    alignItems: "flex-start",
-  },
   chatWrapper: {
     flex: 1,
     paddingHorizontal: 10,
-    paddingBottom: 10,
-    backgroundColor: "#f9f9f9",
+    backgroundColor: "#f4faff", // delikatny błękit jak w meetOn
   },
+
   listContent: {
-    paddingBottom: 70,
+    paddingVertical: 10,
+    paddingBottom: 90, // miejsce na input
   },
+
   messageRow: {
-    marginVertical: 4,
+    marginVertical: 6,
     flexDirection: "row",
     justifyContent: "flex-start",
   },
+
   myMessage: {
     justifyContent: "flex-end",
+    alignSelf: "flex-end",
   },
+
+  otherMessage: {
+    alignSelf: "flex-start",
+  },
+
   bubble: {
     backgroundColor: "#e1f5fe",
-    borderRadius: 8,
-    padding: 10,
+    borderRadius: 14,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
     maxWidth: "75%",
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 1 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
   },
+
+  myBubble: {
+    backgroundColor: "#00A9F4", // twoja wiadomość — niebieska
+  },
+
   sender: {
     fontWeight: "bold",
     marginBottom: 2,
+    color: "#333",
   },
+
   content: {
-    fontSize: 16,
+    fontSize: 15,
+    color: "#000",
   },
+
   timestamp: {
     fontSize: 10,
     color: "#666",
@@ -42,39 +62,49 @@ export const styles = StyleSheet.create({
     alignSelf: "flex-end",
   },
 
-  /* ⬇️ TU ZMIANA: przesunięcie inputu i przycisku 10 px niżej na iOS */
   inputRow: {
     flexDirection: "row",
     alignItems: "center",
-    marginTop: 5,
-    paddingHorizontal: 6,
-    paddingBottom: Platform.OS === "android" ? 6 : 0,
-    backgroundColor: "#fff",
-    transform: [{ translateY: Platform.OS === "ios" ? 10 : 0 }],
+    backgroundColor: "#ffffff",
+    borderTopWidth: 1,
+    borderTopColor: "#d0eaff",
+    paddingVertical: Platform.OS === "ios" ? 10 : 6,
+    paddingHorizontal: 10,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: -1 },
+    shadowOpacity: 0.05,
+    shadowRadius: 3,
+    elevation: 2,
   },
 
   input: {
     flex: 1,
-    height: 30,
-    borderColor: "#9ddff3ff",
-    backgroundColor: "#ffffffff",
-    color: "#000000ff",
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    fontSize: 16,
+    height: 45,
+    backgroundColor: "#f7f9fc",
+    borderColor: "#cfe9ff",
     borderWidth: 1,
+    borderRadius: 25,
+    paddingHorizontal: 16,
+    fontSize: 15,
+    color: "#000",
+    textAlignVertical: "center",
   },
 
   sendButton: {
     marginLeft: 10,
     backgroundColor: "#00A9F4",
+    borderRadius: 25,
+    paddingHorizontal: 16,
     paddingVertical: 10,
-    paddingHorizontal: 12,
-    borderRadius: 20,
     justifyContent: "center",
     alignItems: "center",
-    height: 42,
+    shadowColor: "#00A9F4",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.3,
+    shadowRadius: 3,
+    elevation: 3,
   },
+
   sendButtonText: {
     color: "#fff",
     fontWeight: "bold",

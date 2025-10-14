@@ -1,16 +1,21 @@
-// app/_layout.tsx
-import SplashScreenComponent from "@/components/SplashScreen";
-import { useBackExit } from "@/utilis/useBackExit";
+import * as Location from "expo-location";
+import * as Notifications from "expo-notifications";
 import { Slot, SplashScreen } from "expo-router";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Alert, Linking } from "react-native";
+import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { enableScreens } from "react-native-screens";
+
+import SplashScreenComponent from "@/components/SplashScreen";
+import { usePersistentLocation } from "@/hooks/usePersistentLocation"; // ✅ teraz importujemy normalnie
+import { useBackExit } from "@/utilis/useBackExit";
+import { useNotificationListener } from "@/utilis/useNotificationListener";
 import { ActivityProvider } from "../context/ActivityContext";
 import { AuthProvider } from "../context/AuthContext";
-import { usePersistentLocation } from "@/hooks/usePersistentLocation";
-import * as Notifications from "expo-notifications";
-import { useNotificationListener } from "@/utilis/useNotificationListener"; // ✅ zmienione
 
-// Globalny handler dla powiadomień (Android/iOS)
+enableScreens(false);
+
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -22,22 +27,44 @@ Notifications.setNotificationHandler({
   }),
 });
 
-// Tymczasowe logi diagnostyczne (usuń po testach)
 function useNotifDebugLogs() {
   useEffect(() => {
-    const sub1 = Notifications.addNotificationReceivedListener((n) => {
-      console.log("🟢 [FOREGROUND] received:", JSON.stringify(n, null, 2));
-    });
-
-    const sub2 = Notifications.addNotificationResponseReceivedListener((r) => {
-      console.log("🟣 [TAP/RESPONSE] notification response:", JSON.stringify(r, null, 2));
-    });
-
+    const sub1 = Notifications.addNotificationReceivedListener((n) =>
+      console.log("🟢 [FOREGROUND] received:", JSON.stringify(n, null, 2))
+    );
+    const sub2 = Notifications.addNotificationResponseReceivedListener((r) =>
+      console.log("🟣 [TAP/RESPONSE]:", JSON.stringify(r, null, 2))
+    );
     return () => {
       sub1.remove();
       sub2.remove();
     };
   }, []);
+}
+
+async function checkLocationPermission() {
+  try {
+    const { status } = await Location.getForegroundPermissionsAsync();
+    if (status !== "granted") {
+      const { status: newStatus } =
+        await Location.requestForegroundPermissionsAsync();
+      if (newStatus !== "granted") {
+        Alert.alert(
+          "Dostęp do lokalizacji wymagany 🌍",
+          "Aby aplikacja mogła pokazywać wydarzenia w pobliżu, włącz dostęp do lokalizacji w ustawieniach.",
+          [
+            {
+              text: "Otwórz ustawienia",
+              onPress: () => Linking.openSettings(),
+            },
+            { text: "Anuluj", style: "cancel" },
+          ]
+        );
+      }
+    }
+  } catch (err) {
+    console.warn("⚠️ Błąd sprawdzania uprawnień lokalizacji:", err);
+  }
 }
 
 SplashScreen.preventAutoHideAsync();
@@ -46,13 +73,16 @@ export default function RootLayout() {
   const [splashDone, setSplashDone] = useState(false);
 
   useBackExit();
-  usePersistentLocation();
   useNotifDebugLogs();
-  useNotificationListener(); // ✅ teraz działa jako hook, a nie wywołanie w useEffect
+  useNotificationListener();
+  usePersistentLocation(); // ✅ TERAZ hook wywołujemy tu, poprawnie w komponencie
+  useEffect(() => {
+    if (splashDone) checkLocationPermission();
+  }, [splashDone]);
 
   useEffect(() => {
     if (splashDone) {
-      SplashScreen.hideAsync();
+      setTimeout(() => SplashScreen.hideAsync().catch(() => {}), 400);
     }
   }, [splashDone]);
 
@@ -62,11 +92,13 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <ActivityProvider>
-          <Slot />
-        </ActivityProvider>
-      </AuthProvider>
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <AuthProvider>
+          <ActivityProvider>
+            <Slot />
+          </ActivityProvider>
+        </AuthProvider>
+      </GestureHandlerRootView>
     </SafeAreaProvider>
   );
 }

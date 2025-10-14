@@ -2,7 +2,7 @@ import { Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { TouchableOpacity } from "react-native";
 import { router } from "expo-router";
-
+import React from "react";
 export default function FormLayout() {
   return (
     <Stack>

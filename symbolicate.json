@@ -1,0 +1,22 @@
+{
+  "stack": [
+    {
+      "file": "React",
+      "methodName": "facebook::react::ObjCTurboModule::performVoidMethodInvocation",
+      "lineNumber": 548,
+      "column": 0
+    },
+    {
+      "file": "usePersistentLocation.ts",
+      "methodName": "useEffect",
+      "lineNumber": 42,
+      "column": 12
+    },
+    {
+      "file": "libdispatch.dylib",
+      "methodName": "_dispatch_call_block_and_release",
+      "lineNumber": 0,
+      "column": 0
+    }
+  ]
+}

@@ -265,7 +265,9 @@ const fetchParticipantDetails = async (participantId: number) => {
             )}
           </View>
 
-          <View style={styles.chatContainer}>
+          <View
+            style={[styles.chatContainer, { flex: 1, justifyContent: "flex-end" }]}
+          >
             <ChatBox messages={messages} onSend={handleSendMessage} />
           </View>
         </View>

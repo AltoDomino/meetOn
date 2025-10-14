@@ -1,6 +1,7 @@
 import { Ionicons } from "@expo/vector-icons";
 import { Drawer } from "expo-router/drawer";
 import { TouchableOpacity } from "react-native";
+import React from "react";
 
 export default function DrawerLayout() {
   return (

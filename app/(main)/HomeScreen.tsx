@@ -1,9 +1,12 @@
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import * as Location from "expo-location";
 import {
+  Alert,
   ImageBackground,
   Keyboard,
   KeyboardAvoidingView,
+  Linking,
   Modal,
   Platform,
   Pressable,
@@ -22,6 +25,9 @@ export default function Home() {
   const [modalVisible, setModalVisible] = useState(false);
   const insets = useSafeAreaInsets();
 
+  // ile miejsca od góry zostawiamy na logo (responsywnie)
+  const CONTENT_TOP = Math.max(insets.top + 280, 320); // px
+
   const handleActivity = () => setModalVisible(true);
   const handleModalConfirm = () => {
     setModalVisible(false);
@@ -32,8 +38,38 @@ export default function Home() {
     router.replace("/Login");
   };
 
-  // ile miejsca od góry zostawiamy na logo (responsywnie)
-  const CONTENT_TOP = Math.max(insets.top + 280, 320); // px
+  useEffect(() => {
+    const requestLocation = async () => {
+      try {
+        const { status: existingStatus } = await Location.getForegroundPermissionsAsync();
+
+        if (existingStatus !== "granted") {
+          const { status } = await Location.requestForegroundPermissionsAsync();
+
+          if (status !== "granted") {
+            Alert.alert(
+              "Dostęp do lokalizacji",
+              "Aby aplikacja mogła pokazywać wydarzenia w Twojej okolicy, przyznaj dostęp do lokalizacji.",
+              [
+                { text: "Ustawienia", onPress: () => Linking.openSettings() },
+                { text: "Anuluj", style: "cancel" },
+              ]
+            );
+            return;
+          }
+        }
+
+        const location = await Location.getCurrentPositionAsync({});
+        console.log("📍 Aktualna lokalizacja:", location.coords);
+      } catch (error) {
+        console.log("❌ Błąd pobierania lokalizacji:", error);
+      }
+    };
+
+    // małe opóźnienie, żeby mieć pewność, że UI już działa
+    const timer = setTimeout(requestLocation, 1200);
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
     <KeyboardAvoidingView
@@ -45,7 +81,7 @@ export default function Home() {
           source={require("@/assets/images/meetOn.png")}
           style={styles.backgroundImage}
           resizeMode="cover"
-          imageStyle={styles.backgroundImageInner} // <— przesunięcie tła w górę
+          imageStyle={styles.backgroundImageInner}
         >
           <View style={[styles.overlay, { paddingTop: CONTENT_TOP }]}>
             <Text style={styles.greeting}>Cześć</Text>
@@ -60,13 +96,6 @@ export default function Home() {
             <TouchableOpacity style={styles.button} onPress={handleActivity}>
               <Text style={styles.buttonText}>Przeglądaj aktywności</Text>
             </TouchableOpacity>
-
-            {/* <TouchableOpacity
-              style={[styles.button, { backgroundColor: "#888", marginTop: 12 }]}
-              onPress={handleLogout}
-            >
-              <Text style={styles.buttonText}>Wyloguj się</Text>
-            </TouchableOpacity> */}
           </View>
 
           {/* Modal */}

@@ -9,12 +9,12 @@ const LOGO_TOP = Platform.select({
   ios: isSmallDevice ? 28 : 48,
   android: isSmallDevice ? 16 : 32,
 })!;
-
+const LOGO_SHIFT_Y = H / 6;
 // skala formularza (−1/3 => ~66.7%)
 const FORM_SCALE = 0.9;
 
 // przesunięcie formularza o 1/5 wysokości ekranu w dół
-const FORM_SHIFT_Y = H * 0.1;
+const FORM_SHIFT_Y = H * 0.05;
 
 // bazowe „bottom” z poprzednich ustawień
 const BASE_BOTTOM = Platform.select({
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   // ───────── LOGO ─────────
   logoWrap: {
     position: "absolute",
-    top: LOGO_TOP,
+    top: LOGO_TOP + LOGO_SHIFT_Y + 50, // ↓ przesunięcie o 50px w dół
     left: 0,
     right: 0,
     alignItems: "center",

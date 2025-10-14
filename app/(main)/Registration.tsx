@@ -1,3 +1,4 @@
+import React from "react";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { router } from "expo-router";
 import { useRef, useState } from "react";
@@ -16,6 +17,7 @@ import {
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import styles from "../../styles/Registration.styles";
+
 
 interface FormData {
   email: string;
@@ -111,7 +113,7 @@ const Registration = () => {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <TouchableWithoutFeedback >
       <View style={{ flex: 1, backgroundColor: "#0d1a4d" }}>
         <View style={{ alignItems: "center", marginTop: 40 }}>
           <Image

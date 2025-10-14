@@ -2,18 +2,10 @@ import { Platform, AppState } from "react-native";
 import Constants from "expo-constants";
 import * as Notifications from "expo-notifications";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { initializeApp, getApp, getApps } from "firebase/app";
-import { getMessaging, getToken, onMessage } from "firebase/messaging";
 
-// Typy tokenów
-type Tokens = { expoToken: string | null; fcmToken: string | null; apnsToken: string | null };
+type Tokens = { expoToken: string | null; apnsToken: string | null };
 
 const LAST_SENT_KEY = "lastSentPushTokens_v2";
-
-// Inicjalizacja Firebase
-const firebaseConfig = Constants.expoConfig?.extra?.firebase;
-const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
-const messaging = getMessaging(app);
 
 async function askPermissions(): Promise<boolean> {
   const { status: existing } = await Notifications.getPermissionsAsync();
@@ -26,27 +18,22 @@ async function askPermissions(): Promise<boolean> {
 }
 
 async function getTokens(): Promise<Tokens> {
-  const ownership = Constants.appOwnership; // 'expo' | 'standalone'
   const projectId =
     (Constants as any)?.expoConfig?.extra?.eas?.projectId ??
     (Constants as any)?.easConfig?.projectId;
 
-  // ✅ Expo token (do testów lub fallbacku)
+  // ✅ Expo push token
   let expoToken: string | null = null;
   try {
     if (projectId) {
       const t = await Notifications.getExpoPushTokenAsync({ projectId });
       expoToken = t.data ?? null;
     }
-  } catch {}
+  } catch (e) {
+    console.warn("Expo token error", e);
+  }
 
-  // ✅ Firebase Cloud Messaging token
-  let fcmToken: string | null = null;
-  try {
-    fcmToken = await getToken(messaging);
-  } catch {}
-
-  // ✅ APNS token (dla iOS)
+  // ✅ APNS token dla iOS
   let apnsToken: string | null = null;
   try {
     if (Platform.OS === "ios") {
@@ -56,7 +43,7 @@ async function getTokens(): Promise<Tokens> {
     }
   } catch {}
 
-  return { expoToken, fcmToken, apnsToken };
+  return { expoToken, apnsToken };
 }
 
 async function sendToBackend(userId: number, tokens: Tokens) {
@@ -66,7 +53,6 @@ async function sendToBackend(userId: number, tokens: Tokens) {
     body: JSON.stringify({
       userId,
       token: tokens.expoToken,
-      fcmToken: tokens.fcmToken,
       apnsToken: tokens.apnsToken,
       platform: Platform.OS,
       ownership: Constants.appOwnership,
@@ -76,11 +62,7 @@ async function sendToBackend(userId: number, tokens: Tokens) {
 }
 
 function shouldSendAgain(prev: any, next: any) {
-  return (
-    prev?.expoToken !== next.expoToken ||
-    prev?.fcmToken !== next.fcmToken ||
-    prev?.apnsToken !== next.apnsToken
-  );
+  return prev?.expoToken !== next.expoToken || prev?.apnsToken !== next.apnsToken;
 }
 
 /** Wołaj przy starcie aplikacji i po zalogowaniu. */
@@ -100,12 +82,6 @@ export async function registerPushToken(userId: number) {
 
 /** Subskrybuj odświeżanie tokenu i powrót aplikacji z tła */
 export function subscribeTokenRefresh(userId: number) {
-  // 🔔 Foreground listener (np. pushy danych)
-  const unsub = onMessage(messaging, async (message) => {
-    console.log("Foreground message:", message);
-  });
-
-  // Recheck przy powrocie z tła
   const appStateHandler = async (state: string) => {
     if (state === "active") {
       await registerPushToken(userId);
@@ -114,7 +90,6 @@ export function subscribeTokenRefresh(userId: number) {
   const sub = AppState.addEventListener("change", appStateHandler);
 
   return () => {
-    unsub();
     sub.remove();
   };
 }

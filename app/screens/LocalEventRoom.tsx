@@ -336,7 +336,6 @@ const LocalEventRoom = () => {
             <ChatBox messages={messages} onSend={handleSendMessage} />
           </View>
 
-          {/* MODAL: pełne dane twórcy */}
           <Modal
             visible={isCreatorDescModalVisible}
             animationType="fade"

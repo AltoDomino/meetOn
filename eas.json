@@ -7,6 +7,7 @@
     "preview": {
       "developmentClient": false,
       "distribution": "internal",
+      "channel": "preview",
       "android": { "buildType": "apk" },
       "ios": { "simulator": false },
       "env": {
@@ -18,6 +19,7 @@
     "production": {
       "developmentClient": false,
       "distribution": "store",
+      "channel": "production",
       "android": { "buildType": "app-bundle" },
       "ios": { "simulator": false },
       "env": {
@@ -29,8 +31,9 @@
     "dev-client": {
       "developmentClient": true,
       "distribution": "internal",
+      "channel": "dev",
       "android": { "buildType": "apk" },
-      "ios": { "simulator": true },
+      "ios": { "simulator": false },
       "env": {
         "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON",
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "@EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID",

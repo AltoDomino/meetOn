@@ -1,5 +1,5 @@
 
-import { StyleSheet } from "react-native";
+import { Platform, StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
   container: {
@@ -89,9 +89,11 @@ export const styles = StyleSheet.create({
     marginTop: 10,
   },
   chatContainer: {
-    flex: 1,
-    justifyContent: "flex-end",
-    marginTop: 12,
-    paddingBottom: 8,
-  },
+    marginTop: 10,
+    paddingBottom: Platform.select({
+      ios: 50,
+      android: 80,
+      default: 60,
+    }),
+  }
 });

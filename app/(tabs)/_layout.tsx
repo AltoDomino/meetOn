@@ -1,3 +1,5 @@
+// app/(tabs)/index.tsx
+import React, { useEffect, useState } from "react";
 import {
   registerPushToken,
   subscribeTokenRefresh,
@@ -5,7 +7,6 @@ import {
 import { useNotificationListener } from "@/utilis/useNotificationListener";
 import * as Notifications from "expo-notifications";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Image,
@@ -27,23 +28,18 @@ export default function Index() {
   const [notification, setNotification] = useState<any>(null);
   const [visible, setVisible] = useState(false);
 
-  // ✅ hook wołamy na górze, nie w useEffect
   useNotificationListener();
 
   useEffect(() => {
     if (!userId) return;
 
-    // Rejestracja tokenów i subskrypcja refreshu
     registerPushToken(userId);
     const unsubTokenRefresh = subscribeTokenRefresh(userId);
 
-    // Obsługa niestandardowego modala
-    const subscription = Notifications.addNotificationReceivedListener(
-      (notif) => {
-        setNotification(notif);
-        setVisible(true);
-      }
-    );
+    const subscription = Notifications.addNotificationReceivedListener((notif) => {
+      setNotification(notif);
+      setVisible(true);
+    });
 
     return () => {
       subscription.remove();
@@ -51,7 +47,7 @@ export default function Index() {
     };
   }, [userId]);
 
-  // 🔍 Sprawdzanie stanu użytkownika (czy jest w wydarzeniu lub ma zainteresowania)
+  // 🔍 Sprawdź stan użytkownika
   useEffect(() => {
     if (userId === undefined) return;
 
@@ -62,9 +58,7 @@ export default function Index() {
 
     const checkUserState = async () => {
       try {
-        const eventRes = await fetch(
-          `${BACKEND_URL}/api/event/joined?userId=${userId}`
-        );
+        const eventRes = await fetch(`${BACKEND_URL}/api/event/joined?userId=${userId}`);
         const events = await eventRes.json();
 
         if (events.length > 0) {
@@ -83,9 +77,7 @@ export default function Index() {
           }
         }
 
-        const interestsRes = await fetch(
-          `${BACKEND_URL}/api/interests/${userId}`
-        );
+        const interestsRes = await fetch(`${BACKEND_URL}/api/interests/${userId}`);
         const interests = await interestsRes.json();
 
         if (!interests || interests.length === 0) {
@@ -166,9 +158,7 @@ export default function Index() {
                 borderRadius: 8,
               }}
             >
-              <Text style={{ color: "white", fontWeight: "bold" }}>
-                SPRAWDŹ
-              </Text>
+              <Text style={{ color: "white", fontWeight: "bold" }}>SPRAWDŹ</Text>
             </Pressable>
           </View>
         </View>

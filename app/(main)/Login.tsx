@@ -111,7 +111,7 @@ const Login = () => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <ImageBackground
         source={require("@/assets/images/meetOn.png")}
-        style={[styles.background, { marginTop: -screenHeight * 0.4 }]}
+        style={[styles.background, { marginTop: -screenHeight * 0.2 }]}
         resizeMode="contain"
       >
         <View style={styles.centeredContainer}>

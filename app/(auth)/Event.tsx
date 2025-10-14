@@ -15,6 +15,7 @@ import {
 import { useActivity } from "../../context/ActivityContext";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/Event.styles";
+import React from "react";
 
 const BACKEND_URL = "https://meeton-backend-ffmo.onrender.com";
 const UNLIMITED_RADIUS = 9999;
