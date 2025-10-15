@@ -1,4 +1,4 @@
-// Top-level build file where you can add configuration options common to all sub-projects/modules.
+// Top-level build file
 
 buildscript {
   repositories {
@@ -6,9 +6,10 @@ buildscript {
     mavenCentral()
   }
   dependencies {
-    classpath('com.android.tools.build:gradle')
-    classpath('com.facebook.react:react-native-gradle-plugin')
-    classpath('org.jetbrains.kotlin:kotlin-gradle-plugin')
+    // ✅ Wersje kompatybilne z Expo SDK 54
+    classpath("com.android.tools.build:gradle:8.11.0")
+    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21")
+    classpath("com.facebook.react:react-native-gradle-plugin")
   }
 }
 
@@ -20,5 +21,6 @@ allprojects {
   }
 }
 
+// ✅ Te dwa pluginy zostaw jak są
 apply plugin: "expo-root-project"
 apply plugin: "com.facebook.react.rootproject"
