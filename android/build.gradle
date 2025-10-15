@@ -1,14 +1,23 @@
 // Top-level build file
 
 buildscript {
+  ext {
+    buildToolsVersion = "36.0.0"
+    minSdkVersion = 24
+    compileSdkVersion = 35
+    targetSdkVersion = 35
+    ndkVersion = "27.1.12297006"
+    kotlinVersion = "2.0.21"
+  }
+
   repositories {
     google()
     mavenCentral()
   }
+
   dependencies {
-    // ✅ Wersje kompatybilne z Expo SDK 54
     classpath("com.android.tools.build:gradle:8.11.0")
-    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.21")
+    classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlinVersion")
     classpath("com.facebook.react:react-native-gradle-plugin")
   }
 }
@@ -21,6 +30,5 @@ allprojects {
   }
 }
 
-// ✅ Te dwa pluginy zostaw jak są
 apply plugin: "expo-root-project"
 apply plugin: "com.facebook.react.rootproject"
