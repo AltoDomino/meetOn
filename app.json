@@ -20,10 +20,7 @@
         "backgroundColor": "#01032f"
       },
       "edgeToEdgeEnabled": true,
-      "permissions": [
-        "NOTIFICATIONS",
-        "ACCESS_FINE_LOCATION"
-      ],
+      "permissions": ["NOTIFICATIONS", "ACCESS_FINE_LOCATION"],
       "softwareKeyboardLayoutMode": "pan"
     },
     "ios": {
@@ -68,9 +65,12 @@
             "buildLibraryForDistribution": true
           },
           "android": {
-            "kotlinVersion": "2.0.21",
+            "kotlinVersion": "1.9.24",
+            "gradlePluginVersion": "8.11.0",
+            "gradleVersion": "8.14.3",
             "compileSdkVersion": 35,
             "targetSdkVersion": 35,
+            "buildToolsVersion": "36.0.0",
             "minSdkVersion": 24
           }
         }
