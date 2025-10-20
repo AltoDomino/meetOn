@@ -1,17 +1,14 @@
-// login.tsx
 import { loadActivities } from "../../utilis/activityStoarage";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
   Alert,
   Dimensions,
-  Image,
   ImageBackground,
   Keyboard,
   Modal,
-  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -22,84 +19,12 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import styles from "../../styles/Login.styles";
 
-/* ➕ AUTH PROVIDERS */
-import * as AppleAuthentication from "expo-apple-authentication";
-import * as Google from "expo-auth-session/providers/google";
-import * as WebBrowser from "expo-web-browser";
-WebBrowser.maybeCompleteAuthSession();
-
 interface FormData {
   email: string;
   password: string;
 }
 
 const BACKEND_URL = "https://meeton-backend-ffmo.onrender.com";
-
-/** ─────────────────────────────────────────────────────────────
- *  Bezpieczny przycisk Google
- *  ──────────────────────────────────────────────────────────── */
-const googleIcon = require("@/assets/images/google.png");
-
-function GoogleButton({
-  disabled,
-  onToken,
-}: {
-  disabled?: boolean;
-  onToken: (idToken: string) => void;
-}) {
-  const iosId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID;
-  const androidId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID;
-  const webId = process.env.EXPO_PUBLIC_GOOGLE_WEB_CLIENT_ID;
-
-  if (
-    (Platform.OS === "ios" && !iosId) ||
-    (Platform.OS === "android" && !androidId)
-  ) {
-    return null;
-  }
-
-  const config =
-    Platform.OS === "ios"
-      ? { iosClientId: iosId! }
-      : Platform.OS === "android"
-      ? { androidClientId: androidId! }
-      : webId
-      ? { webClientId: webId }
-      : {};
-
-  const [request, response, promptAsync] = Google.useAuthRequest(config);
-
-  useEffect(() => {
-    if (response?.type === "success") {
-      const idToken =
-        (response as any)?.params?.id_token ??
-        (response as any)?.authentication?.idToken;
-      if (idToken) onToken(idToken);
-    }
-  }, [response, onToken]);
-
-  return (
-    <TouchableOpacity
-      style={[
-        styles.socialBtn,
-        styles.googleBtn,
-        (!request || disabled) && { opacity: 0.6 },
-      ]}
-      disabled={!request || disabled}
-      onPress={() => promptAsync()}
-      activeOpacity={0.85}
-    >
-      <View style={g.row}>
-        <Image
-          source={googleIcon}
-          style={[g.icon, { marginRight: 8 }]}
-          resizeMode="contain"
-        />
-        <Text style={styles.googleText}>Kontynuuj z Google</Text>
-      </View>
-    </TouchableOpacity>
-  );
-}
 
 const Login = () => {
   const {
@@ -116,15 +41,6 @@ const Login = () => {
   const screenHeight = Dimensions.get("window").height;
   const [loading, setLoading] = useState(false);
 
-  /* ➕ Apple Sign-In dostępny (iOS) */
-  const [appleAvailable, setAppleAvailable] = useState(false);
-  useEffect(() => {
-    AppleAuthentication.isAvailableAsync()
-      .then(setAppleAvailable)
-      .catch(() => setAppleAvailable(false));
-  }, []);
-
-  /* 🔁 wspólna post-autoryzacja */
   const afterAuthSuccess = async (data: any) => {
     await setToken(data.token ?? null);
     await setUserName(data.userName);
@@ -153,7 +69,6 @@ const Login = () => {
     }
   };
 
-  /* 🔐 klasyczny submit */
   const onSubmit = async (dataLog: FormData) => {
     if (loading) return;
     try {
@@ -192,54 +107,11 @@ const Login = () => {
     }
   };
 
-  /* ▶️ Apple */
-  const handleApplePress = async () => {
-    if (loading) return;
-    try {
-      setLoading(true);
-      const credential = await AppleAuthentication.signInAsync({
-        requestedScopes: [
-          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
-          AppleAuthentication.AppleAuthenticationScope.EMAIL,
-        ],
-      });
-
-      if (!credential.identityToken) {
-        Alert.alert("Błąd", "Brak identityToken od Apple.");
-        return;
-      }
-
-      const res = await fetch(`${BACKEND_URL}/api/login/apple`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ idToken: credential.identityToken }),
-      });
-
-      if (!res.ok) {
-        const msg = await res.text().catch(() => "");
-        Alert.alert(
-          "Logowanie Apple nie powiodło się",
-          msg || `HTTP ${res.status}`
-        );
-        return;
-      }
-
-      const data = await res.json();
-      await afterAuthSuccess(data);
-    } catch (e: any) {
-      if (e?.code === "ERR_CANCELED") return; // użytkownik anulował
-      console.log("Apple login error:", e);
-      Alert.alert("Błąd", "Nie udało się zalogować przez Apple.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
       <ImageBackground
         source={require("@/assets/images/meetOn.png")}
-        style={[styles.background, { marginTop: -screenHeight * 0.4 }]}
+        style={[styles.background, { marginTop: -screenHeight * 0.3 }]}
         resizeMode="contain"
       >
         <View style={styles.centeredContainer}>
@@ -310,73 +182,10 @@ const Login = () => {
                 ZAREJESTRUJ SIĘ
               </Text>
             </TouchableOpacity>
-
-            {/* ───────── separator ───────── */}
-            <View style={styles.separatorRow}>
-              <View style={styles.separatorLine} />
-              <Text style={styles.separatorText}>lub</Text>
-              <View style={styles.separatorLine} />
-            </View>
-
-            {/* ───────── social buttons ───────── */}
-            <View style={styles.socialColumn}>
-              <GoogleButton
-                disabled={loading}
-                onToken={async (idToken) => {
-                  try {
-                    setLoading(true);
-                    const res = await fetch(`${BACKEND_URL}/api/login/google`, {
-                      method: "POST",
-                      headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ idToken }),
-                    });
-                    if (!res.ok) {
-                      const msg = await res.text().catch(() => "");
-                      Alert.alert(
-                        "Logowanie Google nie powiodło się",
-                        msg || `HTTP ${res.status}`
-                      );
-                      return;
-                    }
-                    const data = await res.json();
-                    await afterAuthSuccess(data);
-                  } catch (e) {
-                    console.log("Google login error:", e);
-                    Alert.alert(
-                      "Błąd",
-                      "Nie udało się zalogować przez Google."
-                    );
-                  } finally {
-                    setLoading(false);
-                  }
-                }}
-              />
-
-              {/* Apple (iOS) */}
-              {Platform.OS === "ios" && appleAvailable && (
-                <AppleAuthentication.AppleAuthenticationButton
-                  buttonType={
-                    AppleAuthentication.AppleAuthenticationButtonType.SIGN_IN
-                  }
-                  buttonStyle={
-                    AppleAuthentication.AppleAuthenticationButtonStyle.BLACK
-                  }
-                  cornerRadius={8}
-                  style={styles.appleBtn}
-                  onPress={handleApplePress}
-                />
-              )}
-            </View>
           </View>
         </View>
 
-        {/* Overlay z loaderem */}
-        <Modal
-          transparent
-          visible={loading}
-          animationType="fade"
-          statusBarTranslucent
-        >
+        <Modal transparent visible={loading} animationType="fade">
           <View
             style={{
               flex: 1,
@@ -410,17 +219,3 @@ const Login = () => {
 };
 
 export default Login;
-
-
-const g = StyleSheet.create({
-  row: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center", 
-  },
-  icon: {
-    width: 24,
-    height: 24,
-  },
-});
-

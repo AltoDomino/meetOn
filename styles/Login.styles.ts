@@ -14,7 +14,7 @@ const LOGO_TOP = Platform.select({
 const FORM_SCALE = 0.9;
 
 // przesunięcie formularza o 1/5 wysokości ekranu w dół
-const FORM_SHIFT_Y = H * 0.1;
+const FORM_SHIFT_Y = H * 0.01;
 
 // bazowe „bottom” z poprzednich ustawień
 const BASE_BOTTOM = Platform.select({

@@ -33,7 +33,7 @@ export default function Home() {
   };
 
   // ile miejsca od góry zostawiamy na logo (responsywnie)
-  const CONTENT_TOP = Math.max(insets.top + 280, 320); // px
+  const CONTENT_TOP = Math.max(insets.top + 280, 320);
 
   return (
     <KeyboardAvoidingView
@@ -44,11 +44,10 @@ export default function Home() {
         <ImageBackground
           source={require("@/assets/images/meetOn.png")}
           style={styles.backgroundImage}
-          resizeMode="cover"
-          imageStyle={styles.backgroundImageInner} // <— przesunięcie tła w górę
+          imageStyle={styles.backgroundImageInner} // 👈 dodane — kontrola wielkości tła
         >
           <View style={[styles.overlay, { paddingTop: CONTENT_TOP }]}>
-            <Text style={styles.greeting}>Cześć</Text>
+            <Text style={styles.greeting}>Hej</Text>
             <Text style={styles.greetingUser}>{userName}! 👋</Text>
             <Text style={styles.header}>Włącz aktywność</Text>
 
@@ -60,16 +59,8 @@ export default function Home() {
             <TouchableOpacity style={styles.button} onPress={handleActivity}>
               <Text style={styles.buttonText}>Przeglądaj aktywności</Text>
             </TouchableOpacity>
-
-            {/* <TouchableOpacity
-              style={[styles.button, { backgroundColor: "#888", marginTop: 12 }]}
-              onPress={handleLogout}
-            >
-              <Text style={styles.buttonText}>Wyloguj się</Text>
-            </TouchableOpacity> */}
           </View>
 
-          {/* Modal */}
           <Modal
             animationType="fade"
             transparent

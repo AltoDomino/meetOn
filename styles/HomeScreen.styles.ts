@@ -1,17 +1,19 @@
-import { StyleSheet } from "react-native";
+import { StyleSheet, Dimensions } from "react-native";
+
+const { height } = Dimensions.get("window");
 
 export const styles = StyleSheet.create({
   // pełnoekranowe tło z logo
   backgroundImage: {
     flex: 1,
     width: "100%",
-    height: "100%",
+    height: height * 0.67, // 👈 pomniejszone o ok. 1/3
     backgroundColor: "#01032f",
   },
-  // przesunięcie obrazu tła w górę
+
+  // obraz ma się mieścić w całości
   backgroundImageInner: {
-    top: -90,
-    transform: [{ scale: 1 }]
+    resizeMode: "contain", // 👈 NIE przycina boków, pokazuje całe logo
   },
 
   // kontener na treść
@@ -20,21 +22,22 @@ export const styles = StyleSheet.create({
     alignItems: "center",
     paddingHorizontal: 20,
     backgroundColor: "transparent",
+    marginTop: "30%", // 👈 przesuwa treść nieco niżej
   },
 
   greeting: {
-    fontSize: 80,
+    fontSize: 44,
+    marginTop: -50,
     color: "#B0DFFF",
-    marginTop: -40, // przesunięcie w górę
   },
   greetingUser: {
-    fontSize: 60,
+    fontSize: 44,
     color: "#B0DFFF",
     fontWeight: "bold",
-    marginTop: -5, // lekkie przesunięcie w górę
+    marginTop: -5,
   },
   header: {
-    fontSize: 35,
+    fontSize: 32,
     fontWeight: "700",
     color: "#00E6FB",
     marginBottom: 16,
@@ -53,6 +56,7 @@ export const styles = StyleSheet.create({
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 3,
   },
+
   button: {
     backgroundColor: "#00C1F3",
     paddingVertical: 14,

@@ -12,85 +12,82 @@ const styles = StyleSheet.create({
 
   centeredContainer: {
     flex: 1,
+    justifyContent: "center", // 👈 wyśrodkowanie w pionie
+    alignItems: "center", // 👈 wyśrodkowanie w poziomie
     paddingHorizontal: 20,
-    paddingTop: 10,
     backgroundColor: "#0d1a4d",
   },
 
   logo: {
-    width: 100, // zmniejszone
-    height: 50, // zmniejszone
+    width: 85, // było 100 → -15%
+    height: 42, // było 50 → -15%
     marginBottom: 20,
-    backgroundColor: "transparent"
+    backgroundColor: "transparent",
   },
 
   formContainer: {
-    position: "absolute",
-    bottom: isAndroid ? 100 : 100,
-    left: isAndroid ? 40 : 30,
-    right: isAndroid ? 40 : 30,
+    width: "85%", // było ~90-100% — mniejsze i wyśrodkowane
     backgroundColor: "rgba(243, 243, 243, 0.08)",
-    borderTopLeftRadius: isAndroid ? 10 : 12,
-    borderTopRightRadius: isAndroid ? 10 : 12,
-    padding: isAndroid ? 14 : 20,
+    borderRadius: 14,
+    padding: isAndroid ? 12 : 16, // było 14–20 → zmniejszone ~20%
     shadowOpacity: 0.3,
-    shadowOffset: { width: 0, height: -2 },
-    shadowRadius: isAndroid ? 6 : 8,
-    elevation: isAndroid ? 8 : 10,
+    shadowOffset: { width: 0, height: 3 },
+    shadowRadius: isAndroid ? 5 : 6,
+    elevation: 6,
   },
 
   input: {
-    height: isAndroid ? 44 : 50,
+    height: isAndroid ? 40 : 44, // - ok. 20%
     borderColor: "#ccc",
     borderWidth: 1,
-    borderRadius: isAndroid ? 10 : 12,
-    paddingHorizontal: 16,
-    marginBottom: 16,
-    fontSize: 16,
+    borderRadius: 10,
+    paddingHorizontal: 12, // było 16
+    marginBottom: 14, // było 16
+    fontSize: 15, // było 16
     backgroundColor: "#fff",
   },
 
   label: {
-    fontSize: 16,
+    fontSize: 15, // było 16
     marginBottom: 4,
     color: "#fff",
     fontWeight: "600",
   },
 
   genderPicker: {
-    fontSize: 16,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    fontSize: 15,
+    paddingVertical: 10, // było 12
+    paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: "#ccc",
-    borderRadius: 12,
-    paddingRight: 30,
-    marginBottom: 16,
+    borderRadius: 10,
+    paddingRight: 25, // było 30
+    marginBottom: 14, // było 16
     backgroundColor: "#fff",
     color: "#000",
   },
 
   button: {
     backgroundColor: "#00A9F4",
-    paddingVertical: 14,
-    borderRadius: 12,
+    paddingVertical: 12, // było 14
+    borderRadius: 10,
     alignItems: "center",
-    marginTop: 16,
+    marginTop: 14,
   },
 
   buttonText: {
     color: "#fff",
-    fontSize: 16,
+    fontSize: 15, // było 16
     fontWeight: "bold",
   },
 
   link: {
-    marginTop: 28,
+    marginTop: 22, // było 28
     alignItems: "center",
   },
 
   linkText: {
-    fontSize: 16,
+    fontSize: 15,
     color: "#00A9F4",
     fontWeight: "500",
   },
