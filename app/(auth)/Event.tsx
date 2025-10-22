@@ -15,8 +15,7 @@ import {
 import { useActivity } from "../../context/ActivityContext";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/Event.styles";
-
-const BACKEND_URL = "https://meeton-backend-ffmo.onrender.com";
+import { backend_URL } from "@/backendURL";
 const UNLIMITED_RADIUS = 9999;
 export type Event = {
   spots: number;
@@ -97,7 +96,7 @@ export default function Events() {
         if (!userId) return;
         try {
           const res = await fetch(
-            `${BACKEND_URL}/api/event/joined?userId=${userId}`
+            `${backend_URL}/api/event/joined?userId=${userId}`
           );
           const events = await res.json();
           const joinedEvent = events.find(
@@ -125,7 +124,7 @@ export default function Events() {
   const fetchEvents = async () => {
     if (!userId || !locationCoords) return;
     try {
-      const url = `${BACKEND_URL}/api/events?userId=${userId}&minDistance=${distanceFilter.min}&distance=${distanceFilter.max}&latitude=${locationCoords.latitude}&longitude=${locationCoords.longitude}`;
+      const url = `${backend_URL}/api/events?userId=${userId}&minDistance=${distanceFilter.min}&distance=${distanceFilter.max}&latitude=${locationCoords.latitude}&longitude=${locationCoords.longitude}`;
       const res = await fetch(url);
       const data = await res.json();
       const now = new Date();
@@ -162,7 +161,7 @@ export default function Events() {
   const joinEvent = async (eventId: number) => {
     if (!userId) return;
     try {
-      const res = await fetch(`${BACKEND_URL}/api/join/join`, {
+      const res = await fetch(`${backend_URL}/api/join/join`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userId, eventId }),
@@ -188,7 +187,7 @@ export default function Events() {
     if (!userId) return;
     try {
       const res = await fetch(
-        `${BACKEND_URL}/api/users/${userId}/notification-prefs`,
+        `${backend_URL}/api/users/${userId}/notification-prefs`,
         {
           method: "PUT",
           headers: {
@@ -350,6 +349,13 @@ export default function Events() {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={styles.emptyText}>Brak aktualnych wydarzeń 😞</Text>
+
+              <TouchableOpacity
+                style={styles.createButton}
+                onPress={() => router.push("/(auth)/CreateEvent")} 
+              >
+                <Text style={styles.createButtonText}>STWÓRZ WYDARZENIE</Text>
+              </TouchableOpacity>
             </View>
           }
         />

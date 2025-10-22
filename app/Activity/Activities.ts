@@ -23,7 +23,8 @@ export const activityImages: Record<string, any> = {
 "PADEL": require("../../assets/images/padel.png"),
 "POKER": require("../../assets/images/poker.png"),
 "KONCERT": require("../../assets/images/wyjście-na-koncert.png"),
-
+"GRZYBY": require("../../assets/images/grzyby.png"),
+"RYBY": require("../../assets/images/ryby.png"),
 "STWÓRZ WŁASNE": require("../../assets/images/wlasne.png"),
 
 };

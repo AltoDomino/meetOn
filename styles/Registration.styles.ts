@@ -1,5 +1,6 @@
-import { Platform, StyleSheet } from "react-native";
+import { Platform, StyleSheet, Dimensions } from "react-native";
 
+const { height } = Dimensions.get("window");
 const isAndroid = Platform.OS === "android";
 
 const styles = StyleSheet.create({
@@ -12,10 +13,11 @@ const styles = StyleSheet.create({
 
   centeredContainer: {
     flex: 1,
-    justifyContent: "center", // 👈 wyśrodkowanie w pionie
-    alignItems: "center", // 👈 wyśrodkowanie w poziomie
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 20,
     backgroundColor: "#0d1a4d",
+    transform: [{ translateY: -height * 0.03 }], // 👈 przesunięcie w górę o 1/4 ekranu
   },
 
   logo: {
@@ -26,10 +28,10 @@ const styles = StyleSheet.create({
   },
 
   formContainer: {
-    width: "85%", // było ~90-100% — mniejsze i wyśrodkowane
+    width: "85%", // było ~90-100%
     backgroundColor: "rgba(243, 243, 243, 0.08)",
     borderRadius: 14,
-    padding: isAndroid ? 12 : 16, // było 14–20 → zmniejszone ~20%
+    padding: isAndroid ? 12 : 16,
     shadowOpacity: 0.3,
     shadowOffset: { width: 0, height: 3 },
     shadowRadius: isAndroid ? 5 : 6,
@@ -37,18 +39,18 @@ const styles = StyleSheet.create({
   },
 
   input: {
-    height: isAndroid ? 40 : 44, // - ok. 20%
+    height: isAndroid ? 40 : 44,
     borderColor: "#ccc",
     borderWidth: 1,
     borderRadius: 10,
-    paddingHorizontal: 12, // było 16
-    marginBottom: 14, // było 16
-    fontSize: 15, // było 16
+    paddingHorizontal: 12,
+    marginBottom: 8,
+    fontSize: 15,
     backgroundColor: "#fff",
   },
 
   label: {
-    fontSize: 15, // było 16
+    fontSize: 15,
     marginBottom: 4,
     color: "#fff",
     fontWeight: "600",
@@ -56,20 +58,20 @@ const styles = StyleSheet.create({
 
   genderPicker: {
     fontSize: 15,
-    paddingVertical: 10, // było 12
+    paddingVertical: 10,
     paddingHorizontal: 12,
     borderWidth: 1,
     borderColor: "#ccc",
     borderRadius: 10,
-    paddingRight: 25, // było 30
-    marginBottom: 14, // było 16
+    paddingRight: 25,
+    marginBottom: 14,
     backgroundColor: "#fff",
     color: "#000",
   },
 
   button: {
     backgroundColor: "#00A9F4",
-    paddingVertical: 12, // było 14
+    paddingVertical: 12,
     borderRadius: 10,
     alignItems: "center",
     marginTop: 14,
@@ -77,12 +79,12 @@ const styles = StyleSheet.create({
 
   buttonText: {
     color: "#fff",
-    fontSize: 15, // było 16
+    fontSize: 15,
     fontWeight: "bold",
   },
 
   link: {
-    marginTop: 22, // było 28
+    marginTop: 22,
     alignItems: "center",
   },
 

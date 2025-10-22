@@ -35,15 +35,17 @@
       ]
     },
 
-    "ios": {
-      "supportsTablet": true,
-      "bundleIdentifier": "com.domino96.meetOn",
-      "googleServicesFile": "./GoogleService-Info.plist",
-      "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false,
-        "NSLocationWhenInUseUsageDescription": "Aplikacja potrzebuje Twojej lokalizacji, aby pokazać wydarzenia w pobliżu."
-      }
-    },
+"ios": {
+  "supportsTablet": true,
+  "bundleIdentifier": "com.domino96.meetOn",
+  "googleServicesFile": "./GoogleService-Info.plist",
+  "infoPlist": {
+    "ITSAppUsesNonExemptEncryption": false,
+    "NSLocationWhenInUseUsageDescription": "Aplikacja potrzebuje Twojej lokalizacji, aby pokazać wydarzenia w pobliżu."
+  },
+  "icon": "./assets/images/meetonikonaIOS.png"
+},
+
 
     "web": {
       "bundler": "metro",

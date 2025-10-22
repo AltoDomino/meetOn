@@ -27,7 +27,7 @@ export const styles = StyleSheet.create({
 
   greeting: {
     fontSize: 44,
-    marginTop: -50,
+    marginTop: -130,
     color: "#B0DFFF",
   },
   greetingUser: {

@@ -13,6 +13,30 @@ const colors = {
 };
 
 export const styles = StyleSheet.create({
+    emptyContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
+    padding: 40,
+  },
+  emptyText: {
+    fontSize: 16,
+    color: "#555",
+    marginBottom: 20,
+  },
+  createButton: {
+    backgroundColor: "#007BFF",
+    paddingVertical: 14,
+    paddingHorizontal: 24,
+    borderRadius: 10,
+    elevation: 3,
+  },
+  createButtonText: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "bold",
+    textTransform: "uppercase",
+  },
   container: {
     flex: 1,
     backgroundColor: colors.bg,
@@ -155,15 +179,4 @@ export const styles = StyleSheet.create({
     fontSize: 14,
   },
 
-emptyContainer: {
-  minHeight: 300, 
-  justifyContent: "center",
-  alignItems: "center",
-  paddingHorizontal: 20,
-},
-emptyText: {
-  fontSize: 16,
-  color: colors.muted,
-  textAlign: "center",
-},
 });
