@@ -15,7 +15,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  Image, // ✅ dodany poprawny import
+  Image,
 } from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import styles from "../../styles/Login.styles";
@@ -46,14 +46,13 @@ const Login = () => {
   const screenHeight = Dimensions.get("window").height;
   const [loading, setLoading] = useState(false);
 
-  // 🔹 Google Sign-In konfiguracja
   const [request, response, promptAsync] = Google.useAuthRequest({
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
     webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID!,
   });
 
-  // 🔹 Po zalogowaniu – wspólna logika
+  // 🔹 Główna logika po udanym logowaniu (dowolna metoda)
   const afterAuthSuccess = async (data: any) => {
     await setToken(data.token ?? null);
     await setUserName(data.userName);
@@ -62,9 +61,7 @@ const Login = () => {
     await setDescription(data.description || "");
 
     const interestsRes = await fetch(`${backend_URL}/api/interests/${data.userId}`, {
-      headers: data.token
-        ? { Authorization: `Bearer ${data.token}` }
-        : undefined,
+      headers: data.token ? { Authorization: `Bearer ${data.token}` } : undefined,
     });
 
     const interests = interestsRes.ok ? await interestsRes.json() : [];
@@ -72,9 +69,11 @@ const Login = () => {
       await setHasChosenActivities(true);
     }
 
-    const storedActivities = await loadActivities(data.userName);
-    if (storedActivities.length > 0) {
-      router.replace("/(auth)/Event");
+    // 🔹 Nowa logika na podstawie statusu użytkownika
+    if (!data.isPhoneVerified) {
+      router.replace("/(auth)/PhoneVerification");
+    } else if (!data.isRegistrationComplete) {
+      router.replace("/(auth)/CompleteRegistration");
     } else {
       router.replace("/(main)/HomeScreen");
     }
