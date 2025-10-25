@@ -12,6 +12,7 @@
   <uses-permission android:name="android.permission.VIBRATE" />
   <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
 
+  <!-- 🌐 Zapytania o intencje -->
   <queries>
     <intent>
       <action android:name="android.intent.action.VIEW" />
@@ -32,7 +33,7 @@
       android:fullBackupContent="@xml/secure_store_backup_rules"
       android:dataExtractionRules="@xml/secure_store_data_extraction_rules">
 
-    <!-- ✅ AdMob App ID (z poprawką tools:replace) -->
+    <!-- ✅ AdMob App ID -->
     <meta-data
         android:name="com.google.android.gms.ads.APPLICATION_ID"
         android:value="ca-app-pub-4590930660721541~1689041712"
@@ -46,7 +47,8 @@
 
     <meta-data
         android:name="com.google.firebase.messaging.default_notification_icon"
-        android:resource="@drawable/notification_icon" />
+        android:resource="@drawable/notification_icon"
+        tools:replace="android:resource" />
 
     <!-- 🔔 Expo Notifications -->
     <meta-data

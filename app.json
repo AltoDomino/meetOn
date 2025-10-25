@@ -24,28 +24,83 @@
       },
       "edgeToEdgeEnabled": true,
       "googleServicesFile": "./google-services.json",
-      "permissions": ["NOTIFICATIONS", "ACCESS_FINE_LOCATION"],
       "softwareKeyboardLayoutMode": "pan",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "INTERNET",
+        "POST_NOTIFICATIONS",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE",
+        "RECORD_AUDIO",
+        "SYSTEM_ALERT_WINDOW",
+        "VIBRATE"
+      ],
+      "allowBackup": true,
+      "dataExtractionRules": "@xml/secure_store_data_extraction_rules",
+      "fullBackupContent": "@xml/secure_store_backup_rules",
       "intentFilters": [
         {
           "action": "VIEW",
           "data": [{ "scheme": "meeton" }],
           "category": ["BROWSABLE", "DEFAULT"]
         }
-      ]
+      ],
+      "queries": [
+        {
+          "intent": {
+            "action": "android.intent.action.VIEW",
+            "category": "android.intent.category.BROWSABLE",
+            "data": {
+              "scheme": "https"
+            }
+          }
+        }
+      ],
+      "metaData": [
+        {
+          "android:name": "com.google.firebase.messaging.default_notification_color",
+          "android:resource": "@color/notification_icon_color"
+        },
+        {
+          "android:name": "com.google.firebase.messaging.default_notification_icon",
+          "android:resource": "@drawable/notification_icon"
+        },
+        {
+          "android:name": "expo.modules.notifications.default_notification_color",
+          "android:resource": "@color/notification_icon_color"
+        },
+        {
+          "android:name": "expo.modules.notifications.default_notification_icon",
+          "android:resource": "@drawable/notification_icon"
+        }
+      ],
+      "config": {
+        "googleMobileAdsAppId": "ca-app-pub-4590930660721541~1689041712"
+      }
     },
 
-"ios": {
-  "supportsTablet": true,
-  "bundleIdentifier": "com.domino96.meetOn",
-  "googleServicesFile": "./GoogleService-Info.plist",
-  "infoPlist": {
-    "ITSAppUsesNonExemptEncryption": false,
-    "NSLocationWhenInUseUsageDescription": "Aplikacja potrzebuje Twojej lokalizacji, aby pokazać wydarzenia w pobliżu."
-  },
-  "icon": "./assets/images/meetonikonaIOS.png"
-},
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.domino96.meetOn",
+      "googleServicesFile": "./GoogleService-Info.plist",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "Aplikacja potrzebuje Twojej lokalizacji, aby pokazać wydarzenia w pobliżu."
+      },
+      "icon": "./assets/images/meetonikonaIOS.png"
+    },
 
+    "notification": {
+      "icon": "./assets/images/powiadomienie-meeton.png",
+      "color": "#0d1a4d"
+    },
+
+    "updates": {
+      "enabled": false,
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
+    },
 
     "web": {
       "bundler": "metro",
