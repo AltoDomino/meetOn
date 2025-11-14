@@ -1,16 +1,19 @@
+// ✅ DODAJ TE DWIE LINIE NA SAMĄ GÓRĘ
+import * as WebBrowser from "expo-web-browser";
+WebBrowser.maybeCompleteAuthSession();
+
 // app/_layout.tsx
 import SplashScreenComponent from "@/components/SplashScreen";
+import { usePersistentLocation } from "@/hooks/usePersistentLocation";
 import { useBackExit } from "@/utilis/useBackExit";
+import { useNotificationListener } from "@/utilis/useNotificationListener"; // ✅ zmienione
+import * as Notifications from "expo-notifications";
 import { Slot, SplashScreen } from "expo-router";
 import { useEffect, useState } from "react";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 import { ActivityProvider } from "../context/ActivityContext";
 import { AuthProvider } from "../context/AuthContext";
-import { usePersistentLocation } from "@/hooks/usePersistentLocation";
-import * as Notifications from "expo-notifications";
-import { useNotificationListener } from "@/utilis/useNotificationListener"; // ✅ zmienione
 
-// Globalny handler dla powiadomień (Android/iOS)
 Notifications.setNotificationHandler({
   handleNotification: async () => ({
     shouldShowAlert: true,
@@ -22,7 +25,6 @@ Notifications.setNotificationHandler({
   }),
 });
 
-// Tymczasowe logi diagnostyczne (usuń po testach)
 function useNotifDebugLogs() {
   useEffect(() => {
     const sub1 = Notifications.addNotificationReceivedListener((n) => {
@@ -30,7 +32,10 @@ function useNotifDebugLogs() {
     });
 
     const sub2 = Notifications.addNotificationResponseReceivedListener((r) => {
-      console.log("🟣 [TAP/RESPONSE] notification response:", JSON.stringify(r, null, 2));
+      console.log(
+        "🟣 [TAP/RESPONSE] notification response:",
+        JSON.stringify(r, null, 2)
+      );
     });
 
     return () => {
