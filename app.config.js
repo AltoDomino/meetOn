@@ -5,7 +5,7 @@ module.exports = {
   expo: {
     name: "meetOn",
     slug: "meetOn",
-    version: "1.0.2",
+    version: "1.0.12",
     orientation: "portrait",
     icon: "./assets/images/ikonkameeton.png",
 
@@ -75,19 +75,23 @@ module.exports = {
 
       metaData: [
         {
-          "android:name": "com.google.firebase.messaging.default_notification_color",
+          "android:name":
+            "com.google.firebase.messaging.default_notification_color",
           "android:resource": "@color/notification_icon_color",
         },
         {
-          "android:name": "com.google.firebase.messaging.default_notification_icon",
+          "android:name":
+            "com.google.firebase.messaging.default_notification_icon",
           "android:resource": "@drawable/notification_icon",
         },
         {
-          "android:name": "expo.modules.notifications.default_notification_color",
+          "android:name":
+            "expo.modules.notifications.default_notification_color",
           "android:resource": "@color/notification_icon_color",
         },
         {
-          "android:name": "expo.modules.notifications.default_notification_icon",
+          "android:name":
+            "expo.modules.notifications.default_notification_icon",
           "android:resource": "@drawable/notification_icon",
         },
       ],
@@ -103,6 +107,7 @@ module.exports = {
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.domino96.meetOn",
+      buildNumber: "12",
 
       googleServicesFile: "./GoogleService-Info.plist",
 
@@ -179,6 +184,15 @@ module.exports = {
         },
       ],
 
+      // 🔥 AdMob plugin – ustawia GADApplicationIdentifier w Info.plist i konfigurację na Androidzie
+      [
+        "react-native-google-mobile-ads",
+        {
+          android_app_id: "ca-app-pub-4590930660721541~1689041712",
+          ios_app_id: "ca-app-pub-4590930660721541~2628957980",
+        },
+      ],
+
       "./plugins/withIosModularHeaders.js", // 🔥 naprawia modular headers
     ],
 
@@ -201,7 +215,8 @@ module.exports = {
     },
 
     // ================================
-    // AdMob CONFIG (RN Google Mobile Ads)
+    // AdMob CONFIG (RN Google Mobile Ads) – już obsługiwane przez plugin powyżej,
+    // ale można zostawić jako "dokumentację" w configu JS jeśli chcesz.
     // ================================
     "react-native-google-mobile-ads": {
       android_app_id: "ca-app-pub-4590930660721541~1689041712",
@@ -229,8 +244,8 @@ if (require.main === module) {
         },
       },
       "react-native-google-mobile-ads": {
-        android_app_id: "ca-app-pub-4590930660721541~1689041712",
-        ios_app_id: "ca-app-pub-4590930660721541~2628957980",
+      androidAppId: process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID,
+      iosAppId: process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID,
       },
     },
   };

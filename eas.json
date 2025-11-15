@@ -12,9 +12,10 @@
         "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "yyy.apps.googleusercontent.com"
       }
     },
+
     "production": {
       "developmentClient": false,
-      "distribution": "internal",
+      "distribution": "store",        
       "android": { "buildType": "apk" },
       "env": {
         "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON",
@@ -23,6 +24,7 @@
         "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "yyy.apps.googleusercontent.com"
       }
     },
+
     "dev-client": {
       "developmentClient": true,
       "distribution": "internal",
