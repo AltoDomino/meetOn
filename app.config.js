@@ -9,9 +9,7 @@ module.exports = {
     orientation: "portrait",
     icon: "./assets/images/ikonkameeton.png",
 
-    // 🚀 Kluczowe dla Google Login
     scheme: "meeton",
-
     userInterfaceStyle: "automatic",
 
     splash: {
@@ -20,6 +18,9 @@ module.exports = {
       backgroundColor: "#01032f",
     },
 
+    // ================================
+    // ANDROID
+    // ================================
     android: {
       package: "com.domino96.meetOn",
       versionCode: 8,
@@ -32,7 +33,7 @@ module.exports = {
 
       edgeToEdgeEnabled: true,
 
-      // 🔧 Firebase Android
+      // Firebase Android
       googleServicesFile: "./google-services.json",
 
       softwareKeyboardLayoutMode: "pan",
@@ -53,7 +54,7 @@ module.exports = {
       dataExtractionRules: "@xml/secure_store_data_extraction_rules",
       fullBackupContent: "@xml/secure_store_backup_rules",
 
-      // 🔧 Deep linking (OAuth Google)
+      // Deep linking — Google OAuth
       intentFilters: [
         {
           action: "VIEW",
@@ -67,9 +68,7 @@ module.exports = {
           intent: {
             action: "android.intent.action.VIEW",
             category: "android.intent.category.BROWSABLE",
-            data: {
-              scheme: "https",
-            },
+            data: { scheme: "https" },
           },
         },
       ],
@@ -98,33 +97,46 @@ module.exports = {
       },
     },
 
+    // ================================
+    // iOS
+    // ================================
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.domino96.meetOn",
 
-      // 🔧 Firebase iOS
       googleServicesFile: "./GoogleService-Info.plist",
 
       infoPlist: {
         ITSAppUsesNonExemptEncryption: false,
         NSLocationWhenInUseUsageDescription:
           "Aplikacja potrzebuje Twojej lokalizacji, aby pokazać wydarzenia w pobliżu.",
+        NSUserTrackingUsageDescription:
+          "Używamy identyfikatora urządzenia, aby wyświetlać dopasowane reklamy.",
       },
 
       icon: "./assets/images/meetonikonaIOS.jpeg",
     },
 
+    // ================================
+    // POWIADOMIENIA
+    // ================================
     notification: {
       icon: "./assets/images/powiadomienie-meeton.png",
       color: "#0d1a4d",
     },
 
+    // ================================
+    // UPDATES
+    // ================================
     updates: {
       enabled: false,
       checkAutomatically: "ON_LOAD",
       fallbackToCacheTimeout: 0,
     },
 
+    // ================================
+    // WEB
+    // ================================
     web: {
       bundler: "metro",
       output: "static",
@@ -134,7 +146,7 @@ module.exports = {
     },
 
     // ================================
-    //          🔥 PLUGINS
+    // PLUGINS
     // ================================
     plugins: [
       "expo-router",
@@ -162,27 +174,25 @@ module.exports = {
             minSdkVersion: 24,
           },
           ios: {
-            // 🧩 wymagane dla Firebase + GoogleUtilities
-            useFrameworks: "static",
+            useFrameworks: "static", // 🔥 Firebase + GoogleUtilities
           },
         },
       ],
 
-      // 🔥 Najważniejsze — dodaje use_modular_headers! do Podfile
-      "./plugins/withIosModularHeaders.js",
+      "./plugins/withIosModularHeaders.js", // 🔥 naprawia modular headers
     ],
 
     experiments: {
       typedRoutes: true,
     },
 
+    // ================================
+    // EXTRA
+    // ================================
     extra: {
       router: {},
-      eas: {
-        projectId: "21c25dfa-afc4-4d4a-9ce3-3d1a809d4dfe",
-      },
+      eas: { projectId: "21c25dfa-afc4-4d4a-9ce3-3d1a809d4dfe" },
 
-      // ☑️ Publiczne zmienne środowiskowe
       EXPO_PUBLIC_GOOGLE_CLIENT_ID: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
       EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID:
         process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
@@ -190,10 +200,12 @@ module.exports = {
         process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     },
 
-    // 🔧 Konfiguracja AdMob (RN Google Mobile Ads)
+    // ================================
+    // AdMob CONFIG (RN Google Mobile Ads)
+    // ================================
     "react-native-google-mobile-ads": {
       android_app_id: "ca-app-pub-4590930660721541~1689041712",
-      ios_app_id: "ca-app-pub-4590930660721541~2628957980", // 👈 DODANE
+      ios_app_id: "ca-app-pub-4590930660721541~2628957980",
     },
 
     owner: "domino96",
@@ -205,7 +217,9 @@ module.exports = {
   },
 };
 
-// 🔧 Fallback JSON for Gradle
+// ================================
+// FALLBACK FOR GRADLE (Android)
+// ================================
 if (require.main === module) {
   const config = {
     expo: {
@@ -216,7 +230,7 @@ if (require.main === module) {
       },
       "react-native-google-mobile-ads": {
         android_app_id: "ca-app-pub-4590930660721541~1689041712",
-        ios_app_id: "ca-app-pub-4590930660721541~2628957980", // 👈 też dodane
+        ios_app_id: "ca-app-pub-4590930660721541~2628957980",
       },
     },
   };
