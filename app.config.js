@@ -190,8 +190,10 @@ module.exports = {
         process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     },
 
+    // 🔧 Konfiguracja AdMob (RN Google Mobile Ads)
     "react-native-google-mobile-ads": {
       android_app_id: "ca-app-pub-4590930660721541~1689041712",
+      ios_app_id: "ca-app-pub-4590930660721541~2628957980", // 👈 DODANE
     },
 
     owner: "domino96",
@@ -214,6 +216,7 @@ if (require.main === module) {
       },
       "react-native-google-mobile-ads": {
         android_app_id: "ca-app-pub-4590930660721541~1689041712",
+        ios_app_id: "ca-app-pub-4590930660721541~2628957980", // 👈 też dodane
       },
     },
   };

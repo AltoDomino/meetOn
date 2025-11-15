@@ -29,7 +29,7 @@
       "android": { "buildType": "apk" },
       "env": {
         "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON",
-        "NODE_ENV": "production",
+        "NODE_ENV": "development",
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "xxx.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "yyy.apps.googleusercontent.com"
       }
