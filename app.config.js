@@ -33,7 +33,6 @@ module.exports = {
 
       edgeToEdgeEnabled: true,
 
-      // Firebase Android
       googleServicesFile: "./google-services.json",
 
       softwareKeyboardLayoutMode: "pan",
@@ -54,7 +53,6 @@ module.exports = {
       dataExtractionRules: "@xml/secure_store_data_extraction_rules",
       fullBackupContent: "@xml/secure_store_backup_rules",
 
-      // Deep linking — Google OAuth
       intentFilters: [
         {
           action: "VIEW",
@@ -96,8 +94,11 @@ module.exports = {
         },
       ],
 
+      // 🟦 AdMob App ID (Android)
       config: {
-        googleMobileAdsAppId: "ca-app-pub-4590930660721541~1689041712",
+        googleMobileAdsAppId:
+          process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID ||
+          "ca-app-pub-4590930660721541~1689041712",
       },
     },
 
@@ -123,7 +124,7 @@ module.exports = {
     },
 
     // ================================
-    // POWIADOMIENIA
+    // NOTIFICATIONS
     // ================================
     notification: {
       icon: "./assets/images/powiadomienie-meeton.png",
@@ -179,21 +180,25 @@ module.exports = {
             minSdkVersion: 24,
           },
           ios: {
-            useFrameworks: "static", // 🔥 Firebase + GoogleUtilities
+            useFrameworks: "static",
           },
         },
       ],
 
-      // 🔥 AdMob plugin – ustawia GADApplicationIdentifier w Info.plist i konfigurację na Androidzie
+      // 🟦 POPRAWIONY AdMob plugin — camelCase klucze
       [
         "react-native-google-mobile-ads",
         {
-          android_app_id: "ca-app-pub-4590930660721541~1689041712",
-          ios_app_id: "ca-app-pub-4590930660721541~2628957980",
+          androidAppId:
+            process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID ||
+            "ca-app-pub-4590930660721541~1689041712",
+          iosAppId:
+            process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID ||
+            "ca-app-pub-4590930660721541~2628957980",
         },
       ],
 
-      "./plugins/withIosModularHeaders.js", // 🔥 naprawia modular headers
+      "./plugins/withIosModularHeaders.js",
     ],
 
     experiments: {
@@ -214,15 +219,6 @@ module.exports = {
         process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID,
     },
 
-    // ================================
-    // AdMob CONFIG (RN Google Mobile Ads) – już obsługiwane przez plugin powyżej,
-    // ale można zostawić jako "dokumentację" w configu JS jeśli chcesz.
-    // ================================
-    "react-native-google-mobile-ads": {
-      android_app_id: "ca-app-pub-4590930660721541~1689041712",
-      ios_app_id: "ca-app-pub-4590930660721541~2628957980",
-    },
-
     owner: "domino96",
 
     cli: {
@@ -231,23 +227,3 @@ module.exports = {
     },
   },
 };
-
-// ================================
-// FALLBACK FOR GRADLE (Android)
-// ================================
-if (require.main === module) {
-  const config = {
-    expo: {
-      android: {
-        config: {
-          googleMobileAdsAppId: "ca-app-pub-4590930660721541~1689041712",
-        },
-      },
-      "react-native-google-mobile-ads": {
-      androidAppId: process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID,
-      iosAppId: process.env.EXPO_PUBLIC_ADMOB_IOS_APP_ID,
-      },
-    },
-  };
-  process.stdout.write(JSON.stringify(config));
-}
