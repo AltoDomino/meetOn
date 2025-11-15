@@ -160,6 +160,8 @@ module.exports = {
       "expo-secure-store",
       "expo-apple-authentication",
       "react-native-edge-to-edge",
+      "@react-native-firebase/app",
+      "@react-native-firebase/messaging",
 
       [
         "expo-notifications",
