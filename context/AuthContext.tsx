@@ -10,6 +10,9 @@ export type NotifyPrefs = {
   customNotifyLng: number | null;
 };
 
+// ✅ NOWE: typ płci
+export type Gender = "female" | "male" | "other" | null;
+
 type AuthContextType = {
   userId: number | null;
   userName: string;
@@ -18,6 +21,10 @@ type AuthContextType = {
   hasChosenActivities: boolean;
   notifyPrefs: NotifyPrefs | null;
   token: string | null;
+
+  // ✅ NOWE: płeć
+  gender: Gender;
+  setGender: (g: Gender) => Promise<void>;
 
   setUserId: (id: number | null) => Promise<void>;
   setUserName: (name: string) => Promise<void>;
@@ -47,6 +54,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [notifyPrefs, setNotifyPrefsState] = useState<NotifyPrefs | null>(null);
   const [token, setTokenState] = useState<string | null>(null);
 
+  // ✅ NOWE: płeć
+  const [gender, setGenderState] = useState<Gender>(null);
+
   // 🔁 Przywracanie danych
   useEffect(() => {
     const restoreAuthData = async () => {
@@ -55,9 +65,14 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         const storedUserName = await SecureStore.getItemAsync("userName");
         const storedAvatar = await SecureStore.getItemAsync("avatar");
         const storedDescription = await SecureStore.getItemAsync("description");
-        const storedHasChosen = await SecureStore.getItemAsync("hasChosenActivities");
+        const storedHasChosen = await SecureStore.getItemAsync(
+          "hasChosenActivities"
+        );
         const storedNotifyPrefs = await SecureStore.getItemAsync("notifyPrefs");
         const storedToken = await SecureStore.getItemAsync("token");
+
+        // ✅ NOWE: odczyt płci
+        const storedGender = await SecureStore.getItemAsync("gender");
 
         if (storedUserId && storedUserName) {
           setUserIdState(Number(storedUserId));
@@ -66,6 +81,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           setDescriptionState(storedDescription || "");
           setHasChosenActivitiesState(storedHasChosen === "true");
           setTokenState(storedToken || null);
+
+          // ✅ NOWE: ustaw płeć (jeśli była zapisana)
+          const g = storedGender as Gender;
+          setGenderState(g ?? null);
+
           if (storedNotifyPrefs) {
             try {
               setNotifyPrefsState(JSON.parse(storedNotifyPrefs));
@@ -75,10 +95,12 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           }
         } else {
           setUserIdState(null);
+          setGenderState(null);
         }
       } catch (err) {
         console.error("❌ Błąd przywracania danych logowania:", err);
         setUserIdState(null);
+        setGenderState(null);
       }
     };
 
@@ -112,7 +134,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const setHasChosenActivities = async (chosen: boolean) => {
     setHasChosenActivitiesState(chosen);
-    await SecureStore.setItemAsync("hasChosenActivities", chosen ? "true" : "false");
+    await SecureStore.setItemAsync(
+      "hasChosenActivities",
+      chosen ? "true" : "false"
+    );
   };
 
   const setToken = async (t: string | null) => {
@@ -121,10 +146,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     else await SecureStore.deleteItemAsync("token");
   };
 
+  // ✅ NOWE: setter płci
+  const setGender = async (g: Gender) => {
+    setGenderState(g);
+    if (g) await SecureStore.setItemAsync("gender", g);
+    else await SecureStore.deleteItemAsync("gender");
+  };
+
   // 🔔 Preferencje powiadomień
   const setNotifyPrefs = async (prefs: NotifyPrefs | null) => {
     setNotifyPrefsState(prefs);
-    if (prefs) await SecureStore.setItemAsync("notifyPrefs", JSON.stringify(prefs));
+    if (prefs)
+      await SecureStore.setItemAsync("notifyPrefs", JSON.stringify(prefs));
     else await SecureStore.deleteItemAsync("notifyPrefs");
   };
 
@@ -145,25 +178,32 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     if (!userId) return false;
     const body: any = {
       notificationRadiusKm: radiusKm,
-      customNotifyEnabled: custom?.customNotifyEnabled ?? (notifyPrefs?.customNotifyEnabled ?? false),
-      customNotifyLat: custom?.customNotifyLat ?? (notifyPrefs?.customNotifyLat ?? null),
-      customNotifyLng: custom?.customNotifyLng ?? (notifyPrefs?.customNotifyLng ?? null),
+      customNotifyEnabled:
+        custom?.customNotifyEnabled ?? (notifyPrefs?.customNotifyEnabled ?? false),
+      customNotifyLat:
+        custom?.customNotifyLat ?? (notifyPrefs?.customNotifyLat ?? null),
+      customNotifyLng:
+        custom?.customNotifyLng ?? (notifyPrefs?.customNotifyLng ?? null),
     };
 
     try {
-      const res = await fetch(`${BACKEND_URL}/api/users/${userId}/notification-prefs`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
-        body: JSON.stringify(body),
-      });
+      const res = await fetch(
+        `${BACKEND_URL}/api/users/${userId}/notification-prefs`,
+        {
+          method: "PUT",
+          headers: {
+            "Content-Type": "application/json",
+            ...(token ? { Authorization: `Bearer ${token}` } : {}),
+          },
+          body: JSON.stringify(body),
+        }
+      );
       if (!res.ok) return false;
       const json = await res.json();
       const updated: NotifyPrefs = {
         notificationRadiusKm: json?.prefs?.notificationRadiusKm ?? radiusKm,
-        customNotifyEnabled: json?.prefs?.customNotifyEnabled ?? body.customNotifyEnabled,
+        customNotifyEnabled:
+          json?.prefs?.customNotifyEnabled ?? body.customNotifyEnabled,
         customNotifyLat: json?.prefs?.customNotifyLat ?? body.customNotifyLat ?? null,
         customNotifyLng: json?.prefs?.customNotifyLng ?? body.customNotifyLng ?? null,
       };
@@ -185,6 +225,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setNotifyPrefsState(null);
     setTokenState(null);
 
+    // ✅ NOWE: reset płci
+    setGenderState(null);
+
     await SecureStore.deleteItemAsync("userId");
     await SecureStore.deleteItemAsync("userName");
     await SecureStore.deleteItemAsync("avatar");
@@ -192,6 +235,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await SecureStore.deleteItemAsync("hasChosenActivities");
     await SecureStore.deleteItemAsync("notifyPrefs");
     await SecureStore.deleteItemAsync("token");
+
+    // ✅ NOWE: usuń płeć
+    await SecureStore.deleteItemAsync("gender");
   };
 
   return (
@@ -204,6 +250,10 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         hasChosenActivities,
         notifyPrefs,
         token,
+
+        // ✅ NOWE
+        gender,
+        setGender,
 
         setUserId,
         setUserName,

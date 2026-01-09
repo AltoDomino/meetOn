@@ -3,7 +3,7 @@ import * as AppleAuthentication from "expo-apple-authentication";
 import * as Google from "expo-auth-session/providers/google";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
   ActivityIndicator,
@@ -23,12 +23,25 @@ import {
 import { useAuth } from "../../context/AuthContext";
 import styles from "../../styles/Login.styles";
 
-WebBrowser.maybeCompleteAuthSession(); // ✅ obsługa powrotu z Google
+WebBrowser.maybeCompleteAuthSession();
 
 interface FormData {
   email: string;
   password: string;
 }
+
+type AuthProvider = "email" | "google" | "apple";
+type Gender = "female" | "male" | "other" | null;
+
+const normalizeGender = (g: any): Gender => {
+  if (!g) return null;
+  const v = String(g).trim().toLowerCase();
+  if (v === "female" || v === "f" || v === "kobieta") return "female";
+  if (v === "male" || v === "m" || v === "mezczyzna" || v === "mężczyzna")
+    return "male";
+  if (v === "other" || v === "inne") return "other";
+  return null;
+};
 
 const Login = () => {
   const {
@@ -38,6 +51,8 @@ const Login = () => {
     setDescription,
     setHasChosenActivities,
     setToken,
+    setGender,
+    token,
   } = useAuth();
 
   const { control, handleSubmit } = useForm<FormData>();
@@ -45,15 +60,17 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const screenHeight = Dimensions.get("window").height;
 
-  const redirectUri =
-    Platform.select({
-      android: "meeton:/oauth2redirect/google",
-      ios: "meeton:/oauth2redirect/google",
-    }) || "meeton:/oauth2redirect/google";
+  const redirectUri = useMemo(
+    () =>
+      Platform.select({
+        android: "meeton:/oauth2redirect/google",
+        ios: "meeton:/oauth2redirect/google",
+      }) || "meeton:/oauth2redirect/google",
+    []
+  );
 
   console.log("✅ Używany redirectUri:", redirectUri);
 
-  // ✅ Google Auth konfiguracja
   const [request, response, promptAsync] = Google.useAuthRequest({
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!,
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID!,
@@ -63,10 +80,8 @@ const Login = () => {
     selectAccount: true,
   });
 
-  // ✅ obsługa odpowiedzi Google
   useEffect(() => {
     if (!response) return;
-
     console.log("🔍 Google Auth Response:", JSON.stringify(response, null, 2));
 
     if (response.type === "success" && response.authentication?.idToken) {
@@ -77,6 +92,32 @@ const Login = () => {
       Alert.alert("Błąd", "Nie udało się pobrać tokenu Google");
     }
   }, [response]);
+
+  const fetchAndSetGenderIfMissing = async (
+    userId: number,
+    jwt?: string | null
+  ) => {
+    try {
+      const res = await fetch(`${backend_URL}/api/users/${userId}`, {
+        headers: jwt ? { Authorization: `Bearer ${jwt}` } : undefined,
+      });
+
+      if (!res.ok) {
+        const t = await res.text().catch(() => "");
+        console.log("⚠️ Nie udało się pobrać profilu usera:", res.status, t);
+        return;
+      }
+
+      const profile = await res.json();
+      console.log("✅ Profil usera:", profile);
+
+      const g = normalizeGender(profile?.gender);
+      await setGender(g);
+      console.log("✅ setGender z profilu:", g);
+    } catch (e) {
+      console.log("⚠️ fetchAndSetGenderIfMissing error:", e);
+    }
+  };
 
   const loginWithGoogleOnBackend = async (idToken: string) => {
     try {
@@ -96,7 +137,7 @@ const Login = () => {
       }
 
       const data = await res.json();
-      await afterAuthSuccess(data);
+      await afterAuthSuccess(data, "google");
     } catch (e) {
       console.error("❌ Google backend error:", e);
       Alert.alert("Błąd", "Nie udało się zalogować przez Google");
@@ -104,7 +145,7 @@ const Login = () => {
       setLoading(false);
     }
   };
-  // ✅ APPLE LOGIN
+
   const handleAppleLogin = async () => {
     try {
       const credential = await AppleAuthentication.signInAsync({
@@ -133,7 +174,7 @@ const Login = () => {
       }
 
       const data = await res.json();
-      await afterAuthSuccess(data);
+      await afterAuthSuccess(data, "apple");
     } catch (err: any) {
       if (err?.code === "ERR_CANCELED") return;
       console.error("❌ Apple login failed:", err);
@@ -141,44 +182,92 @@ const Login = () => {
     }
   };
 
-  const afterAuthSuccess = async (data: any) => {
-    try {
-      await setToken(data.token ?? null);
-      await setUserName(data.userName);
-      await setUserId(data.userId);
-      await setAvatar(data.avatar || null);
-      await setDescription(data.description || "");
+const afterAuthSuccess = async (data: any, provider: AuthProvider) => {
+  try {
+    console.log("✅ afterAuthSuccess provider:", provider);
+    console.log("✅ afterAuthSuccess payload:", data);
 
-      const interestsRes = await fetch(
-        `${backend_URL}/api/interests/${data.userId}`,
-        {
-          headers: data.token
-            ? { Authorization: `Bearer ${data.token}` }
-            : undefined,
-        }
-      );
+    const jwt = data.token ?? null;
+    const uid = data.userId ?? null;
+
+    await setToken(jwt);
+    await setUserName(data.userName ?? "");
+    await setUserId(uid);
+    await setAvatar(data.avatar || null);
+    await setDescription(data.description || "");
+
+    // ✅ PŁEĆ
+    const gFromLogin = normalizeGender(data?.gender);
+    await setGender(gFromLogin);
+    console.log("✅ setGender z login payload:", gFromLogin);
+
+    if (!gFromLogin && uid) {
+      await fetchAndSetGenderIfMissing(Number(uid), jwt);
+    }
+
+    // ✅ FLAGS (z backendu)
+    const isPhoneVerified = data?.isPhoneVerified; // boolean
+    const isRegistrationComplete = data?.isRegistrationComplete; // boolean
+
+    console.log("✅ Flags from backend:", {
+      isPhoneVerified,
+      isRegistrationComplete,
+    });
+
+    // ✅ 1) GOOGLE / APPLE: najpierw CompleteRegistration, potem PhoneVerification
+    if ((provider === "google" || provider === "apple") && isRegistrationComplete === false) {
+      router.replace("/(main)/CompleteRegistration");
+      return;
+    }
+
+    // ✅ 2) EMAIL/hasło (po “fizycznej” rejestracji): ma przejść przez PhoneVerification
+    // ✅ oraz ogólnie każdy kto nie ma zweryfikowanego telefonu -> PhoneVerification
+    if (isPhoneVerified === false) {
+      router.replace("/(main)/PhoneVerification");
+      return;
+    }
+
+    // ✅ 3) INTERESTS / AKTYWNOŚCI
+    // dopiero po tym jak user ma komplet profilu i zweryfikowany telefon
+    let hasActivities = false;
+
+    try {
+      const interestsRes = await fetch(`${backend_URL}/api/interests/${uid}`, {
+        headers: jwt ? { Authorization: `Bearer ${jwt}` } : undefined,
+      });
 
       const interests = interestsRes.ok ? await interestsRes.json() : [];
-      if (Array.isArray(interests) && interests.length > 0) {
-        await setHasChosenActivities(true);
-      }
+      hasActivities = Array.isArray(interests) && interests.length > 0;
 
-      if (!data.isPhoneVerified) {
-        router.replace("/(main)/PhoneVerification");
-      } else if (!data.isRegistrationComplete) {
-        router.replace("/(main)/CompleteRegistration");
-      } else {
-        router.replace("/(main)/HomeScreen");
-      }
+      await setHasChosenActivities(hasActivities);
+
+      console.log("✅ interests length:", Array.isArray(interests) ? interests.length : "not array");
     } catch (e) {
-      console.log("❌ Błąd afterAuthSuccess:", e);
-      Alert.alert("Błąd", "Nie udało się dokończyć logowania.");
+      console.log("⚠️ interests fetch failed:", e);
+      // nie blokuj logowania – fallback na Home lub Activity
+      hasActivities = false;
+      await setHasChosenActivities(false);
     }
-  };
 
-  // ✅ Login ręczny email + hasło
+    if (hasActivities) {
+      router.replace("/(auth)/Event");
+      return;
+    }
+
+    // jeśli nie ma aktywności, ale jest zweryfikowany -> Activity selection
+    router.replace("/(main)/HomeScreen"); // <-- ekran wyboru aktywności
+    return;
+
+  } catch (e) {
+    console.log("❌ Błąd afterAuthSuccess:", e);
+    Alert.alert("Błąd", "Nie udało się dokończyć logowania.");
+  }
+};
+
+
   const onSubmit = async (dataLog: FormData) => {
     if (loading) return;
+
     try {
       setLoading(true);
 
@@ -204,7 +293,7 @@ const Login = () => {
       }
 
       const data = await res.json();
-      await afterAuthSuccess(data);
+      await afterAuthSuccess(data, "email");
     } catch (error) {
       console.log("❌ Login email error:", error);
       Alert.alert("Błąd połączenia", "Nie udało się połączyć z serwerem.");
@@ -213,8 +302,11 @@ const Login = () => {
     }
   };
 
-  // ✅ przycisk Google — tylko wywołuje promptAsync
   const handleGoogleLogin = async () => {
+    if (!request) {
+      Alert.alert("Chwileczkę", "Google login jeszcze się inicjalizuje.");
+      return;
+    }
     await promptAsync();
   };
 
@@ -280,9 +372,9 @@ const Login = () => {
               <Text style={styles.loginButtonText}>ZALOGUJ SIĘ</Text>
             </TouchableOpacity>
 
-            {/* GOOGLE LOGIN */}
             <TouchableOpacity
               onPress={handleGoogleLogin}
+              disabled={loading}
               style={{
                 marginTop: 16,
                 backgroundColor: "#fff",
@@ -297,6 +389,7 @@ const Login = () => {
                 shadowOpacity: 0.2,
                 shadowRadius: 3,
                 elevation: 3,
+                opacity: loading ? 0.7 : 1,
               }}
             >
               <Image
@@ -309,10 +402,10 @@ const Login = () => {
               </Text>
             </TouchableOpacity>
 
-            {/* APPLE LOGIN */}
             {Platform.OS === "ios" && (
               <TouchableOpacity
                 onPress={handleAppleLogin}
+                disabled={loading}
                 style={{
                   marginTop: 12,
                   backgroundColor: "#000",
@@ -327,6 +420,7 @@ const Login = () => {
                   shadowOpacity: 0.3,
                   shadowRadius: 3,
                   elevation: 3,
+                  opacity: loading ? 0.7 : 1,
                 }}
               >
                 <Image
@@ -363,7 +457,6 @@ const Login = () => {
           </View>
         </View>
 
-        {/* LOADER */}
         <Modal transparent visible={loading} animationType="fade">
           <View
             style={{

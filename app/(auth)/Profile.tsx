@@ -31,7 +31,7 @@ const SaveButton = ({ onPress }: { onPress: () => void }) => (
       shadowOpacity: Platform.OS === "ios" ? 0.08 : 0.12,
       shadowRadius: 6,
       elevation: 3,
-      marginTop: 10, // ⬅️ przesunięcie przycisku w dół o 10 px
+      marginTop: 10,
     }}
   >
     <Text style={{ color: "#fff", fontWeight: "800", fontSize: 18 }}>
@@ -55,6 +55,15 @@ export default function ProfileScreen() {
   const [completedEvents, setCompletedEvents] = useState(0);
   const [uniqueLocations, setUniqueLocations] = useState(0);
 
+  // ⭐ Oceny od innych użytkowników
+  const [ratingsLoading, setRatingsLoading] = useState(true);
+  const [avgStars, setAvgStars] = useState<number | null>(null);
+  const [totalRatings, setTotalRatings] = useState(0);
+  const [tagsSummary, setTagsSummary] = useState<
+    { tag: string; count: number }[]
+  >([]);
+
+  // 🔹 Pobieranie rangi
   useEffect(() => {
     let isMounted = true;
     (async () => {
@@ -69,6 +78,36 @@ export default function ProfileScreen() {
         console.warn("Rank stats fetch error:", (e as Error).message);
       } finally {
         if (isMounted) setRankLoading(false);
+      }
+    })();
+    return () => {
+      isMounted = false;
+    };
+  }, [userId]);
+
+  // 🔹 Pobieranie ocen społeczności
+  useEffect(() => {
+    let isMounted = true;
+    (async () => {
+      if (!userId) return setRatingsLoading(false);
+      try {
+        const res = await fetch(`${API_BASE}/api/users/${userId}/ratings`);
+        if (!isMounted) return;
+
+        if (!res.ok) {
+          const t = await res.text().catch(() => "");
+          console.warn("ratings fetch error:", res.status, t);
+          return;
+        }
+
+        const data = await res.json();
+        setAvgStars(data?.avgStars ?? null);
+        setTotalRatings(data?.totalRatings ?? 0);
+        setTagsSummary(Array.isArray(data?.tagsSummary) ? data.tagsSummary : []);
+      } catch (e) {
+        console.warn("User ratings fetch error:", (e as Error).message);
+      } finally {
+        if (isMounted) setRatingsLoading(false);
       }
     })();
     return () => {
@@ -218,9 +257,143 @@ export default function ProfileScreen() {
             )}
           </View>
 
-          {/* FORM */}
+          {/* OCENA SPOŁECZNOŚCI */}
+          <View
+            style={{
+              width: "100%",
+              marginBottom: 16,
+              paddingHorizontal: 4,
+            }}
+          >
+            {ratingsLoading ? (
+              <View
+                style={{
+                  marginHorizontal: 12,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: "#E8E8E8",
+                  backgroundColor: "#FFF",
+                  paddingVertical: 16,
+                  paddingHorizontal: 16,
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 6,
+                }}
+              >
+                <ActivityIndicator />
+                <Text style={{ color: "#666" }}>Ładowanie ocen...</Text>
+              </View>
+            ) : (
+              <View
+                style={{
+                  marginHorizontal: 12,
+                  borderRadius: 16,
+                  borderWidth: 1,
+                  borderColor: "#E0E7FF",
+                  backgroundColor: "#F8FBFF",
+                  paddingVertical: 14,
+                  paddingHorizontal: 16,
+                  gap: 8,
+                }}
+              >
+                <Text
+                  style={{
+                    fontSize: 16,
+                    fontWeight: "700",
+                    color: "#0f172a",
+                    marginBottom: 2,
+                  }}
+                >
+                  Ocena społeczności
+                </Text>
+
+                {totalRatings === 0 ? (
+                  <Text style={{ color: "#64748b", fontSize: 14 }}>
+                    Nikt jeszcze Cię nie ocenił. Zbieraj dobre wrażenia na
+                    wydarzeniach! 🙂
+                  </Text>
+                ) : (
+                  <>
+                    <View
+                      style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        justifyContent: "space-between",
+                      }}
+                    >
+                      <View style={{ flexDirection: "row", alignItems: "center" }}>
+                        <Text
+                          style={{
+                            fontSize: 28,
+                            fontWeight: "800",
+                            color: "#0f172a",
+                            marginRight: 6,
+                          }}
+                        >
+                          {avgStars?.toFixed(1)}
+                        </Text>
+                        <Text style={{ fontSize: 16, color: "#fbbf24" }}>★</Text>
+                      </View>
+                      <Text style={{ color: "#64748b", fontSize: 13 }}>
+                        Na podstawie {totalRatings} ocen
+                      </Text>
+                    </View>
+
+                    {tagsSummary.length > 0 && (
+                      <View style={{ marginTop: 8 }}>
+                        <Text
+                          style={{
+                            fontSize: 13,
+                            color: "#475569",
+                            marginBottom: 4,
+                          }}
+                        >
+                          Najczęściej opisywany jako:
+                        </Text>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            flexWrap: "wrap",
+                            gap: 6,
+                          }}
+                        >
+                          {tagsSummary.slice(0, 6).map((t) => (
+                            <View
+                              key={t.tag}
+                              style={{
+                                backgroundColor: "#e0f2fe",
+                                borderRadius: 999,
+                                paddingHorizontal: 10,
+                                paddingVertical: 4,
+                              }}
+                            >
+                              <Text
+                                style={{
+                                  fontSize: 12,
+                                  color: "#0369a1",
+                                  fontWeight: "600",
+                                }}
+                              >
+                                {t.tag} · {t.count}
+                              </Text>
+                            </View>
+                          ))}
+                        </View>
+                      </View>
+                    )}
+                  </>
+                )}
+              </View>
+            )}
+          </View>
+
+          {/* FORMULARZ PROFILU */}
           <Text style={styles.label}>Nazwa użytkownika</Text>
-          <TextInput value={userName} onChangeText={setUserName} style={styles.input} />
+          <TextInput
+            value={userName}
+            onChangeText={setUserName}
+            style={styles.input}
+          />
 
           <Text style={styles.label}>Opis</Text>
           <TextInput

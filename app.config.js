@@ -1,11 +1,11 @@
-// ✅ CommonJS app.config.cjs (kompatybilny z Android, iOS, EAS i OAuth Google)
+// ✅ CommonJS app.config.cjs
 require("dotenv").config();
 
 module.exports = {
   expo: {
     name: "meetOn",
     slug: "meetOn",
-    version: "1.0.12",
+    version: "1.0.13",
     orientation: "portrait",
     icon: "./assets/images/ikonkameeton.png",
 
@@ -32,9 +32,7 @@ module.exports = {
       },
 
       edgeToEdgeEnabled: true,
-
       googleServicesFile: "./google-services.json",
-
       softwareKeyboardLayoutMode: "pan",
 
       permissions: [
@@ -93,13 +91,6 @@ module.exports = {
           "android:resource": "@drawable/notification_icon",
         },
       ],
-
-      // 🟦 AdMob App ID (Android)
-      config: {
-        googleMobileAdsAppId:
-          process.env.EXPO_PUBLIC_ADMOB_ANDROID_APP_ID ||
-          "ca-app-pub-4590930660721541~1689041712",
-      },
     },
 
     // ================================
@@ -108,7 +99,7 @@ module.exports = {
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.domino96.meetOn",
-      buildNumber: "12",
+      buildNumber: "13",
 
       googleServicesFile: "./GoogleService-Info.plist",
 
@@ -185,7 +176,7 @@ module.exports = {
         },
       ],
 
-      // 🟦 POPRAWIONY AdMob plugin — camelCase klucze
+      // ✅ JEDYNE ŹRÓDŁO PRAWDY DLA ADMOB
       [
         "react-native-google-mobile-ads",
         {
@@ -210,9 +201,12 @@ module.exports = {
     // ================================
     extra: {
       router: {},
-      eas: { projectId: "21c25dfa-afc4-4d4a-9ce3-3d1a809d4dfe" },
+      eas: {
+        projectId: "21c25dfa-afc4-4d4a-9ce3-3d1a809d4dfe",
+      },
 
-      EXPO_PUBLIC_GOOGLE_CLIENT_ID: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+      EXPO_PUBLIC_GOOGLE_CLIENT_ID:
+        process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
       EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID:
         process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
       EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID:

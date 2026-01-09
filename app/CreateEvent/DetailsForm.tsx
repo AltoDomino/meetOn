@@ -3,8 +3,15 @@ import { Ionicons } from "@expo/vector-icons";
 import Slider from "@react-native-community/slider";
 import { router, useLocalSearchParams } from "expo-router";
 import * as Location from "expo-location";
-import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Switch, Text, TouchableOpacity, View } from "react-native";
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  ActivityIndicator,
+  Alert,
+  Switch,
+  Text,
+  TouchableOpacity,
+  View,
+} from "react-native";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/detailsForom.styles";
 import { FormDataSend } from "./SendDataform";
@@ -22,6 +29,8 @@ const interstitial = InterstitialAd.createForAdRequest(adUnitId, {
   requestNonPersonalizedAdsOnly: true,
 });
 
+type Gender = "female" | "male"  | null;
+
 const DetailsForm = () => {
   const [GenderSplit, setGenderSplit] = useState(false);
   const [minAge, setMinAge] = useState(18);
@@ -34,11 +43,25 @@ const DetailsForm = () => {
   } | null>(null);
   const [adLoaded, setAdLoaded] = useState(false);
 
-  const { userId } = useAuth();
+  // ✅ NOWE: “szukaj tylko kobiet / tylko mężczyzn”
+  const [seekOnlySameGender, setSeekOnlySameGender] = useState(false);
+
+  // ✅ bierzemy z AuthContext
+  const { userId, gender } = useAuth() as { userId: number | null; gender: Gender };
+console.log(`płeć to ${gender}`)
   const { location, address, startDate, endDate, activity } = useLocalSearchParams();
 
   const parsedStartDate = new Date(startDate as string);
   const parsedEndDate = new Date(endDate as string);
+
+  const isFemale = gender === "female";
+  const isMale = gender === "male";
+
+  const sameGenderLabel = useMemo(() => {
+    if (isFemale) return "Szukaj tylko kobiet";
+    if (isMale) return "Szukaj tylko mężczyzn";
+    return "";
+  }, [isFemale, isMale]);
 
   // 📍 Pobranie lokalizacji
   useEffect(() => {
@@ -49,12 +72,21 @@ const DetailsForm = () => {
         return;
       }
 
-      const userLocation = await Location.getCurrentPositionAsync({});
-      setLocationCoords({
-        latitude: userLocation.coords.latitude,
-        longitude: userLocation.coords.longitude,
-      });
-      console.log("📍 Lokalizacja użytkownika:", userLocation.coords);
+      try {
+        const userLocation = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+
+        setLocationCoords({
+          latitude: userLocation.coords.latitude,
+          longitude: userLocation.coords.longitude,
+        });
+
+        console.log("📍 Lokalizacja użytkownika:", userLocation.coords);
+      } catch (e) {
+        console.warn("❌ Nie udało się pobrać lokalizacji:", e);
+        Alert.alert("Błąd", "Nie udało się pobrać lokalizacji użytkownika");
+      }
     };
 
     getLocation();
@@ -70,7 +102,7 @@ const DetailsForm = () => {
     const unsubClosed = interstitial.addAdEventListener(AdEventType.CLOSED, () => {
       console.log("🧩 [AD] Reklama zamknięta przez użytkownika");
       setAdLoaded(false);
-      interstitial.load(); // przygotuj kolejną
+      interstitial.load();
 
       Alert.alert("Sukces", "🎉 Wydarzenie zostało utworzone pomyślnie!", [
         {
@@ -107,6 +139,9 @@ const DetailsForm = () => {
       return;
     }
 
+    // ✅ jeśli płeć nie jest female/male → nie wysyłamy ograniczenia
+    const safeSeekOnlySameGender = isFemale || isMale ? seekOnlySameGender : false;
+
     const eventData = {
       location: location?.toString() ?? "",
       address: address?.toString() ?? "",
@@ -120,6 +155,9 @@ const DetailsForm = () => {
       creatorId: userId,
       latitude: locationCoords.latitude,
       longitude: locationCoords.longitude,
+
+      // ✅ NOWE: filtr “szukaj tylko kobiet/mężczyzn”
+      seekOnlySameGender: safeSeekOnlySameGender,
     };
 
     setLoading(true);
@@ -129,7 +167,6 @@ const DetailsForm = () => {
       await FormDataSend(eventData);
       console.log("✅ [EVENT] Wydarzenie utworzone!");
 
-      // 🔹 W trakcie oczekiwania pokazujemy reklamę (jeśli gotowa)
       if (adLoaded) {
         console.log("📺 Wyświetlam reklamę...");
         interstitial.show();
@@ -151,11 +188,13 @@ const DetailsForm = () => {
   };
 
   return (
-    <View style={{ flex: 1 }}>
+    <View style={{ flex: 1, paddingHorizontal: 15 }}>
       {loading ? (
         <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
           <ActivityIndicator size="large" color="#007AFF" />
-          <Text style={{ marginTop: 10, color: "#007AFF" }}>Tworzenie wydarzenia...</Text>
+          <Text style={{ marginTop: 10, color: "#007AFF" }}>
+            Tworzenie wydarzenia...
+          </Text>
         </View>
       ) : (
         <>
@@ -218,6 +257,39 @@ const DetailsForm = () => {
             />
           </View>
 
+          {/* ✅ NOWE: Szukaj tylko kobiet / tylko mężczyzn */}
+          {(isFemale || isMale) && (
+            <View style={styles.switchContainer}>
+              <View style={styles.switchLabelRow}>
+                <Text style={styles.label}>{sameGenderLabel}</Text>
+                <TouchableOpacity
+                  onPress={() =>
+                    Alert.alert(
+                      "Co to znaczy?",
+                      isFemale
+                        ? "Jeśli włączysz tę opcję, wydarzenie będzie widoczne/targetowane tylko dla kobiet."
+                        : "Jeśli włączysz tę opcję, wydarzenie będzie widoczne/targetowane tylko dla mężczyzn."
+                    )
+                  }
+                >
+                  <Ionicons
+                    name="help-circle-outline"
+                    size={20}
+                    color="#007AFF"
+                    style={{ marginLeft: 6 }}
+                  />
+                </TouchableOpacity>
+              </View>
+
+              <Switch
+                value={seekOnlySameGender}
+                onValueChange={setSeekOnlySameGender}
+                trackColor={{ false: "#ccc", true: "#007AFF" }}
+                thumbColor={seekOnlySameGender ? "#fff" : "#f4f3f4"}
+              />
+            </View>
+          )}
+
           {/* Preferowany wiek */}
           <Text style={styles.label}>Preferowany wiek uczestników</Text>
           <View style={{ marginVertical: 16 }}>
@@ -225,7 +297,9 @@ const DetailsForm = () => {
               Od {minAge} do {maxAge} lat
             </Text>
 
-            <Text style={{ fontWeight: "bold", marginBottom: 4 }}>Minimalny wiek</Text>
+            <Text style={{ fontWeight: "bold", marginBottom: 4 }}>
+              Minimalny wiek
+            </Text>
             <Slider
               minimumValue={18}
               maximumValue={100}

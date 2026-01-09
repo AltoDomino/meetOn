@@ -79,25 +79,53 @@ export default function PlaceDateform() {
   const [isStartPickerVisible, setStartPickerVisible] = useState(false);
   const [isEndPickerVisible, setEndPickerVisible] = useState(false);
 
-  const fetchNearbyPlaces = async () => {
-    setLoading(true);
-    const { status } = await Location.requestForegroundPermissionsAsync();
-    if (status !== "granted") {
-      console.log("Brak dostępu do lokalizacji");
+const fetchNearbyPlaces = async () => {
+  setLoading(true);
+
+  try {
+    const servicesEnabled = await Location.hasServicesEnabledAsync();
+    console.log("📍 servicesEnabled:", servicesEnabled);
+
+    if (!servicesEnabled) {
+      console.log("❌ Lokalizacja wyłączona w telefonie");
+      setPlaces([]);
       setLoading(false);
       return;
     }
-    try {
-      const userLocation = await Location.getCurrentPositionAsync({});
-      const lat = userLocation.coords.latitude;
-      const lng = userLocation.coords.longitude;
-      const result = await fetchPlaces(newActivity, lat, lng);
-      setPlaces(result || []);
-    } catch (error) {
-      console.error("Błąd pobierania miejsc:", error);
+
+    const { status } = await Location.requestForegroundPermissionsAsync();
+    console.log("📍 permission status:", status);
+
+    if (status !== "granted") {
+      console.log("❌ Brak zgody na lokalizację");
+      setPlaces([]);
+      setLoading(false);
+      return;
     }
+
+    const userLocation = await Location.getCurrentPositionAsync({
+      accuracy: Location.Accuracy.Balanced,
+    });
+
+    const lat = userLocation.coords.latitude;
+    const lng = userLocation.coords.longitude;
+
+    console.log("📍 coords:", { lat, lng, activity: newActivity });
+
+    const result = await fetchPlaces(newActivity, lat, lng);
+
+    console.log("✅ fetchPlaces result length:", Array.isArray(result) ? result.length : "not array");
+    console.log("✅ fetchPlaces sample:", result?.[0]);
+
+    setPlaces(Array.isArray(result) ? result : []);
+  } catch (error) {
+    console.error("❌ Błąd pobierania miejsc:", error);
+    setPlaces([]);
+  } finally {
     setLoading(false);
-  };
+  }
+};
+
 
   useEffect(() => {
     if (!isCustomOnly) {
@@ -195,7 +223,8 @@ export default function PlaceDateform() {
           Platform.OS === "ios" ? KEYBOARD_OFFSET_IOS : KEYBOARD_OFFSET_ANDROID
         }
       >
-        <View style={{ flex: 1 }}>
+        <View style={{ flex: 1, paddingHorizontal: 15 }}>
+
           {!isCustomOnly && (
             <>
               <Text style={styles.label}>Sugerowane lokalizacje:</Text>

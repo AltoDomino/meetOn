@@ -18,6 +18,7 @@ import io from "socket.io-client";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/MyEventRoom.styles";
 import type { Event } from "./MyEvents";
+import { useEndEventListener } from "@/hooks/useEndEventListener"; // ⬅️ NOWY IMPORT
 
 const socket = io("https://meeton-backend-ffmo.onrender.com", {
   transports: ["websocket"],
@@ -28,22 +29,38 @@ type Participant = {
   userName: string;
   avatar: string | null;
   description: string;
-  age?: number; // <== Dodane pole
+  age?: number;
 };
 
 const EventRoomScreen = () => {
   const insets = useSafeAreaInsets();
   const router = useRouter();
   const { location, startDate, endDate, eventId } = useLocalSearchParams();
+  const { userId, userName } = useAuth();
+
+  // Ujednolicamy eventId z URL-a do jednego stringa
+  const currentEventId =
+    typeof eventId === "string"
+      ? eventId
+      : Array.isArray(eventId)
+      ? eventId[0]
+      : undefined;
+
   const [messages, setMessages] = useState<Message[]>([]);
   const [participants, setParticipants] = useState<Participant[]>([]);
-  const { userId, userName } = useAuth();
   const [currentEvent, setCurrentEvent] = useState<Event | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
 
   const [selectedParticipant, setSelectedParticipant] =
     useState<Participant | null>(null);
   const [modalVisible, setModalVisible] = useState(false);
+
+  // 🔥 NOWY STAN – sterowany przez hook nasłuchujący `event:ended`
+  const { showRatingModal, setShowRatingModal } = useEndEventListener({
+    socket,
+    currentEventId,
+    // opcjonalnie: onEventEnded: (payload) => { console.log("Event ended:", payload); },
+  });
 
   const fetchEventDetails = async () => {
     try {
@@ -53,7 +70,6 @@ const EventRoomScreen = () => {
       const data = await res.json();
       setCurrentEvent(data);
       setParticipants(data.participants);
-
     } catch (err) {
       console.error("Błąd pobierania szczegółów wydarzenia:", err);
     }
@@ -61,14 +77,17 @@ const EventRoomScreen = () => {
 
   useEffect(() => {
     fetchEventDetails();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-const fetchParticipantDetails = async (participantId: number) => {
-  const participant = participants.find((p) => p.id === participantId);
-  if (participant) {
-    setSelectedParticipant(participant);
-    setModalVisible(true);
-  }
-};
+
+  const fetchParticipantDetails = async (participantId: number) => {
+    const participant = participants.find((p) => p.id === participantId);
+    if (participant) {
+      setSelectedParticipant(participant);
+      setModalVisible(true);
+    }
+  };
+
   useEffect(() => {
     if (!eventId || typeof eventId !== "string") return;
 
@@ -87,6 +106,7 @@ const fetchParticipantDetails = async (participantId: number) => {
       socket.off("participantJoined");
       socket.off("participantLeft");
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [eventId]);
 
   const handleSendMessage = (content: string) => {
@@ -271,6 +291,7 @@ const fetchParticipantDetails = async (participantId: number) => {
         </View>
       </KeyboardAvoidingView>
 
+      {/* 🔹 MODAL Z PROFILEM UCZESTNIKA */}
       {selectedParticipant && (
         <Modal
           visible={modalVisible}
@@ -344,6 +365,77 @@ const fetchParticipantDetails = async (participantId: number) => {
           </View>
         </Modal>
       )}
+
+      {/* 🔹 MODAL POD OCENY – NA RAZIE PLACEHOLDER */}
+      <Modal
+        visible={showRatingModal}
+        transparent
+        animationType="slide"
+        statusBarTranslucent
+        onRequestClose={() => {
+          // tymczasowo blokujemy zamykanie przyciskiem back
+        }}
+      >
+        <View
+          style={{
+            flex: 1,
+            backgroundColor: "rgba(0,0,0,0.6)",
+            justifyContent: "center",
+            alignItems: "center",
+            paddingHorizontal: 16,
+          }}
+        >
+          <View
+            style={{
+              width: "100%",
+              maxHeight: "85%",
+              backgroundColor: "#0d1a4d",
+              borderRadius: 16,
+              padding: 16,
+            }}
+          >
+            <Text
+              style={{
+                color: "#fff",
+                fontSize: 18,
+                fontWeight: "700",
+                textAlign: "center",
+                marginBottom: 12,
+              }}
+            >
+              Tutaj w następnym kroku wstawimy komponent z oceną uczestników 🔥
+            </Text>
+            <Text
+              style={{
+                color: "#cfe8ff",
+                fontSize: 14,
+                textAlign: "center",
+              }}
+            >
+              Modal pojawił się, bo serwer wysłał zdarzenie{" "}
+              <Text style={{ fontWeight: "700" }}>event:ended</Text> dla tego
+              wydarzenia.
+            </Text>
+
+            <TouchableOpacity
+              onPress={() => setShowRatingModal(false)}
+              style={{
+                marginTop: 20,
+                backgroundColor: "#00A9F4",
+                paddingVertical: 12,
+                borderRadius: 10,
+                alignItems: "center",
+              }}
+            >
+              <Text
+                style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}
+              >
+                Zamknij (tymczasowo)
+              </Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </>
   );
 };

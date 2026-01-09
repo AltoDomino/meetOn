@@ -1,5 +1,8 @@
 {
-  "cli": { "version": ">=3.0.0", "appVersionSource": "remote" },
+  "cli": {
+    "version": ">=3.0.0",
+    "appVersionSource": "remote"
+  },
   "build": {
     "preview": {
       "developmentClient": false,
@@ -15,7 +18,7 @@
 
     "production": {
       "developmentClient": false,
-      "distribution": "store",        
+      "distribution": "store",
       "android": { "buildType": "apk" },
       "env": {
         "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON",
@@ -34,6 +37,25 @@
         "NODE_ENV": "development",
         "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "xxx.apps.googleusercontent.com",
         "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "yyy.apps.googleusercontent.com"
+      }
+    },
+
+    "dev-client-testflight": {
+      "developmentClient": true,
+      "distribution": "store",      
+      "env": {
+        "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON",
+        "NODE_ENV": "development",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "xxx.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "yyy.apps.googleusercontent.com"
+      }
+    }
+  },
+
+  "submit": {
+    "dev-client-testflight": {
+      "ios": {
+        "ascAppId": "6753621454"     
       }
     }
   }

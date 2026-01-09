@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import * as Linking from "expo-linking";
 import { useActivity } from "../../context/ActivityContext";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/Event.styles";
@@ -70,25 +71,84 @@ export default function Events() {
     return distanceFilter.max;
   }, [distanceFilter]);
 
-  useEffect(() => {
-    const requestLocation = async () => {
-      try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== "granted") {
-          Alert.alert("Brak dostępu do lokalizacji");
-          return;
-        }
-        const userLocation = await Location.getCurrentPositionAsync({});
-        setLocationCoords({
-          latitude: userLocation.coords.latitude,
-          longitude: userLocation.coords.longitude,
-        });
-      } catch {
-        Alert.alert("Błąd", "Nie udało się pobrać lokalizacji.");
+useEffect(() => {
+  const requestLocation = async () => {
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Brak dostępu do lokalizacji");
+        return;
       }
-    };
-    requestLocation();
-  }, []);
+
+      // 1) Sprawdź czy usługi lokalizacji są włączone
+      const servicesEnabled = await Location.hasServicesEnabledAsync();
+      if (!servicesEnabled) {
+        Alert.alert(
+          "Lokalizacja wyłączona",
+          "Włącz usługi lokalizacji (GPS), aby wyświetlać wydarzenia w pobliżu.",
+          [
+            { text: "OK" },
+            {
+              text: "Ustawienia",
+              onPress: () => Linking.openSettings()
+
+            },
+          ]
+        );
+        return;
+      }
+
+      // 2) Spróbuj pobrać aktualną lokalizację z sensownymi opcjami
+      let userLocation: Location.LocationObject | null = null;
+
+      try {
+        userLocation = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+          timeInterval: 1000,
+          distanceInterval: 0,
+        });
+      } catch (err) {
+        console.warn("getCurrentPositionAsync failed, fallback to last known", err);
+      }
+
+      // 3) Fallback: ostatnia znana lokalizacja
+      if (!userLocation) {
+        const last = await Location.getLastKnownPositionAsync({});
+        if (last) {
+          userLocation = { coords: last.coords, timestamp: last.timestamp } as any;
+        }
+      }
+
+      // 4) Jeśli nadal nic – twardy komunikat
+      if (!userLocation) {
+        Alert.alert(
+          "Nie udało się pobrać lokalizacji",
+          "Upewnij się, że masz włączony GPS i spróbuj ponownie.",
+          [
+            { text: "OK" },
+            {
+              text: "Ustawienia",
+              onPress: () => Linking.openSettings()
+
+            },
+          ]
+        );
+        return;
+      }
+
+      setLocationCoords({
+        latitude: userLocation.coords.latitude,
+        longitude: userLocation.coords.longitude,
+      });
+    } catch (e) {
+      console.warn("Błąd pobierania lokalizacji:", e);
+      Alert.alert("Błąd", "Nie udało się pobrać lokalizacji.");
+    }
+  };
+
+  requestLocation();
+}, []);
+
 
   useFocusEffect(
     useCallback(() => {

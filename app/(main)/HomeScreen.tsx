@@ -23,10 +23,12 @@ export default function Home() {
   const insets = useSafeAreaInsets();
 
   const handleActivity = () => setModalVisible(true);
+
   const handleModalConfirm = () => {
     setModalVisible(false);
     router.push("/Activity/Activity");
   };
+
   const handleLogout = async () => {
     await logout();
     router.replace("/Login");
@@ -44,8 +46,32 @@ export default function Home() {
         <ImageBackground
           source={require("@/assets/images/meetOn.png")}
           style={styles.backgroundImage}
-          imageStyle={styles.backgroundImageInner} // 👈 dodane — kontrola wielkości tła
+          imageStyle={styles.backgroundImageInner}
         >
+          {/* 🔥 LOGOUT BUTTON */}
+          <View
+            style={{
+              position: "absolute",
+              top: insets.top + 10,
+              right: 15,
+              zIndex: 10,
+            }}
+          >
+            <TouchableOpacity
+              onPress={handleLogout}
+              style={{
+                backgroundColor: "rgba(0,0,0,0.6)",
+                paddingHorizontal: 14,
+                paddingVertical: 8,
+                borderRadius: 10,
+              }}
+            >
+              <Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>
+                Wyloguj
+              </Text>
+            </TouchableOpacity>
+          </View>
+
           <View style={[styles.overlay, { paddingTop: CONTENT_TOP }]}>
             <Text style={styles.greeting}>Hej</Text>
             <Text style={styles.greetingUser}>{userName}! 👋</Text>
@@ -76,6 +102,7 @@ export default function Home() {
                   lub dodać nowe, a wydarzenia będą się aktualizować zgodnie z
                   Twoimi preferencjami.
                 </Text>
+
                 <Pressable onPress={handleModalConfirm} style={styles.modalButton}>
                   <Text style={styles.modalButtonText}>Rozumiem</Text>
                 </Pressable>

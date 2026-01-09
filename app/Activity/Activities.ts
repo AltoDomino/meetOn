@@ -25,6 +25,12 @@ export const activityImages: Record<string, any> = {
 "KONCERT": require("../../assets/images/wyjscie-na-koncert.png"),
 "GRZYBY": require("../../assets/images/grzyby.png"),
 "RYBY": require("../../assets/images/ryby.png"),
+"SILOWNIA": require("../../assets/images/silownia.png"),
+"NARTY": require("../../assets/images/narty.png"),
+"JAZDA KONNA": require("../../assets/images/jazda_konna.png"),
+"LYŻWY": require("../../assets/images/lyzwy.png"),
+"SZTUKI WALKI": require("../../assets/images/sztuki_walki.png"),
+"IMPREZKA": require("../../assets/images/klub.png"),
 "STWÓRZ WŁASNE": require("../../assets/images/wlasne.png"),
 
 };
