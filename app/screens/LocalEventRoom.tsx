@@ -1,6 +1,7 @@
 import ChatBox, { Message } from "@/components/ChatBox";
 import RateParticipantsModal from "@/components/RateParticipants";
 import { useEndEventListener } from "@/hooks/useEndEventListener";
+import { useEventRatings } from "@/hooks/useEventRatings";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -9,7 +10,6 @@ import {
   FlatList,
   Image,
   KeyboardAvoidingView,
-  Modal,
   Platform,
   SafeAreaView,
   Text,
@@ -20,11 +20,47 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import io from "socket.io-client";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/EventScreenRoom.styles";
-import type { Event } from "./MyEvents";
 
 const socket = io("https://meeton-backend-ffmo.onrender.com", {
   transports: ["websocket"],
 });
+
+/** ⭐ Badge z oceną obok imienia */
+const RatingBadge = ({ avg, count }: { avg?: number; count?: number }) => {
+  if (avg == null || Number.isNaN(avg)) return null;
+
+  return (
+    <View
+      style={{
+        marginLeft: 8,
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#EAF6FF",
+        paddingHorizontal: 8,
+        paddingVertical: 3,
+        borderRadius: 999,
+      }}
+    >
+      <Ionicons name="star" size={14} color="#00A9F4" />
+      <Text
+        style={{
+          marginLeft: 4,
+          fontWeight: "700",
+          color: "#1B4D6B",
+          fontSize: 12,
+        }}
+      >
+        {avg.toFixed(1)}
+      </Text>
+
+      {typeof count === "number" && count > 0 && (
+        <Text style={{ marginLeft: 4, color: "#1B4D6B", fontSize: 11 }}>
+          ({count})
+        </Text>
+      )}
+    </View>
+  );
+};
 
 const LocalEventRoom = () => {
   const insets = useSafeAreaInsets();
@@ -37,8 +73,11 @@ const LocalEventRoom = () => {
     return typeof raw === "string" ? raw : Array.isArray(raw) ? raw[0] : undefined;
   }, [params]);
 
+  // ✅ Hook z ocenami eventu
+  const { getUserRating, refetch: refetchRatings } = useEventRatings(currentEventId);
+
   const [participants, setParticipants] = useState<any[]>([]);
-  const [currentEvent, setCurrentEvent] = useState<any | null>(null); // <- any, bo backend zwraca różne pola
+  const [currentEvent, setCurrentEvent] = useState<any | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<any>(null);
@@ -68,6 +107,14 @@ const LocalEventRoom = () => {
   useEffect(() => {
     fetchEventDetails();
   }, [fetchEventDetails]);
+
+  // ✅ Jak modal ocen się otworzy (event:ended albo ręcznie), odśwież dane + oceny
+  useEffect(() => {
+    if (showRatingModal) {
+      fetchEventDetails();
+      refetchRatings();
+    }
+  }, [showRatingModal, fetchEventDetails, refetchRatings]);
 
   useEffect(() => {
     if (!currentEventId) return;
@@ -115,7 +162,7 @@ const LocalEventRoom = () => {
 
   const handleLeave = async () => {
     const numericEventId = Number(currentEventId);
-    if (!userId || !currentEventId || isNaN(numericEventId)) return;
+    if (!userId || !currentEventId || Number.isNaN(numericEventId)) return;
 
     try {
       const res = await fetch("https://meeton-backend-ffmo.onrender.com/api/leave", {
@@ -141,16 +188,9 @@ const LocalEventRoom = () => {
     router.replace("./MyEvents");
   };
 
-  /**
-   * ✅ Najważniejsze:
-   * - participants są ok (mają id)
-   * - creator z backendu NIE MA id
-   * - więc próbujemy znaleźć creatorId w innych polach eventa
-   */
   const participantsForRating = useMemo(() => {
     const list: any[] = [];
 
-    // 1) participants (z id)
     (participants || []).forEach((p: any) => {
       const idNum = Number(p?.id);
       if (!Number.isNaN(idNum) && idNum > 0) {
@@ -166,24 +206,21 @@ const LocalEventRoom = () => {
     const creator = currentEvent?.creator;
     const creatorName = creator?.userName;
 
-    // 2) (stary sposób) spróbuj znaleźć gospodarza w participants po userName
     let creatorIdFromParticipants: number | null = null;
     if (creatorName) {
       const found = (participants || []).find(
-        (p: any) =>
-          String(p?.userName ?? p?.username ?? p?.name ?? "") === String(creatorName)
+        (p: any) => String(p?.userName ?? p?.username ?? p?.name ?? "") === String(creatorName)
       );
       const idNum = Number(found?.id);
       if (!Number.isNaN(idNum) && idNum > 0) creatorIdFromParticipants = idNum;
     }
 
-    // 3) (NOWY sposób) spróbuj znaleźć creatorId po innych polach eventa
     const creatorIdCandidates = [
       currentEvent?.creatorId,
       currentEvent?.ownerId,
       currentEvent?.hostId,
       currentEvent?.createdById,
-      creator?.id, // jak kiedyś backend zacznie zwracać
+      creator?.id,
     ];
 
     let creatorIdFromEvent: number | null = null;
@@ -197,7 +234,6 @@ const LocalEventRoom = () => {
 
     const finalCreatorId = creatorIdFromParticipants ?? creatorIdFromEvent;
 
-    // 4) jeśli mamy finalCreatorId → dodaj gospodarza do listy ocen
     if (finalCreatorId && creatorName) {
       list.push({
         id: finalCreatorId,
@@ -207,28 +243,11 @@ const LocalEventRoom = () => {
       });
     }
 
-    // 5) dedupe po id
     const map = new Map<number, any>();
     for (const p of list) map.set(p.id, p);
 
     return Array.from(map.values());
   }, [participants, currentEvent]);
-
-  useEffect(() => {
-    if (!showRatingModal) return;
-
-    console.log("LOG CREATOR RAW:", currentEvent?.creator);
-    console.log("LOG CREATOR ID candidates:", {
-      creatorId: currentEvent?.creatorId,
-      ownerId: currentEvent?.ownerId,
-      hostId: currentEvent?.hostId,
-      createdById: currentEvent?.createdById,
-      creatorObjId: currentEvent?.creator?.id,
-    });
-    console.log("LOG participants:", participants);
-    console.log("LOG participantsForRating:", participantsForRating);
-    console.log("LOG my userId:", userId);
-  }, [showRatingModal, currentEvent, participants, participantsForRating, userId]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -248,69 +267,14 @@ const LocalEventRoom = () => {
         />
 
         <View style={[styles.container, { flex: 1 }]}>
-          {/* Twórca wydarzenia */}
-          {currentEvent?.creator && (
-            <View style={styles.creatorContainer}>
-              {currentEvent.creator.avatar && currentEvent.creator.avatar.trim() !== "" ? (
-                <Image
-                  source={{ uri: currentEvent.creator.avatar }}
-                  style={styles.creatorAvatar}
-                />
-              ) : (
-                <View style={styles.creatorInitial}>
-                  <Text style={styles.creatorInitialText}>
-                    {currentEvent.creator.userName?.charAt(0).toUpperCase()}
-                  </Text>
-                </View>
-              )}
-
-              <View style={styles.creatorTextContainer}>
-                <Text style={styles.creatorName}>{currentEvent.creator.userName}</Text>
-
-                {currentEvent.creator.age && (
-                  <Text style={styles.creatorAge}>Wiek: {currentEvent.creator.age}</Text>
-                )}
-
-                {currentEvent.creator.description && (
-                  <View
-                    style={{
-                      flexDirection: "row",
-                      flexWrap: "wrap",
-                      alignItems: "center",
-                      marginTop: 4,
-                    }}
-                  >
-                    <Text style={styles.creatorDescription}>
-                      {currentEvent.creator.description.length > 10
-                        ? currentEvent.creator.description.slice(0, 10) + "..."
-                        : currentEvent.creator.description}
-                    </Text>
-
-                    {currentEvent.creator.description.length > 10 && (
-                      <TouchableOpacity onPress={() => setIsCreatorDescModalVisible(true)}>
-                        <Text
-                          style={{
-                            color: "#00A9F4",
-                            marginLeft: 6,
-                            fontWeight: "bold",
-                          }}
-                        >
-                          Rozwiń opis
-                        </Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                )}
-              </View>
-            </View>
-          )}
-
           {/* Szczegóły wydarzenia */}
           <View style={styles.header}>
             <View style={styles.eventInfo}>
               <Text style={styles.title}>{currentEvent?.location || "Brak lokalizacji"}</Text>
               <Text>
-                {currentEvent?.startDate ? new Date(currentEvent.startDate).toLocaleDateString() : ""}{" "}
+                {currentEvent?.startDate
+                  ? new Date(currentEvent.startDate).toLocaleDateString()
+                  : ""}{" "}
                 {" • "}
                 {currentEvent?.startDate
                   ? new Date(currentEvent.startDate).toLocaleTimeString([], {
@@ -342,7 +306,12 @@ const LocalEventRoom = () => {
                   <Text style={styles.leaveButton}>Moje</Text>
                   <Text style={styles.leaveButton}>wydarzenia</Text>
                 </View>
-                <Ionicons name="swap-vertical-outline" size={18} color="#999" style={styles.leaveIcon} />
+                <Ionicons
+                  name="swap-vertical-outline"
+                  size={18}
+                  color="#999"
+                  style={styles.leaveIcon}
+                />
               </TouchableOpacity>
             </View>
           </View>
@@ -356,13 +325,19 @@ const LocalEventRoom = () => {
                 </Text>
               </TouchableOpacity>
 
+              {/* ✅ Przycisk testowy – ręczne otwieranie modala */}
               <TouchableOpacity
-                onPress={() => setShowRatingModal(true)}
+                onPress={() => {
+                  if (!currentEventId) return;
+                  setShowRatingModal(true);
+                }}
+                disabled={!currentEventId}
                 style={{
                   backgroundColor: "#517fc5ff",
                   paddingVertical: 6,
                   paddingHorizontal: 10,
                   borderRadius: 8,
+                  opacity: currentEventId ? 1 : 0.5,
                 }}
               >
                 <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>Oceny</Text>
@@ -374,36 +349,48 @@ const LocalEventRoom = () => {
                 data={participants}
                 keyExtractor={(item) => item.id.toString()}
                 ListEmptyComponent={<Text style={styles.emptyText}>Brak uczestników</Text>}
-                renderItem={({ item }) => (
-                  <TouchableOpacity
-                    onPress={() => fetchParticipantDetails(item.id)}
-                    style={styles.participantCard}
-                  >
-                    <View style={styles.avatar}>
-                      {item.avatar && item.avatar.trim() !== "" ? (
-                        <Image
-                          source={{ uri: item.avatar }}
-                          style={{ width: 40, height: 40, borderRadius: 20 }}
-                        />
-                      ) : (
-                        <Text style={styles.avatarText}>
-                          {item.userName?.charAt(0).toUpperCase()}
-                        </Text>
-                      )}
-                    </View>
+                renderItem={({ item }) => {
+                  const r = getUserRating(item.id);
 
-                    <View style={{ flexDirection: "column", marginLeft: 10 }}>
-                      <View style={{ flexDirection: "row", alignItems: "center" }}>
-                        <Text style={styles.userName}>{item.userName}</Text>
-                        {item.id === userId && (
-                          <Text style={{ marginLeft: 6, fontSize: 12, color: "#00A9F4" }}>👤</Text>
+                  return (
+                    <TouchableOpacity
+                      onPress={() => fetchParticipantDetails(item.id)}
+                      style={styles.participantCard}
+                    >
+                      <View style={styles.avatar}>
+                        {item.avatar && item.avatar.trim() !== "" ? (
+                          <Image
+                            source={{ uri: item.avatar }}
+                            style={{ width: 40, height: 40, borderRadius: 20 }}
+                          />
+                        ) : (
+                          <Text style={styles.avatarText}>
+                            {item.userName?.charAt(0).toUpperCase()}
+                          </Text>
                         )}
                       </View>
 
-                      {item.age && <Text style={{ color: "#777", fontSize: 12 }}>Wiek: {item.age}</Text>}
-                    </View>
-                  </TouchableOpacity>
-                )}
+                      <View style={{ flexDirection: "column", marginLeft: 10 }}>
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
+                          <Text style={styles.userName}>{item.userName}</Text>
+
+                          {/* ✅ Ocena obok imienia */}
+                          <RatingBadge avg={r?.avg} count={r?.count} />
+
+                          {item.id === userId && (
+                            <Text style={{ marginLeft: 6, fontSize: 12, color: "#00A9F4" }}>
+                              👤
+                            </Text>
+                          )}
+                        </View>
+
+                        {item.age && (
+                          <Text style={{ color: "#777", fontSize: 12 }}>Wiek: {item.age}</Text>
+                        )}
+                      </View>
+                    </TouchableOpacity>
+                  );
+                }}
               />
             )}
           </View>
@@ -412,11 +399,14 @@ const LocalEventRoom = () => {
             <ChatBox messages={messages} onSend={handleSendMessage} />
           </View>
 
-          {/* MODAL OCEN */}
+          {/* ✅ MODAL OCEN */}
           <RateParticipantsModal
             visible={showRatingModal}
-            eventId={currentEventId!}
-            onClose={() => setShowRatingModal(false)}
+            eventId={currentEventId ?? ""} // ✅ bez ! i bez undefined
+            onClose={() => {
+              setShowRatingModal(false);
+              refetchRatings(); // ✅ po ocenieniu odśwież
+            }}
             participants={participantsForRating}
             excludeUserId={typeof userId === "number" ? userId : undefined}
             eventTitle={currentEvent?.location || "Wydarzenie"}

@@ -349,7 +349,7 @@ useEffect(() => {
             },
           ]}
         >
-          <SwitchButton to="/screens/MyEvents" label="TWOJE WYDARZENIA" />
+          <SwitchButton to="/screens/MyEvents" label="MOJE WYDARZENIA" />
           {/* 🔔 Dzwoneczek */}
           <TouchableOpacity
             onPress={saveNotifyPrefs}

@@ -17,6 +17,9 @@ import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/Pofile.styles";
 import { UserRankTracker } from "@/components/PlayerStatus/UserRankTracker";
 
+// ✅ NEW: import z utils/api
+import { fetchMyRatingStats } from "@/hooks/userRatings";
+
 const API_BASE = "https://meeton-backend-ffmo.onrender.com";
 
 const SaveButton = ({ onPress }: { onPress: () => void }) => (
@@ -47,8 +50,8 @@ export default function ProfileScreen() {
     avatar,
     description,
     setAvatar,
-    setUserName,
     setDescription,
+    // token, // jeśli masz w AuthContext token, możesz go użyć poniżej
   } = useAuth();
 
   const [rankLoading, setRankLoading] = useState(true);
@@ -57,7 +60,7 @@ export default function ProfileScreen() {
 
   // ⭐ Oceny od innych użytkowników
   const [ratingsLoading, setRatingsLoading] = useState(true);
-  const [avgStars, setAvgStars] = useState<number | null>(null);
+  const [avgStars, setAvgStars] = useState<number>(0);
   const [totalRatings, setTotalRatings] = useState(0);
   const [tagsSummary, setTagsSummary] = useState<
     { tag: string; count: number }[]
@@ -85,31 +88,31 @@ export default function ProfileScreen() {
     };
   }, [userId]);
 
-  // 🔹 Pobieranie ocen społeczności
+  // ✅ Pobieranie ocen (NOWE API: /api/users/:id/ratings-stats)
   useEffect(() => {
     let isMounted = true;
     (async () => {
       if (!userId) return setRatingsLoading(false);
+
       try {
-        const res = await fetch(`${API_BASE}/api/users/${userId}/ratings`);
+        const data = await fetchMyRatingStats({
+          baseUrl: API_BASE,
+          userId,
+          // token, // odkomentuj jeśli masz token w kontekście
+        });
+
         if (!isMounted) return;
 
-        if (!res.ok) {
-          const t = await res.text().catch(() => "");
-          console.warn("ratings fetch error:", res.status, t);
-          return;
-        }
-
-        const data = await res.json();
-        setAvgStars(data?.avgStars ?? null);
-        setTotalRatings(data?.totalRatings ?? 0);
-        setTagsSummary(Array.isArray(data?.tagsSummary) ? data.tagsSummary : []);
+        setAvgStars(Number(data?.stars?.average ?? 0));
+        setTotalRatings(Number(data?.stars?.count ?? 0));
+        setTagsSummary(Array.isArray(data?.tags) ? data.tags : []);
       } catch (e) {
-        console.warn("User ratings fetch error:", (e as Error).message);
+        console.warn("User ratings-stats fetch error:", (e as Error).message);
       } finally {
         if (isMounted) setRatingsLoading(false);
       }
     })();
+
     return () => {
       isMounted = false;
     };
@@ -159,11 +162,13 @@ export default function ProfileScreen() {
       const res = await fetch(`${API_BASE}/api/user/profile`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, userName, description }),
+        body: JSON.stringify({ userId, description }),
       });
+
       const data = await res.json();
+
       if (res.ok) {
-        setUserName(data.userName);
+        // ✅ Aktualizujemy tylko opis
         setDescription(data.description);
         Alert.alert("✅ Zmiany zapisane!");
       } else {
@@ -259,11 +264,7 @@ export default function ProfileScreen() {
 
           {/* OCENA SPOŁECZNOŚCI */}
           <View
-            style={{
-              width: "100%",
-              marginBottom: 16,
-              paddingHorizontal: 4,
-            }}
+            style={{ width: "100%", marginBottom: 16, paddingHorizontal: 4 }}
           >
             {ratingsLoading ? (
               <View
@@ -321,7 +322,9 @@ export default function ProfileScreen() {
                         justifyContent: "space-between",
                       }}
                     >
-                      <View style={{ flexDirection: "row", alignItems: "center" }}>
+                      <View
+                        style={{ flexDirection: "row", alignItems: "center" }}
+                      >
                         <Text
                           style={{
                             fontSize: 28,
@@ -330,10 +333,11 @@ export default function ProfileScreen() {
                             marginRight: 6,
                           }}
                         >
-                          {avgStars?.toFixed(1)}
+                          {avgStars.toFixed(1)}
                         </Text>
                         <Text style={{ fontSize: 16, color: "#fbbf24" }}>★</Text>
                       </View>
+
                       <Text style={{ color: "#64748b", fontSize: 13 }}>
                         Na podstawie {totalRatings} ocen
                       </Text>
@@ -391,8 +395,9 @@ export default function ProfileScreen() {
           <Text style={styles.label}>Nazwa użytkownika</Text>
           <TextInput
             value={userName}
-            onChangeText={setUserName}
-            style={styles.input}
+            editable={false}
+            selectTextOnFocus={false}
+            style={[styles.input, { opacity: 0.6 }]}
           />
 
           <Text style={styles.label}>Opis</Text>
@@ -405,8 +410,8 @@ export default function ProfileScreen() {
             multiline
             maxLength={100}
           />
-          <SaveButton onPress={handleSave} />
 
+          <SaveButton onPress={handleSave} />
           <View style={{ height: 24 }} />
         </ScrollView>
       </KeyboardAvoidingView>

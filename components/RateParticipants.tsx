@@ -175,7 +175,10 @@ const RateParticipantsModal = ({
 
     const raterIdNum = Number(userId);
     if (Number.isNaN(raterIdNum) || raterIdNum <= 0) {
-      Alert.alert("Błąd", "Brak poprawnego userId (raterId). Zaloguj się ponownie.");
+      Alert.alert(
+        "Błąd",
+        "Brak poprawnego userId (raterId). Zaloguj się ponownie."
+      );
       return;
     }
 
@@ -192,7 +195,7 @@ const RateParticipantsModal = ({
       return;
     }
 
-    const url = `${backend_URL}/api/events/${eventIdNum}/ratings`;
+    const url = `${backend_URL}/api/events/${eventIdNum}/ratings?force=true`;
 
     try {
       setSubmitting(true);
@@ -214,7 +217,12 @@ const RateParticipantsModal = ({
       console.log("📥 RESPONSE:", text);
 
       if (!res.ok) {
-        Alert.alert("Błąd", "Nie udało się zapisać ocen.");
+        let errMsg = "Nie udało się zapisać ocen.";
+        try {
+          const asJson = JSON.parse(text);
+          errMsg = asJson?.error || errMsg;
+        } catch {}
+        Alert.alert("Błąd", `${errMsg} (HTTP ${res.status})`);
         return;
       }
 
@@ -306,7 +314,8 @@ const RateParticipantsModal = ({
           ) : rateableParticipants.length === 0 ? (
             <View style={{ paddingVertical: 24, alignItems: "center" }}>
               <Text style={{ color: "#cfe8ff", textAlign: "center" }}>
-                Brak osób do oceny (jesteś sam w wydarzeniu lub dane nie mają poprawnych ID).
+                Brak osób do oceny (jesteś sam w wydarzeniu lub dane nie mają
+                poprawnych ID).
               </Text>
             </View>
           ) : (
@@ -317,7 +326,10 @@ const RateParticipantsModal = ({
                 contentContainerStyle={{ paddingBottom: 90 }}
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => {
-                  const currentRating = ratings[item.id] || { stars: 0, tags: [] };
+                  const currentRating = ratings[item.id] || {
+                    stars: 0,
+                    tags: [],
+                  };
 
                   const tagsToShow =
                     currentRating.stars === 5
@@ -350,7 +362,10 @@ const RateParticipantsModal = ({
                         }}
                       >
                         {item.avatar ? (
-                          <Image source={{ uri: item.avatar }} style={{ width: 50, height: 50 }} />
+                          <Image
+                            source={{ uri: item.avatar }}
+                            style={{ width: 50, height: 50 }}
+                          />
                         ) : (
                           <Text style={{ color: "#fff", fontSize: 18 }}>
                             {item.userName?.charAt(0)?.toUpperCase() || "?"}
@@ -368,7 +383,9 @@ const RateParticipantsModal = ({
                           }}
                         >
                           {item.userName}
-                          {typeof item.age === "number" ? `, ${item.age} lat` : ""}
+                          {typeof item.age === "number"
+                            ? `, ${item.age} lat`
+                            : ""}
                         </Text>
 
                         <StarRating
@@ -377,7 +394,13 @@ const RateParticipantsModal = ({
                         />
 
                         {tagsToShow.length > 0 && (
-                          <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 8 }}>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              flexWrap: "wrap",
+                              marginTop: 8,
+                            }}
+                          >
                             {tagsToShow.map((tag) => {
                               const selected = currentRating.tags.includes(tag);
 
@@ -391,7 +414,9 @@ const RateParticipantsModal = ({
                                     borderRadius: 16,
                                     borderWidth: 1,
                                     borderColor: selected ? "#00A9F4" : "#445",
-                                    backgroundColor: selected ? "rgba(0,169,244,0.2)" : "transparent",
+                                    backgroundColor: selected
+                                      ? "rgba(0,169,244,0.2)"
+                                      : "transparent",
                                     marginRight: 6,
                                     marginBottom: 6,
                                   }}
@@ -432,12 +457,21 @@ const RateParticipantsModal = ({
                 {submitting ? (
                   <View style={{ flexDirection: "row", alignItems: "center" }}>
                     <ActivityIndicator />
-                    <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16, marginLeft: 10 }}>
+                    <Text
+                      style={{
+                        color: "#fff",
+                        fontWeight: "700",
+                        fontSize: 16,
+                        marginLeft: 10,
+                      }}
+                    >
                       Zapisywanie…
                     </Text>
                   </View>
                 ) : (
-                  <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>
+                  <Text
+                    style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}
+                  >
                     Zapisz oceny
                   </Text>
                 )}
