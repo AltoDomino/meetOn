@@ -67,7 +67,7 @@ export const styles = StyleSheet.create({
 
   sendButton: {
     marginLeft: 10,
-    backgroundColor: "#00A9F4",
+    backgroundColor: "#3A8FB7",
     paddingVertical: 10,
     paddingHorizontal: 12,
     borderRadius: 20,

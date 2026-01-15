@@ -26,7 +26,7 @@ export const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: "#00A9F4",
+    backgroundColor: "#3A8FB7",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -61,7 +61,6 @@ export const styles = StyleSheet.create({
   },
   eventInfo: {
     flex: 1,
-    
   },
   title: {
     fontSize: 18,
@@ -69,11 +68,11 @@ export const styles = StyleSheet.create({
     color: "#222",
     marginBottom: 4,
   },
-buttonContainer: {
-  flexDirection: "column",
-  gap: 10,
-  alignItems: "flex-end",
-},
+  buttonContainer: {
+    flexDirection: "column",
+    gap: 10,
+    alignItems: "flex-end",
+  },
   leaveButtonWrapper: {
     flexDirection: "row",
     alignItems: "center",
@@ -100,7 +99,7 @@ buttonContainer: {
   participantsTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#00A9F4",
+    color: "#3A8FB7",
     marginBottom: 8,
   },
   participantCard: {
@@ -145,5 +144,5 @@ buttonContainer: {
       android: 80,
       default: 60,
     }),
-  }
+  },
 });

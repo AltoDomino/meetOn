@@ -15,7 +15,7 @@ export default function DrawerLayout() {
           </TouchableOpacity>
         ),
         headerStyle: {
-          backgroundColor: "#00A9F4",
+          backgroundColor: "#3A8FB7",
         },
         headerTintColor: "#fff",
         headerTitleAlign: "center",
@@ -31,7 +31,7 @@ export default function DrawerLayout() {
       <Drawer.Screen
         name="FriendList"
         options={{
-          title: "📨 ZAPROŚ ZNAJOMYCH",
+          title: "📨 ZNAJOMI",
           drawerLabel: "📨 ZAPROŚ ZNAJOMYCH",
         }}
       />

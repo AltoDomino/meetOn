@@ -15,5 +15,5 @@
     "context",
     ".expo/types/**/*.ts",
     "expo-env.d.ts"
-  ]
+, "components/ChatModal.tsx"  ]
 }

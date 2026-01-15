@@ -1,5 +1,6 @@
 import { backend_URL } from "@/backendURL";
 import { useAuth } from "@/context/AuthContext";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { StarRating } from "components/StarRating";
 import React, { useEffect, useMemo, useState } from "react";
 import {
@@ -12,7 +13,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Participant = {
   id: number;
@@ -168,7 +168,12 @@ const RateParticipantsModal = ({
         if (!cancelled) {
           const isRated = v === "1";
           setAlreadyRatedEvent(isRated);
-          console.log("[ratings] alreadyRatedEvent from storage:", isRated, "key:", storageKey);
+          console.log(
+            "[ratings] alreadyRatedEvent from storage:",
+            isRated,
+            "key:",
+            storageKey
+          );
         }
       } catch (e) {
         console.log("[ratings] storage read error:", e);
@@ -218,12 +223,18 @@ const RateParticipantsModal = ({
     }
 
     if (Number.isNaN(raterIdNum) || raterIdNum <= 0) {
-      Alert.alert("Błąd", "Brak poprawnego userId (raterId). Zaloguj się ponownie.");
+      Alert.alert(
+        "Błąd",
+        "Brak poprawnego userId (raterId). Zaloguj się ponownie."
+      );
       return;
     }
 
     if (alreadyRatedEvent) {
-      Alert.alert("Już oceniłeś", "Możesz wystawić ocenę tylko raz na całe wydarzenie.");
+      Alert.alert(
+        "Już oceniłeś",
+        "Możesz wystawić ocenę tylko raz na całe wydarzenie."
+      );
       return;
     }
 
@@ -272,7 +283,10 @@ const RateParticipantsModal = ({
         if (err === "ALREADY_RATED_EVENT") {
           setAlreadyRatedEvent(true);
           if (storageKey) await AsyncStorage.setItem(storageKey, "1");
-          Alert.alert("Już oceniłeś", "Możesz wystawić ocenę tylko raz na całe wydarzenie.");
+          Alert.alert(
+            "Już oceniłeś",
+            "Możesz wystawić ocenę tylko raz na całe wydarzenie."
+          );
           return;
         }
       }
@@ -303,9 +317,11 @@ const RateParticipantsModal = ({
 
   const shouldShowLoading =
     visible &&
-    (participants == null || (Array.isArray(participants) && participants.length === 0));
+    (participants == null ||
+      (Array.isArray(participants) && participants.length === 0));
 
-  const submitDisabled = submitting || alreadyRatedEvent || checkingAlreadyRated;
+  const submitDisabled =
+    submitting || alreadyRatedEvent || checkingAlreadyRated;
 
   return (
     <Modal
@@ -395,7 +411,7 @@ const RateParticipantsModal = ({
           {/* Body */}
           {shouldShowLoading ? (
             <View style={{ paddingVertical: 24, alignItems: "center" }}>
-              <ActivityIndicator size="large" color="#00A9F4" />
+              <ActivityIndicator size="large" color="#3A8FB7" />
               <Text style={{ color: "#cfe8ff", marginTop: 12 }}>
                 Ładowanie uczestników…
               </Text>
@@ -403,7 +419,7 @@ const RateParticipantsModal = ({
           ) : rateableParticipants.length === 0 ? (
             <View style={{ paddingVertical: 24, alignItems: "center" }}>
               <Text style={{ color: "#cfe8ff", textAlign: "center" }}>
-                Brak osób do oceny (jesteś sam w wydarzeniu lub dane nie mają poprawnych ID).
+                Brak osób do oceny.
               </Text>
             </View>
           ) : (
@@ -414,7 +430,10 @@ const RateParticipantsModal = ({
                 contentContainerStyle={{ paddingBottom: 90 }}
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => {
-                  const currentRating = ratings[item.id] || { stars: 0, tags: [] };
+                  const currentRating = ratings[item.id] || {
+                    stars: 0,
+                    tags: [],
+                  };
 
                   const tagsToShow =
                     currentRating.stars === 5
@@ -448,7 +467,10 @@ const RateParticipantsModal = ({
                         }}
                       >
                         {item.avatar ? (
-                          <Image source={{ uri: item.avatar }} style={{ width: 50, height: 50 }} />
+                          <Image
+                            source={{ uri: item.avatar }}
+                            style={{ width: 50, height: 50 }}
+                          />
                         ) : (
                           <Text style={{ color: "#fff", fontSize: 18 }}>
                             {item.userName?.charAt(0)?.toUpperCase() || "?"}
@@ -466,7 +488,9 @@ const RateParticipantsModal = ({
                           }}
                         >
                           {item.userName}
-                          {typeof item.age === "number" ? `, ${item.age} lat` : ""}
+                          {typeof item.age === "number"
+                            ? `, ${item.age} lat`
+                            : ""}
                         </Text>
 
                         <StarRating
@@ -478,7 +502,13 @@ const RateParticipantsModal = ({
                         />
 
                         {tagsToShow.length > 0 && (
-                          <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 8 }}>
+                          <View
+                            style={{
+                              flexDirection: "row",
+                              flexWrap: "wrap",
+                              marginTop: 8,
+                            }}
+                          >
                             {tagsToShow.map((tag) => {
                               const selected = currentRating.tags.includes(tag);
 
@@ -494,7 +524,7 @@ const RateParticipantsModal = ({
                                     paddingVertical: 6,
                                     borderRadius: 16,
                                     borderWidth: 1,
-                                    borderColor: selected ? "#00A9F4" : "#445",
+                                    borderColor: selected ? "#3A8FB7" : "#445",
                                     backgroundColor: selected
                                       ? "rgba(0,169,244,0.2)"
                                       : "transparent",
@@ -529,7 +559,7 @@ const RateParticipantsModal = ({
                   bottom: 16,
                   left: 16,
                   right: 16,
-                  backgroundColor: submitDisabled ? "#007bb8" : "#00A9F4",
+                  backgroundColor: submitDisabled ? "#007bb8" : "#3A8FB7",
                   paddingVertical: 14,
                   borderRadius: 12,
                   alignItems: "center",
@@ -551,11 +581,15 @@ const RateParticipantsModal = ({
                     </Text>
                   </View>
                 ) : alreadyRatedEvent ? (
-                  <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>
+                  <Text
+                    style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}
+                  >
                     Już ocenione
                   </Text>
                 ) : (
-                  <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>
+                  <Text
+                    style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}
+                  >
                     Zapisz oceny
                   </Text>
                 )}

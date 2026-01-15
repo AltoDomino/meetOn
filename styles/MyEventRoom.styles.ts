@@ -1,4 +1,3 @@
-
 import { StyleSheet } from "react-native";
 
 export const styles = StyleSheet.create({
@@ -50,7 +49,7 @@ export const styles = StyleSheet.create({
   participantsTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#00A9F4",
+    color: "#3A8FB7",
     marginBottom: 8,
   },
   participantCard: {

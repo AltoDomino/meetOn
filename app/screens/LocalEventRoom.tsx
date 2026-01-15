@@ -1,6 +1,6 @@
 import ChatBox, { Message } from "@/components/ChatBox";
-import RateParticipantsModal from "@/components/RateParticipants";
 import ParticipantDetailsModal from "@/components/ParticipantDetailsModal";
+import RateParticipantsModal from "@/components/RateParticipants";
 import { useEndEventListener } from "@/hooks/useEndEventListener";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
@@ -41,7 +41,7 @@ const RatingBadge = ({ avg, count }: { avg?: number; count?: number }) => {
         borderRadius: 999,
       }}
     >
-      <Ionicons name="star" size={14} color="#00A9F4" />
+      <Ionicons name="star" size={14} color="#3A8FB7" />
       <Text
         style={{
           marginLeft: 4,
@@ -114,13 +114,11 @@ function resolveUserNameFromParticipant(p: any): string {
 }
 
 function resolveAvatarFromParticipant(p: any): string | null {
-  return (
-    (p?.avatar ??
-      p?.avatarUrl ??
-      p?.user?.avatar ??
-      p?.user?.avatarUrl ??
-      null) as string | null
-  );
+  return (p?.avatar ??
+    p?.avatarUrl ??
+    p?.user?.avatar ??
+    p?.user?.avatarUrl ??
+    null) as string | null;
 }
 
 function resolveAgeFromParticipant(p: any): number | null {
@@ -136,7 +134,11 @@ const LocalEventRoom = () => {
 
   const currentEventId = useMemo(() => {
     const raw = (params as any)?.eventId;
-    return typeof raw === "string" ? raw : Array.isArray(raw) ? raw[0] : undefined;
+    return typeof raw === "string"
+      ? raw
+      : Array.isArray(raw)
+      ? raw[0]
+      : undefined;
   }, [params]);
 
   const [participants, setParticipants] = useState<any[]>([]);
@@ -145,8 +147,13 @@ const LocalEventRoom = () => {
 
   // ✅ Modal profilu
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
-  const [selectedParticipant, setSelectedParticipant] = useState<any | null>(null);
-  const [selectedRating, setSelectedRating] = useState<{ avg: number; count: number } | null>(null);
+  const [selectedParticipant, setSelectedParticipant] = useState<any | null>(
+    null
+  );
+  const [selectedRating, setSelectedRating] = useState<{
+    avg: number;
+    count: number;
+  } | null>(null);
   const [selectedTags, setSelectedTags] = useState<TagCount[]>([]);
 
   const [isExpanded, setIsExpanded] = useState(false);
@@ -157,7 +164,9 @@ const LocalEventRoom = () => {
   });
 
   // ✅ MAPA OCEN Z EVENTU: userId -> {avg,count,tags[{tag,count}]}
-  const [eventRatingsMap, setEventRatingsMap] = useState<Record<number, RatingsEntry>>({});
+  const [eventRatingsMap, setEventRatingsMap] = useState<
+    Record<number, RatingsEntry>
+  >({});
 
   const fetchEventDetails = useCallback(async () => {
     if (!currentEventId) return;
@@ -171,7 +180,10 @@ const LocalEventRoom = () => {
       setParticipants(data.participants || []);
 
       // ✅ log: sprawdź strukturę participants (raz na fetch)
-      console.log("[DETAILS] participants sample:", (data.participants || [])?.[0]);
+      console.log(
+        "[DETAILS] participants sample:",
+        (data.participants || [])?.[0]
+      );
     } catch (err) {
       console.error("Błąd pobierania szczegółów wydarzenia:", err);
     }
@@ -190,7 +202,9 @@ const LocalEventRoom = () => {
       console.log("[event ratings] url:", url);
       console.log("[event ratings] raw:", data);
 
-      const users: RatingsUserRow[] = Array.isArray(data?.users) ? data.users : [];
+      const users: RatingsUserRow[] = Array.isArray(data?.users)
+        ? data.users
+        : [];
 
       const nextMap: Record<number, RatingsEntry> = {};
 
@@ -227,7 +241,11 @@ const LocalEventRoom = () => {
 
       console.log("[event ratings] map keys:", Object.keys(nextMap));
       const firstKey = Object.keys(nextMap)[0];
-      if (firstKey) console.log("[event ratings] sample tags:", nextMap[Number(firstKey)]?.tags);
+      if (firstKey)
+        console.log(
+          "[event ratings] sample tags:",
+          nextMap[Number(firstKey)]?.tags
+        );
 
       setEventRatingsMap(nextMap);
     } catch (e) {
@@ -290,15 +308,14 @@ const LocalEventRoom = () => {
         const profile = await profileRes.json();
 
         const keyId =
-          toNum(profile?.id) ??
-          toNum(profile?.userId) ??
-          toNum(targetUserId);
+          toNum(profile?.id) ?? toNum(profile?.userId) ?? toNum(targetUserId);
 
         const entry = keyId ? eventRatingsMap[keyId] : undefined;
 
-
         setSelectedParticipant(profile);
-        setSelectedRating(entry ? { avg: entry.avg, count: entry.count } : null);
+        setSelectedRating(
+          entry ? { avg: entry.avg, count: entry.count } : null
+        );
         setSelectedTags(entry?.tags ?? []);
         setDetailsModalVisible(true);
       } catch (err) {
@@ -313,11 +330,14 @@ const LocalEventRoom = () => {
     if (!userId || !currentEventId || Number.isNaN(numericEventId)) return;
 
     try {
-      const res = await fetch("https://meeton-backend-ffmo.onrender.com/api/leave", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, eventId: numericEventId }),
-      });
+      const res = await fetch(
+        "https://meeton-backend-ffmo.onrender.com/api/leave",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId, eventId: numericEventId }),
+        }
+      );
 
       if (res.ok) {
         socket.emit("participantLeft", currentEventId);
@@ -360,9 +380,7 @@ const LocalEventRoom = () => {
     "Twórca";
 
   const creatorAvatar =
-    currentEvent?.creator?.avatar ??
-    currentEvent?.creator?.avatarUrl ??
-    null;
+    currentEvent?.creator?.avatar ?? currentEvent?.creator?.avatarUrl ?? null;
 
   const getUserEntry = useCallback(
     (uid?: number | null) => {
@@ -411,7 +429,7 @@ const LocalEventRoom = () => {
         <Stack.Screen
           options={{
             title: "WYDARZENIA",
-            headerStyle: { backgroundColor: "#00A9F4" },
+            headerStyle: { backgroundColor: "#3A8FB7" },
             headerTintColor: "#fff",
             headerTitleAlign: "center",
             headerLeft: () => null,
@@ -451,9 +469,18 @@ const LocalEventRoom = () => {
                     }}
                   >
                     {creatorAvatar ? (
-                      <Image source={{ uri: creatorAvatar }} style={{ width: 38, height: 38 }} />
+                      <Image
+                        source={{ uri: creatorAvatar }}
+                        style={{ width: 38, height: 38 }}
+                      />
                     ) : (
-                      <Text style={{ fontWeight: "900", color: "#00A9F4", fontSize: 16 }}>
+                      <Text
+                        style={{
+                          fontWeight: "900",
+                          color: "#3A8FB7",
+                          fontSize: 16,
+                        }}
+                      >
                         {creatorName?.charAt(0)?.toUpperCase?.() ?? "?"}
                       </Text>
                     )}
@@ -471,8 +498,16 @@ const LocalEventRoom = () => {
                     {(() => {
                       const e = getUserEntry(creatorId);
                       return (
-                        <View style={{ flexDirection: "row", alignItems: "center", marginTop: 2 }}>
-                          <Text style={{ fontSize: 11, color: "#1B4D6B" }}>Twórca</Text>
+                        <View
+                          style={{
+                            flexDirection: "row",
+                            alignItems: "center",
+                            marginTop: 2,
+                          }}
+                        >
+                          <Text style={{ fontSize: 11, color: "#1B4D6B" }}>
+                            Twórca
+                          </Text>
                           <RatingBadge avg={e?.avg} count={e?.count} />
                         </View>
                       );
@@ -488,10 +523,14 @@ const LocalEventRoom = () => {
                 </TouchableOpacity>
               ) : null}
 
-              <Text style={styles.title}>{currentEvent?.location || "Brak lokalizacji"}</Text>
+              <Text style={styles.title}>
+                {currentEvent?.location || "Brak lokalizacji"}
+              </Text>
 
               <Text>
-                {currentEvent?.startDate ? new Date(currentEvent.startDate).toLocaleDateString() : ""}{" "}
+                {currentEvent?.startDate
+                  ? new Date(currentEvent.startDate).toLocaleDateString()
+                  : ""}{" "}
                 {" • "}
                 {currentEvent?.startDate
                   ? new Date(currentEvent.startDate).toLocaleTimeString([], {
@@ -516,15 +555,26 @@ const LocalEventRoom = () => {
                 { flexDirection: "column", gap: 10, alignItems: "flex-end" },
               ]}
             >
-              <TouchableOpacity style={styles.leaveButtonWrapper} onPress={handleLeave}>
+              <TouchableOpacity
+                style={styles.leaveButtonWrapper}
+                onPress={handleLeave}
+              >
                 <View style={styles.leaveTextWrapper}>
                   <Text style={styles.leaveButton}>Opuść</Text>
                   <Text style={styles.leaveButton}>wydarzenie</Text>
                 </View>
-                <Ionicons name="exit-outline" size={18} color="#999" style={styles.leaveIcon} />
+                <Ionicons
+                  name="exit-outline"
+                  size={18}
+                  color="#999"
+                  style={styles.leaveIcon}
+                />
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.leaveButtonWrapper} onPress={handleSwitch}>
+              <TouchableOpacity
+                style={styles.leaveButtonWrapper}
+                onPress={handleSwitch}
+              >
                 <View style={styles.leaveTextWrapper}>
                   <Text style={styles.leaveButton}>Moje</Text>
                   <Text style={styles.leaveButton}>wydarzenia</Text>
@@ -541,7 +591,13 @@ const LocalEventRoom = () => {
 
           {/* Lista uczestników */}
           <View style={styles.participantsContainer}>
-            <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+            <View
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+              }}
+            >
               <TouchableOpacity onPress={() => setIsExpanded(!isExpanded)}>
                 <Text style={styles.participantsTitle}>
                   {isExpanded ? "Ukryj uczestników ▲" : "Pokaż uczestników ▼"}
@@ -562,7 +618,11 @@ const LocalEventRoom = () => {
                   opacity: currentEventId ? 1 : 0.5,
                 }}
               >
-                <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>Oceny</Text>
+                <Text
+                  style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}
+                >
+                  Oceny
+                </Text>
               </TouchableOpacity>
             </View>
 
@@ -570,7 +630,9 @@ const LocalEventRoom = () => {
               <FlatList
                 data={participants}
                 keyExtractor={(item) => String(item?.id ?? Math.random())}
-                ListEmptyComponent={<Text style={styles.emptyText}>Brak uczestników</Text>}
+                ListEmptyComponent={
+                  <Text style={styles.emptyText}>Brak uczestników</Text>
+                }
                 renderItem={({ item }) => {
                   const uid = resolveUserIdFromParticipant(item);
 
@@ -591,19 +653,27 @@ const LocalEventRoom = () => {
                       <View style={styles.avatar}>
                         {resolveAvatarFromParticipant(item) ? (
                           <Image
-                            source={{ uri: resolveAvatarFromParticipant(item)! }}
+                            source={{
+                              uri: resolveAvatarFromParticipant(item)!,
+                            }}
                             style={{ width: 40, height: 40, borderRadius: 20 }}
                           />
                         ) : (
                           <Text style={styles.avatarText}>
-                            {resolveUserNameFromParticipant(item)?.charAt(0).toUpperCase()}
+                            {resolveUserNameFromParticipant(item)
+                              ?.charAt(0)
+                              .toUpperCase()}
                           </Text>
                         )}
                       </View>
 
                       <View style={{ flexDirection: "column", marginLeft: 10 }}>
-                        <View style={{ flexDirection: "row", alignItems: "center" }}>
-                          <Text style={styles.userName}>{resolveUserNameFromParticipant(item)}</Text>
+                        <View
+                          style={{ flexDirection: "row", alignItems: "center" }}
+                        >
+                          <Text style={styles.userName}>
+                            {resolveUserNameFromParticipant(item)}
+                          </Text>
                           <RatingBadge avg={e?.avg} count={e?.count} />
                         </View>
 
@@ -620,7 +690,12 @@ const LocalEventRoom = () => {
             )}
           </View>
 
-          <View style={[styles.chatContainer, { flex: 1, justifyContent: "flex-end" }]}>
+          <View
+            style={[
+              styles.chatContainer,
+              { flex: 1, justifyContent: "flex-end" },
+            ]}
+          >
             <ChatBox messages={messages} onSend={handleSendMessage} />
           </View>
 

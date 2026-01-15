@@ -187,7 +187,7 @@
 //   },
 //   closeButton: {
 //     marginTop: 20,
-//     backgroundColor: "#00A9F4",
+//     backgroundColor: "#3A8FB7",
 //     padding: 10,
 //     borderRadius: 8,
 //     alignItems: "center",

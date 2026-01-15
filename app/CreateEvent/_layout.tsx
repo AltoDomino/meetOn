@@ -1,7 +1,6 @@
-import { Stack } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
+import { router, Stack } from "expo-router";
 import { TouchableOpacity } from "react-native";
-import { router } from "expo-router";
 
 export default function FormLayout() {
   return (
@@ -11,11 +10,14 @@ export default function FormLayout() {
         options={{
           title: "LOKALIZACJA I DATA",
           headerStyle: {
-            backgroundColor: "#00A9F4",
+            backgroundColor: "#3A8FB7",
           },
           headerTintColor: "#fff",
           headerLeft: () => (
-            <TouchableOpacity onPress={() => router.push("/(auth)/CreateEvent")} style={{ paddingHorizontal: 10 }}>
+            <TouchableOpacity
+              onPress={() => router.push("/(auth)/CreateEvent")}
+              style={{ paddingHorizontal: 10 }}
+            >
               <Ionicons name="arrow-back" size={24} color="#fff" />
             </TouchableOpacity>
           ),
@@ -27,11 +29,14 @@ export default function FormLayout() {
         options={{
           title: "SZCZEGÓŁY WYDARZENIA",
           headerStyle: {
-            backgroundColor: "#00A9F4",
+            backgroundColor: "#3A8FB7",
           },
           headerTintColor: "#fff",
           headerLeft: () => (
-            <TouchableOpacity onPress={() => router.back()} style={{ paddingHorizontal: 10 }}>
+            <TouchableOpacity
+              onPress={() => router.back()}
+              style={{ paddingHorizontal: 10 }}
+            >
               <Ionicons name="arrow-back" size={24} color="#fff" />
             </TouchableOpacity>
           ),

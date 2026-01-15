@@ -1,5 +1,3 @@
-import BottomButton from "../../components/BottomButton";
-import { loadActivities, saveActivities } from "../../utilis/activityStoarage";
 import { router, Stack } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -10,12 +8,14 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import BottomButton from "../../components/BottomButton";
+import { loadActivities, saveActivities } from "../../utilis/activityStoarage";
 
+import ActivityDataSend from "@/utilis/SendActivity";
 import { useActivity } from "../../context/ActivityContext";
 import { useAuth } from "../../context/AuthContext";
 import styles from "../../styles/Activity.styles";
 import { activityImages } from "./Activities";
-import ActivityDataSend from "@/utilis/SendActivity";
 
 export default function Activity() {
   const { setActivities } = useActivity();
@@ -98,7 +98,7 @@ export default function Activity() {
         options={{
           title: "WYBIERZ AKTYWNOŚĆ",
           headerStyle: {
-            backgroundColor: "#00A9F4",
+            backgroundColor: "#3A8FB7",
           },
           headerTintColor: "#fff",
           headerTitleAlign: "center",

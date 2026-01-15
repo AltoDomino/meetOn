@@ -1,21 +1,21 @@
-import React, { useState, useEffect } from "react";
+import { backend_URL } from "@/backendURL";
+import { useRouter } from "expo-router";
+import React, { useEffect, useState } from "react";
 import {
-  View,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  Alert,
+  View,
 } from "react-native";
-import { backend_URL } from "@/backendURL";
 import { useAuth } from "../../context/AuthContext";
-import { useRouter } from "expo-router";   
 
 const normalizePhoneNumber = (input: string) => {
   let phone = input.replace(/\s+/g, "").replace(/-/g, "");
-  if (!phone.startsWith("+")) phone = "+48" + phone; 
+  if (!phone.startsWith("+")) phone = "+48" + phone;
   return phone;
 };
 
@@ -39,7 +39,9 @@ export default function PhoneVerification() {
     console.log("🔥 [sendCode] START wywołania, loading =", loading);
 
     if (loading) {
-      console.log("⏹ [sendCode] przerwane – loading=true (drugi klik / podwójne wywołanie)");
+      console.log(
+        "⏹ [sendCode] przerwane – loading=true (drugi klik / podwójne wywołanie)"
+      );
       return;
     }
 
@@ -277,7 +279,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   button: {
-    backgroundColor: "#00A9F4",
+    backgroundColor: "#3A8FB7",
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: "center",

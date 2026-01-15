@@ -1,4 +1,4 @@
-import { Platform, StyleSheet, Dimensions } from "react-native";
+import { Dimensions, Platform, StyleSheet } from "react-native";
 
 const { height } = Dimensions.get("window");
 const isAndroid = Platform.OS === "android";
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   },
 
   button: {
-    backgroundColor: "#00A9F4",
+    backgroundColor: "#3A8FB7",
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: "center",
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
 
   linkText: {
     fontSize: 15,
-    color: "#00A9F4",
+    color: "#3A8FB7",
     fontWeight: "500",
   },
 });

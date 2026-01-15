@@ -3,16 +3,16 @@ import { router } from "expo-router";
 import { useRef, useState } from "react";
 import { Controller, useForm } from "react-hook-form";
 import {
+  ActivityIndicator,
   Alert,
   Image,
   Keyboard,
+  Modal,
   Text,
   TextInput,
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  ActivityIndicator,
-  Modal,
 } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 import styles from "../../styles/Registration.styles";
@@ -71,14 +71,17 @@ const Registration = () => {
     try {
       setLoading(true);
 
-      const res = await fetch("https://meeton-backend-ffmo.onrender.com/api/registration", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Accept: "application/json",
-        },
-        body: JSON.stringify(finalData),
-      });
+      const res = await fetch(
+        "https://meeton-backend-ffmo.onrender.com/api/registration",
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Accept: "application/json",
+          },
+          body: JSON.stringify(finalData),
+        }
+      );
 
       // spróbuj JSON -> fallback na tekst
       let payload: any = null;
@@ -92,11 +95,17 @@ const Registration = () => {
       const msg = payload?.message || "";
 
       if (res.status === 201) {
-        Alert.alert("Sukces", msg || "Zostałeś zarejestrowany, email weryfikacyjny został wysłany!");
+        Alert.alert(
+          "Sukces",
+          msg || "Zostałeś zarejestrowany, email weryfikacyjny został wysłany!"
+        );
         // (opcjonalnie) automatyczny powrót do logowania:
         // router.replace("/(main)/Login");
       } else if (res.status === 409) {
-        Alert.alert("Email już istnieje", msg || "Ten adres e-mail jest już zarejestrowany.");
+        Alert.alert(
+          "Email już istnieje",
+          msg || "Ten adres e-mail jest już zarejestrowany."
+        );
         emailRef.current?.focus();
       } else if (res.status === 400) {
         Alert.alert("Błąd danych", msg || "Sprawdź wprowadzone dane.");
@@ -129,7 +138,10 @@ const Registration = () => {
               name="userName"
               rules={{
                 required: "Nazwa użytkownika jest wymagana",
-                maxLength: { value: 8, message: "Login może mieć maksymalnie 8 znaków" },
+                maxLength: {
+                  value: 8,
+                  message: "Login może mieć maksymalnie 8 znaków",
+                },
               }}
               render={({ field: { onChange, value } }) => (
                 <TextInput
@@ -143,7 +155,9 @@ const Registration = () => {
                 />
               )}
             />
-            {errors.userName && <Text style={{ color: "red" }}>{errors.userName.message}</Text>}
+            {errors.userName && (
+              <Text style={{ color: "red" }}>{errors.userName.message}</Text>
+            )}
 
             <Text style={styles.label}>Email:</Text>
             <Controller
@@ -170,7 +184,9 @@ const Registration = () => {
                 />
               )}
             />
-            {errors.email && <Text style={{ color: "red" }}>{errors.email.message}</Text>}
+            {errors.email && (
+              <Text style={{ color: "red" }}>{errors.email.message}</Text>
+            )}
 
             <Text style={styles.label}>Hasło:</Text>
             <Controller
@@ -181,7 +197,8 @@ const Registration = () => {
                 // zgodnie z backendem: min. 8 znaków + 1 duża litera + 1 cyfra
                 pattern: {
                   value: /^(?=.*[A-Z])(?=.*\d).{8,}$/,
-                  message: "Hasło musi mieć min. 8 znaków, 1 dużą literę i 1 cyfrę",
+                  message:
+                    "Hasło musi mieć min. 8 znaków, 1 dużą literę i 1 cyfrę",
                 },
               }}
               render={({ field: { onChange, value } }) => (
@@ -196,7 +213,9 @@ const Registration = () => {
                 />
               )}
             />
-            {errors.password && <Text style={{ color: "red" }}>{errors.password.message}</Text>}
+            {errors.password && (
+              <Text style={{ color: "red" }}>{errors.password.message}</Text>
+            )}
 
             <Text style={styles.label}>Powtórz hasło:</Text>
             <Controller
@@ -204,7 +223,8 @@ const Registration = () => {
               name="confirmPassword"
               rules={{
                 required: "Potwierdzenie hasła jest wymagane",
-                validate: (value) => value === watch("password") || "Hasła muszą być identyczne",
+                validate: (value) =>
+                  value === watch("password") || "Hasła muszą być identyczne",
               }}
               render={({ field: { onChange, value } }) => (
                 <TextInput
@@ -219,14 +239,18 @@ const Registration = () => {
               )}
             />
             {errors.confirmPassword && (
-              <Text style={{ color: "red" }}>{errors.confirmPassword.message}</Text>
+              <Text style={{ color: "red" }}>
+                {errors.confirmPassword.message}
+              </Text>
             )}
 
             <Text style={styles.label}>Płeć:</Text>
             <Controller
               control={control}
               name="gender"
-              rules={{ validate: (value) => value !== "" || "Wybór płci jest wymagany" }}
+              rules={{
+                validate: (value) => value !== "" || "Wybór płci jest wymagany",
+              }}
               render={({ field: { onChange, value } }) => (
                 <DropDownPicker
                   open={open}
@@ -239,7 +263,10 @@ const Registration = () => {
                   items={items}
                   setItems={setItems}
                   placeholder="Wybierz płeć"
-                  style={{ marginBottom: open ? 150 : 16, opacity: loading ? 0.6 : 1 }}
+                  style={{
+                    marginBottom: open ? 150 : 16,
+                    opacity: loading ? 0.6 : 1,
+                  }}
                   disabled={loading}
                   zIndex={1000}
                   zIndexInverse={1000}
@@ -247,7 +274,9 @@ const Registration = () => {
                 />
               )}
             />
-            {errors.gender && <Text style={{ color: "red" }}>{errors.gender.message}</Text>}
+            {errors.gender && (
+              <Text style={{ color: "red" }}>{errors.gender.message}</Text>
+            )}
 
             <Text style={styles.label}>Data urodzenia:</Text>
             <Controller
@@ -258,12 +287,17 @@ const Registration = () => {
               render={({ field: { onChange, value } }) => (
                 <>
                   <TouchableOpacity
-                    style={[styles.input, { justifyContent: "center", opacity: loading ? 0.6 : 1 }]}
+                    style={[
+                      styles.input,
+                      { justifyContent: "center", opacity: loading ? 0.6 : 1 },
+                    ]}
                     onPress={() => !loading && setShowDatePicker(true)}
                     disabled={loading}
                   >
                     <Text style={{ color: "black" }}>
-                      {value ? value.toLocaleDateString() : "Wybierz datę urodzenia"}
+                      {value
+                        ? value.toLocaleDateString()
+                        : "Wybierz datę urodzenia"}
                     </Text>
                   </TouchableOpacity>
                   {showDatePicker && (
@@ -289,7 +323,9 @@ const Registration = () => {
               activeOpacity={0.8}
             >
               {loading ? (
-                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                <View
+                  style={{ flexDirection: "row", alignItems: "center", gap: 8 }}
+                >
                   <ActivityIndicator size="small" color="#fff" />
                   <Text style={styles.buttonText}>Rejestruję…</Text>
                 </View>
@@ -308,7 +344,12 @@ const Registration = () => {
           </View>
         </View>
 
-        <Modal transparent visible={loading} animationType="fade" statusBarTranslucent>
+        <Modal
+          transparent
+          visible={loading}
+          animationType="fade"
+          statusBarTranslucent
+        >
           <View
             style={{
               flex: 1,
@@ -327,8 +368,10 @@ const Registration = () => {
                 minWidth: 200,
               }}
             >
-              <ActivityIndicator size="large" color="#00A9F4" />
-              <Text style={{ color: "#EAF6FF", marginTop: 12, fontWeight: "600" }}>
+              <ActivityIndicator size="large" color="#3A8FB7" />
+              <Text
+                style={{ color: "#EAF6FF", marginTop: 12, fontWeight: "600" }}
+              >
                 Trwa rejestracja…
               </Text>
             </View>

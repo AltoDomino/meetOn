@@ -57,8 +57,8 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     alignItems: "center",
-    zIndex: 10,     // nad formularzem
-    elevation: 20,  // Android
+    zIndex: 10, // nad formularzem
+    elevation: 20, // Android
     pointerEvents: "none",
   },
 
@@ -116,13 +116,13 @@ const styles = StyleSheet.create({
 
   loginButton: {
     height: 48,
-    backgroundColor: "#00A9F4",
+    backgroundColor: "#3A8FB7",
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 2,
     marginBottom: 14,
-    shadowColor: "#00A9F4",
+    shadowColor: "#3A8FB7",
     shadowOpacity: 0.25,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },

@@ -132,7 +132,7 @@ export default function MyEvents() {
         options={{
           title: "MOJE WYDARZENIA",
           headerStyle: {
-            backgroundColor: "#00A9F4",
+            backgroundColor: "#3A8FB7",
           },
           headerTintColor: "#fff",
           headerTitleAlign: "center",

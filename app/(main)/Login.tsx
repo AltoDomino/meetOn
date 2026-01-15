@@ -39,7 +39,8 @@ const normalizeGender = (g: any): Gender => {
   if (!g) return null;
   const v = String(g).trim().toLowerCase();
   if (v === "female" || v === "f" || v === "kobieta") return "female";
-  if (v === "male" || v === "m" || v === "mezczyzna" || v === "mężczyzna") return "male";
+  if (v === "male" || v === "m" || v === "mezczyzna" || v === "mężczyzna")
+    return "male";
   if (v === "other" || v === "inne") return "other";
   return null;
 };
@@ -106,7 +107,8 @@ const Login = () => {
 
   // ====== ENV / BUILD DEBUG ======
   const isExpoGo =
-    Constants.appOwnership === "expo" || Constants.executionEnvironment === "storeClient";
+    Constants.appOwnership === "expo" ||
+    Constants.executionEnvironment === "storeClient";
 
   const buildInfo = useMemo(
     () => ({
@@ -115,7 +117,8 @@ const Login = () => {
       isExpoGo,
       appOwnership: Constants.appOwnership,
       executionEnvironment: (Constants as any)?.executionEnvironment,
-      releaseChannel: (Constants as any)?.manifest2?.extra?.expoClient?.releaseChannel,
+      releaseChannel: (Constants as any)?.manifest2?.extra?.expoClient
+        ?.releaseChannel,
       updateId: (Constants as any)?.expoConfig?.updates?.url,
       schemeFromConfig: (Constants as any)?.expoConfig?.scheme,
       androidPackage: (Constants as any)?.expoConfig?.android?.package,
@@ -144,8 +147,7 @@ const Login = () => {
       webClientId: mask(process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID),
       androidClientId: mask(process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID),
       iosClientId: mask(process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID),
-      note:
-        "Maskowane. Jeśli któryś jest null/undefined -> masz problem w env. Android/iOS Client ID muszą pochodzić z Google Cloud (typ Android/iOS).",
+      note: "Maskowane. Jeśli któryś jest null/undefined -> masz problem w env. Android/iOS Client ID muszą pochodzić z Google Cloud (typ Android/iOS).",
     }),
     []
   );
@@ -183,8 +185,7 @@ const Login = () => {
             url: (request as any)?.url,
           }
         : null,
-      hint:
-        "Jeśli request.url jest null lub wygląda dziwnie, to znaczy że config requestu jest niepoprawny.",
+      hint: "Jeśli request.url jest null lub wygląda dziwnie, to znaczy że config requestu jest niepoprawny.",
     });
   }, [request]);
 
@@ -230,7 +231,10 @@ const Login = () => {
         params: (response as any).params,
       });
 
-      Alert.alert("Błąd Google", "Google zwróciło błąd. Sprawdź logi w konsoli.");
+      Alert.alert(
+        "Błąd Google",
+        "Google zwróciło błąd. Sprawdź logi w konsoli."
+      );
       return;
     }
 
@@ -273,7 +277,10 @@ const Login = () => {
       });
 
       if (!res.ok) {
-        Alert.alert("Błąd logowania (backend)", `Status: ${res.status}\nZobacz logi w konsoli.`);
+        Alert.alert(
+          "Błąd logowania (backend)",
+          `Status: ${res.status}\nZobacz logi w konsoli.`
+        );
         return;
       }
 
@@ -345,7 +352,10 @@ const Login = () => {
   };
 
   // ====== GENDER FALLBACK ======
-  const fetchAndSetGenderIfMissing = async (userId: number, jwt?: string | null) => {
+  const fetchAndSetGenderIfMissing = async (
+    userId: number,
+    jwt?: string | null
+  ) => {
     try {
       logSection("GENDER DEBUG / PROFILE FETCH REQUEST", {
         time: now(),
@@ -412,8 +422,7 @@ const Login = () => {
         provider,
         rawGenderFromBackend: data?.gender ?? null,
         rawType: typeof data?.gender,
-        note:
-          "Jeśli rawGenderFromBackend jest null -> backend nie zwraca gender albo user w DB ma null (częste po Google/Apple).",
+        note: "Jeśli rawGenderFromBackend jest null -> backend nie zwraca gender albo user w DB ma null (częste po Google/Apple).",
       });
 
       const gFromLogin = normalizeGender(data?.gender);
@@ -457,7 +466,10 @@ const Login = () => {
         ENABLE_PHONE_VERIFICATION,
       });
 
-      if ((provider === "google" || provider === "apple") && isRegistrationComplete === false) {
+      if (
+        (provider === "google" || provider === "apple") &&
+        isRegistrationComplete === false
+      ) {
         router.replace("/(main)/CompleteRegistration");
         return;
       }
@@ -470,9 +482,12 @@ const Login = () => {
       let hasActivities = false;
 
       try {
-        const interestsRes = await fetch(`${backend_URL}/api/interests/${uid}`, {
-          headers: jwt ? { Authorization: `Bearer ${jwt}` } : undefined,
-        });
+        const interestsRes = await fetch(
+          `${backend_URL}/api/interests/${uid}`,
+          {
+            headers: jwt ? { Authorization: `Bearer ${jwt}` } : undefined,
+          }
+        );
 
         const interests = interestsRes.ok ? await interestsRes.json() : [];
         hasActivities = Array.isArray(interests) && interests.length > 0;
@@ -523,10 +538,15 @@ const Login = () => {
 
       if (!res.ok) {
         const msg = text || "";
-        if (res.status === 422) Alert.alert("Błąd", "Nieprawidłowe dane logowania");
-        else if (res.status === 401) Alert.alert("Błąd", "Niepoprawny email lub hasło");
+        if (res.status === 422)
+          Alert.alert("Błąd", "Nieprawidłowe dane logowania");
+        else if (res.status === 401)
+          Alert.alert("Błąd", "Niepoprawny email lub hasło");
         else if (res.status === 403)
-          Alert.alert("Wymagana weryfikacja", "Zweryfikuj e-mail przed zalogowaniem.");
+          Alert.alert(
+            "Wymagana weryfikacja",
+            "Zweryfikuj e-mail przed zalogowaniem."
+          );
         else Alert.alert("Coś poszło nie tak", `Status: ${res.status}\n${msg}`);
         return;
       }
@@ -554,8 +574,7 @@ const Login = () => {
       time: now(),
       isExpoGo,
       redirectUri,
-      note:
-        "Jeśli masz 400 invalid_request na ekranie Google, to zwykle redirect mismatch albo konfiguracja clientId/sha1.",
+      note: "Jeśli masz 400 invalid_request na ekranie Google, to zwykle redirect mismatch albo konfiguracja clientId/sha1.",
     });
 
     try {
@@ -583,7 +602,10 @@ const Login = () => {
               rules={{ required: true }}
               render={({ field: { onChange, value } }) => (
                 <TextInput
-                  style={[styles.input, { color: "black", opacity: loading ? 0.6 : 1 }]}
+                  style={[
+                    styles.input,
+                    { color: "black", opacity: loading ? 0.6 : 1 },
+                  ]}
                   placeholder="Email"
                   value={value}
                   onChangeText={onChange}
@@ -602,7 +624,10 @@ const Login = () => {
               rules={{ required: true }}
               render={({ field: { onChange, value } }) => (
                 <TextInput
-                  style={[styles.input, { color: "black", opacity: loading ? 0.6 : 1 }]}
+                  style={[
+                    styles.input,
+                    { color: "black", opacity: loading ? 0.6 : 1 },
+                  ]}
                   placeholder="Hasło"
                   value={value}
                   onChangeText={onChange}
@@ -649,7 +674,7 @@ const Login = () => {
                 resizeMode="contain"
               />
               <Text style={{ color: "#000", fontWeight: "600", fontSize: 16 }}>
-                Zaloguj się przez Google (DEBUG)
+                Zaloguj się przez Google
               </Text>
             </TouchableOpacity>
 
@@ -684,7 +709,9 @@ const Login = () => {
                   }}
                   resizeMode="contain"
                 />
-                <Text style={{ color: "#fff", fontWeight: "600", fontSize: 16 }}>
+                <Text
+                  style={{ color: "#fff", fontWeight: "600", fontSize: 16 }}
+                >
                   Zaloguj się przez Apple
                 </Text>
               </TouchableOpacity>
@@ -697,7 +724,9 @@ const Login = () => {
               style={styles.registerButton}
               disabled={loading}
             >
-              <Text style={[styles.registerButtonText, loading && { opacity: 0.7 }]}>
+              <Text
+                style={[styles.registerButtonText, loading && { opacity: 0.7 }]}
+              >
                 ZAREJESTRUJ SIĘ
               </Text>
             </TouchableOpacity>
@@ -723,8 +752,10 @@ const Login = () => {
                 minWidth: 200,
               }}
             >
-              <ActivityIndicator size="large" color="#00A9F4" />
-              <Text style={{ color: "#EAF6FF", marginTop: 12, fontWeight: "600" }}>
+              <ActivityIndicator size="large" color="#3A8FB7" />
+              <Text
+                style={{ color: "#EAF6FF", marginTop: 12, fontWeight: "600" }}
+              >
                 Trwa logowanie…
               </Text>
             </View>

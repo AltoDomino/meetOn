@@ -44,15 +44,80 @@ const RANK_IMAGES = {
 };
 
 const RANKS: RankDefinition[] = [
-  { id: 0, title: "Nowy na mieście", min: 0, max: 1, description: "Pierwsze kroki w społeczności.", icon: { type: "image", source: RANK_IMAGES.nowy } },
-  { id: 1, title: "Odkrywca dzielnic", min: 1, max: 2, requires: (ctx) => (ctx.uniqueLocations ?? 0) >= LOCATION_THRESHOLD_FOR_EXPLORER && ctx.completedEvents >= 10, description: "Był na kilku wydarzeniach w różnych miejscach.", icon: { type: "image", source: RANK_IMAGES.odkrywca } },
-  { id: 2, title: "Bywalec spotkań", min: 2, max: 3, description: "Regularnie uczestniczy w wydarzeniach.", icon: { type: "image", source: RANK_IMAGES.bywalec } },
-  { id: 3, title: "Miejski wyjadacz", min: 3, max: 4, description: "Miasto zna jak własną kieszeń.", icon: { type: "image", source: RANK_IMAGES.miejski } },
-  { id: 4, title: "Twórca klimatu", min: 71, max: 120, description: "Często organizuje, przyciąga ludzi.", icon: { type: "image", source: RANK_IMAGES.tworca } },
-  { id: 5, title: "Lider osiedla", min: 121, max: 200, description: "Bardzo aktywny lokalnie.", icon: { type: "image", source: RANK_IMAGES.lider } },
-  { id: 6, title: "Dusza towarzystwa", min: 201, max: 300, description: "Zawsze obecny, robi klimat.", icon: { type: "image", source: RANK_IMAGES.dusza } },
-  { id: 8, title: "Ambasador meetOn", min: 301, max: 500, description: "Wspiera nowych i promuje aplikację.", icon: { type: "image", source: RANK_IMAGES.ambasador } },
-  { id: 7, title: "Legenda miasta", min: 501, description: "Ikona społeczności.", icon: { type: "image", source: RANK_IMAGES.legenda } },
+  {
+    id: 0,
+    title: "Nowy na mieście",
+    min: 0,
+    max: 1,
+    description: "Pierwsze kroki w społeczności.",
+    icon: { type: "image", source: RANK_IMAGES.nowy },
+  },
+  {
+    id: 1,
+    title: "Odkrywca dzielnic",
+    min: 1,
+    max: 2,
+    requires: (ctx) =>
+      (ctx.uniqueLocations ?? 0) >= LOCATION_THRESHOLD_FOR_EXPLORER &&
+      ctx.completedEvents >= 10,
+    description: "Był na kilku wydarzeniach w różnych miejscach.",
+    icon: { type: "image", source: RANK_IMAGES.odkrywca },
+  },
+  {
+    id: 2,
+    title: "Bywalec spotkań",
+    min: 2,
+    max: 3,
+    description: "Regularnie uczestniczy w wydarzeniach.",
+    icon: { type: "image", source: RANK_IMAGES.bywalec },
+  },
+  {
+    id: 3,
+    title: "Miejski wyjadacz",
+    min: 3,
+    max: 4,
+    description: "Miasto zna jak własną kieszeń.",
+    icon: { type: "image", source: RANK_IMAGES.miejski },
+  },
+  {
+    id: 4,
+    title: "Twórca klimatu",
+    min: 71,
+    max: 120,
+    description: "Często organizuje, przyciąga ludzi.",
+    icon: { type: "image", source: RANK_IMAGES.tworca },
+  },
+  {
+    id: 5,
+    title: "Lider osiedla",
+    min: 121,
+    max: 200,
+    description: "Bardzo aktywny lokalnie.",
+    icon: { type: "image", source: RANK_IMAGES.lider },
+  },
+  {
+    id: 6,
+    title: "Dusza towarzystwa",
+    min: 201,
+    max: 300,
+    description: "Zawsze obecny, robi klimat.",
+    icon: { type: "image", source: RANK_IMAGES.dusza },
+  },
+  {
+    id: 8,
+    title: "Ambasador meetOn",
+    min: 301,
+    max: 500,
+    description: "Wspiera nowych i promuje aplikację.",
+    icon: { type: "image", source: RANK_IMAGES.ambasador },
+  },
+  {
+    id: 7,
+    title: "Legenda miasta",
+    min: 501,
+    description: "Ikona społeczności.",
+    icon: { type: "image", source: RANK_IMAGES.legenda },
+  },
 ];
 
 // ====== Utils ======
@@ -169,7 +234,8 @@ export const UserRankTracker: React.FC<UserRankTrackerProps> = ({
   useEffect(() => {
     if (!eventEndDate || isAwardedForThisEvent) return;
 
-    const end = typeof eventEndDate === "string" ? new Date(eventEndDate) : eventEndDate;
+    const end =
+      typeof eventEndDate === "string" ? new Date(eventEndDate) : eventEndDate;
 
     const tryAward = async () => {
       if (isAwardedForThisEvent) return;
@@ -182,7 +248,10 @@ export const UserRankTracker: React.FC<UserRankTrackerProps> = ({
           return nextVal;
         });
       } catch (e) {
-        console.warn("[UserRankTracker] awarding failed:", (e as Error).message);
+        console.warn(
+          "[UserRankTracker] awarding failed:",
+          (e as Error).message
+        );
       }
     };
 
@@ -198,7 +267,10 @@ export const UserRankTracker: React.FC<UserRankTrackerProps> = ({
     schedule();
 
     const onAppStateChange = (nextState: AppStateStatus) => {
-      if (appStateRef.current.match(/inactive|background/) && nextState === "active") {
+      if (
+        appStateRef.current.match(/inactive|background/) &&
+        nextState === "active"
+      ) {
         if (Date.now() >= end.getTime()) void tryAward();
       }
       appStateRef.current = nextState;
@@ -220,10 +292,10 @@ export const UserRankTracker: React.FC<UserRankTrackerProps> = ({
       <Image
         source={icon.source}
         style={{
-          width: 80,          // było 22
-          height: 60,         // było 22
-          marginRight: 9,     // było 6
-          borderRadius: 8,    // było 4
+          width: 80, // było 22
+          height: 60, // było 22
+          marginRight: 9, // było 6
+          borderRadius: 8, // było 4
           resizeMode: "cover",
         }}
       />
@@ -234,19 +306,19 @@ export const UserRankTracker: React.FC<UserRankTrackerProps> = ({
   const ProgressBar = ({ progress }: { progress: number }) => (
     <View
       style={{
-        height: 12,            // było 8
+        height: 12, // było 8
         width: "100%",
         backgroundColor: "#E6F6FE",
         borderRadius: 999,
         overflow: "hidden",
-        marginTop: 12,         // było 8
+        marginTop: 12, // było 8
       }}
     >
       <View
         style={{
           height: "100%",
           width: `${Math.round(progress * 100)}%`,
-          backgroundColor: "#00A9F4",
+          backgroundColor: "#3A8FB7",
         }}
       />
     </View>
@@ -256,23 +328,35 @@ export const UserRankTracker: React.FC<UserRankTrackerProps> = ({
     <View
       style={[
         {
-          borderRadius: 24,             // było 16
+          borderRadius: 24, // było 16
           backgroundColor: "#fff",
           borderWidth: 1,
           borderColor: "#E8E8E8",
-          padding: 18,                  // było 12
+          padding: 18, // było 12
           shadowColor: "#000",
           shadowOpacity: Platform.OS === "ios" ? 0.06 : 0.12,
-          shadowRadius: 9,              // było 6
-          elevation: 3,                 // było 2
-          marginHorizontal: 18,         // było 12
+          shadowRadius: 9, // było 6
+          elevation: 3, // było 2
+          marginHorizontal: 18, // było 12
         },
         style,
       ]}
     >
-      <View style={{ flexDirection: "row", alignItems: "center", marginBottom: 6 /* było 4 */ }}>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          marginBottom: 6 /* było 4 */,
+        }}
+      >
         <RankIcon />
-        <Text style={{ fontWeight: "900", fontSize: 21 /* było 14 */, color: "#111" }}>
+        <Text
+          style={{
+            fontWeight: "900",
+            fontSize: 21 /* było 14 */,
+            color: "#111",
+          }}
+        >
           {rankInfo.rank.title}
         </Text>
       </View>
@@ -287,7 +371,13 @@ export const UserRankTracker: React.FC<UserRankTrackerProps> = ({
           <ProgressBar progress={rankInfo.progress} />
 
           {!!rankInfo.rank.description && (
-            <Text style={{ color: "#777", fontSize: 17 /* było 11 */, marginTop: 9 /* było 6 */ }}>
+            <Text
+              style={{
+                color: "#777",
+                fontSize: 17 /* było 11 */,
+                marginTop: 9 /* było 6 */,
+              }}
+            >
               {rankInfo.rank.description}
             </Text>
           )}

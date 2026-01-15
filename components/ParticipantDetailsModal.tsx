@@ -1,14 +1,14 @@
+import { Ionicons } from "@expo/vector-icons";
 import React, { useMemo } from "react";
 import {
+  Dimensions,
+  Image,
   Modal,
-  View,
+  ScrollView,
   Text,
   TouchableOpacity,
-  Image,
-  ScrollView,
-  Dimensions,
+  View,
 } from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 
 type TagCount = { tag: string; count: number };
 
@@ -48,7 +48,9 @@ export default function ParticipantDetailsModal({
           return clean ? { tag: clean, count: 1 } : null;
         }
 
-        const tag = String(t?.tag ?? t?.name ?? t?.label ?? t?.value ?? "").trim();
+        const tag = String(
+          t?.tag ?? t?.name ?? t?.label ?? t?.value ?? ""
+        ).trim();
         const countRaw = Number(t?.count ?? t?.votes ?? t?.total ?? 1);
         const count = Number.isFinite(countRaw) ? countRaw : 1;
 
@@ -68,7 +70,12 @@ export default function ParticipantDetailsModal({
   const MODAL_MAX_H = Math.min(screenH * 0.8, 560); // możesz zmienić
 
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}
+    >
       <View
         style={{
           flex: 1,
@@ -87,8 +94,16 @@ export default function ParticipantDetailsModal({
           }}
         >
           {/* Header */}
-          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-            <Text style={{ fontSize: 16, fontWeight: "800" }}>Profil uczestnika</Text>
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+            }}
+          >
+            <Text style={{ fontSize: 16, fontWeight: "800" }}>
+              Profil uczestnika
+            </Text>
             <TouchableOpacity onPress={onClose}>
               <Ionicons name="close" size={22} color="#333" />
             </TouchableOpacity>
@@ -116,25 +131,56 @@ export default function ParticipantDetailsModal({
                 }}
               >
                 {participant?.avatar ? (
-                  <Image source={{ uri: participant.avatar }} style={{ width: 64, height: 64 }} />
+                  <Image
+                    source={{ uri: participant.avatar }}
+                    style={{ width: 64, height: 64 }}
+                  />
                 ) : (
-                  <Text style={{ fontSize: 24, fontWeight: "900", color: "#00A9F4" }}>{initials}</Text>
+                  <Text
+                    style={{
+                      fontSize: 24,
+                      fontWeight: "900",
+                      color: "#3A8FB7",
+                    }}
+                  >
+                    {initials}
+                  </Text>
                 )}
               </View>
 
               <View style={{ marginLeft: 12, flex: 1 }}>
-                <Text style={{ fontSize: 16, fontWeight: "800" }}>{participant.userName}</Text>
+                <Text style={{ fontSize: 16, fontWeight: "800" }}>
+                  {participant.userName}
+                </Text>
 
-                {participant?.age ? <Text style={{ marginTop: 2, color: "#666" }}>Wiek: {participant.age}</Text> : null}
+                {participant?.age ? (
+                  <Text style={{ marginTop: 2, color: "#666" }}>
+                    Wiek: {participant.age}
+                  </Text>
+                ) : null}
 
                 {/* Rating */}
                 {rating?.avg != null && !Number.isNaN(rating.avg) ? (
-                  <View style={{ flexDirection: "row", alignItems: "center", marginTop: 6 }}>
-                    <Ionicons name="star" size={16} color="#00A9F4" />
-                    <Text style={{ marginLeft: 6, fontWeight: "800", color: "#1B4D6B" }}>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      marginTop: 6,
+                    }}
+                  >
+                    <Ionicons name="star" size={16} color="#3A8FB7" />
+                    <Text
+                      style={{
+                        marginLeft: 6,
+                        fontWeight: "800",
+                        color: "#1B4D6B",
+                      }}
+                    >
                       {rating.avg.toFixed(1)}
                     </Text>
-                    <Text style={{ marginLeft: 6, color: "#1B4D6B" }}>({rating.count ?? 0})</Text>
+                    <Text style={{ marginLeft: 6, color: "#1B4D6B" }}>
+                      ({rating.count ?? 0})
+                    </Text>
                   </View>
                 ) : (
                   <Text style={{ marginTop: 6, color: "#777" }}>Brak ocen</Text>
@@ -143,9 +189,13 @@ export default function ParticipantDetailsModal({
             </View>
 
             {/* Description + tags */}
-            <Text style={{ fontWeight: "800", marginTop: 12, marginBottom: 6 }}>Opis</Text>
+            <Text style={{ fontWeight: "800", marginTop: 12, marginBottom: 6 }}>
+              Opis
+            </Text>
             <Text style={{ color: "#444", lineHeight: 20 }}>
-              {participant?.description?.trim?.() ? participant.description : "Brak opisu."}
+              {participant?.description?.trim?.()
+                ? participant.description
+                : "Brak opisu."}
             </Text>
 
             <Text style={{ fontWeight: "800", marginTop: 14, marginBottom: 6 }}>
@@ -182,7 +232,7 @@ export default function ParticipantDetailsModal({
             onPress={onClose}
             style={{
               marginTop: 12,
-              backgroundColor: "#00A9F4",
+              backgroundColor: "#3A8FB7",
               paddingVertical: 12,
               borderRadius: 12,
               alignItems: "center",
