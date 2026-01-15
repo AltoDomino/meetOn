@@ -61,6 +61,7 @@ export const styles = StyleSheet.create({
   },
   eventInfo: {
     flex: 1,
+    
   },
   title: {
     fontSize: 18,
@@ -68,10 +69,11 @@ export const styles = StyleSheet.create({
     color: "#222",
     marginBottom: 4,
   },
-  buttonContainer: {
-    flexDirection: "row",
-    marginLeft: 12,
-  },
+buttonContainer: {
+  flexDirection: "column",
+  gap: 10,
+  alignItems: "flex-end",
+},
   leaveButtonWrapper: {
     flexDirection: "row",
     alignItems: "center",

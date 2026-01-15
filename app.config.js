@@ -100,7 +100,6 @@ module.exports = {
       supportsTablet: true,
       bundleIdentifier: "com.domino96.meetOn",
       buildNumber: "13",
-
       googleServicesFile: "./GoogleService-Info.plist",
 
       infoPlist: {
@@ -109,9 +108,17 @@ module.exports = {
           "Aplikacja potrzebuje Twojej lokalizacji, aby pokazać wydarzenia w pobliżu.",
         NSUserTrackingUsageDescription:
           "Używamy identyfikatora urządzenia, aby wyświetlać dopasowane reklamy.",
-      },
 
-      icon: "./assets/images/meetonikonaIOS.jpeg",
+        CFBundleURLTypes: [
+          {
+            CFBundleURLSchemes: [
+              "meeton",
+              // 🔥 TO MUSI PASOWAĆ DO iOS Client ID
+              "com.googleusercontent.apps.547147710127-d4avsbe3ffoold6jiu22tfrkf3lbc1sp",
+            ],
+          },
+        ],
+      },
     },
 
     // ================================
@@ -205,8 +212,7 @@ module.exports = {
         projectId: "21c25dfa-afc4-4d4a-9ce3-3d1a809d4dfe",
       },
 
-      EXPO_PUBLIC_GOOGLE_CLIENT_ID:
-        process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
+      EXPO_PUBLIC_GOOGLE_CLIENT_ID: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID,
       EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID:
         process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID,
       EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID:

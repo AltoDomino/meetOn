@@ -1,6 +1,8 @@
 import { backend_URL } from "@/backendURL";
 import * as AppleAuthentication from "expo-apple-authentication";
+import * as AuthSession from "expo-auth-session";
 import * as Google from "expo-auth-session/providers/google";
+import Constants from "expo-constants";
 import { useRouter } from "expo-router";
 import * as WebBrowser from "expo-web-browser";
 import React, { useEffect, useMemo, useState } from "react";
@@ -37,13 +39,45 @@ const normalizeGender = (g: any): Gender => {
   if (!g) return null;
   const v = String(g).trim().toLowerCase();
   if (v === "female" || v === "f" || v === "kobieta") return "female";
-  if (v === "male" || v === "m" || v === "mezczyzna" || v === "mężczyzna")
-    return "male";
+  if (v === "male" || v === "m" || v === "mezczyzna" || v === "mężczyzna") return "male";
   if (v === "other" || v === "inne") return "other";
   return null;
 };
 
+// ====== DEBUG HELPERS ======
+const now = () => new Date().toISOString();
+
+const mask = (val?: string | null, keep = 18) => {
+  if (!val) return null;
+  if (val.length <= keep) return `${val}…`;
+  return `${val.slice(0, keep)}…(${val.length} chars)`;
+};
+
+const safeJson = (obj: any) => {
+  try {
+    return JSON.stringify(obj, null, 2);
+  } catch {
+    return String(obj);
+  }
+};
+
+const logSection = (title: string, payload?: any) => {
+  // eslint-disable-next-line no-console
+  console.log(`\n================ ${title} ================\n`);
+  if (payload !== undefined) {
+    // eslint-disable-next-line no-console
+    console.log(payload);
+  }
+  // eslint-disable-next-line no-console
+  console.log(`\n================ END ${title} ================\n`);
+};
+
+// ✅ FEATURE FLAG: tymczasowo wyłączona weryfikacja telefonu
+const ENABLE_PHONE_VERIFICATION = false;
+
 const Login = () => {
+  const auth = useAuth();
+
   const {
     setUserName,
     setUserId,
@@ -52,76 +86,177 @@ const Login = () => {
     setHasChosenActivities,
     setToken,
     setGender,
-    token,
-  } = useAuth();
+  } = auth;
+
+  // ✅ LIVE podgląd kontekstu — czy gender faktycznie się ustawia
+  useEffect(() => {
+    logSection("AUTH CONTEXT DEBUG / CURRENT", {
+      time: now(),
+      gender: (auth as any)?.gender ?? null,
+      userId: (auth as any)?.userId ?? null,
+      userName: (auth as any)?.userName ?? null,
+      hasToken: !!(auth as any)?.token,
+    });
+  }, [(auth as any)?.gender, (auth as any)?.userId, (auth as any)?.token]);
 
   const { control, handleSubmit } = useForm<FormData>();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const screenHeight = Dimensions.get("window").height;
 
-  const redirectUri = useMemo(
-    () =>
-      Platform.select({
-        android: "meeton:/oauth2redirect/google",
-        ios: "meeton:/oauth2redirect/google",
-      }) || "meeton:/oauth2redirect/google",
+  // ====== ENV / BUILD DEBUG ======
+  const isExpoGo =
+    Constants.appOwnership === "expo" || Constants.executionEnvironment === "storeClient";
+
+  const buildInfo = useMemo(
+    () => ({
+      time: now(),
+      platform: Platform.OS,
+      isExpoGo,
+      appOwnership: Constants.appOwnership,
+      executionEnvironment: (Constants as any)?.executionEnvironment,
+      releaseChannel: (Constants as any)?.manifest2?.extra?.expoClient?.releaseChannel,
+      updateId: (Constants as any)?.expoConfig?.updates?.url,
+      schemeFromConfig: (Constants as any)?.expoConfig?.scheme,
+      androidPackage: (Constants as any)?.expoConfig?.android?.package,
+      iosBundleId: (Constants as any)?.expoConfig?.ios?.bundleIdentifier,
+      owner: (Constants as any)?.expoConfig?.owner,
+      slug: (Constants as any)?.expoConfig?.slug,
+      version: (Constants as any)?.expoConfig?.version,
+    }),
+    [isExpoGo]
+  );
+
+  // ====== REDIRECT DEBUG ======
+  const redirectUri = useMemo(() => {
+    const uri = AuthSession.makeRedirectUri({
+      scheme: "meeton",
+      path: "oauth2redirect/google",
+    });
+    console.log("✅ [GOOGLE] redirectUri:", uri);
+    return uri;
+  }, []);
+
+  // ====== CLIENT IDS DEBUG ======
+  const clientIds = useMemo(
+    () => ({
+      expoClientId: mask(process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID),
+      webClientId: mask(process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID),
+      androidClientId: mask(process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID),
+      iosClientId: mask(process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID),
+      note:
+        "Maskowane. Jeśli któryś jest null/undefined -> masz problem w env. Android/iOS Client ID muszą pochodzić z Google Cloud (typ Android/iOS).",
+    }),
     []
   );
 
-  console.log("✅ Używany redirectUri:", redirectUri);
+  useEffect(() => {
+    logSection("APP / BUILD INFO", buildInfo);
+    logSection("GOOGLE DEBUG / CLIENT IDS", clientIds);
+  }, [buildInfo, clientIds]);
 
   const [request, response, promptAsync] = Google.useAuthRequest({
+    webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID!,
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!,
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID!,
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID!,
+
+    scopes: ["openid", "profile", "email"],
     responseType: "id_token",
-    redirectUri,
     selectAccount: true,
+    redirectUri,
   });
 
+  // ====== REQUEST DEBUG ======
+  useEffect(() => {
+    logSection("GOOGLE DEBUG / REQUEST OBJECT", {
+      time: now(),
+      requestExists: !!request,
+      request: request
+        ? {
+            clientId: (request as any)?.clientId,
+            redirectUri: (request as any)?.redirectUri,
+            responseType: (request as any)?.responseType,
+            scopes: (request as any)?.scopes,
+            state: (request as any)?.state,
+            codeChallenge: (request as any)?.codeChallenge,
+            codeChallengeMethod: (request as any)?.codeChallengeMethod,
+            url: (request as any)?.url,
+          }
+        : null,
+      hint:
+        "Jeśli request.url jest null lub wygląda dziwnie, to znaczy że config requestu jest niepoprawny.",
+    });
+  }, [request]);
+
+  // ====== RESPONSE DEBUG ======
   useEffect(() => {
     if (!response) return;
-    console.log("🔍 Google Auth Response:", JSON.stringify(response, null, 2));
 
-    if (response.type === "success" && response.authentication?.idToken) {
-      loginWithGoogleOnBackend(response.authentication.idToken);
-    } else if (response.type === "dismiss") {
-      Alert.alert("Przerwano", "Użytkownik anulował logowanie");
-    } else {
-      Alert.alert("Błąd", "Nie udało się pobrać tokenu Google");
-    }
-  }, [response]);
+    logSection("GOOGLE DEBUG / RAW RESPONSE (FULL)", safeJson(response));
 
-  const fetchAndSetGenderIfMissing = async (
-    userId: number,
-    jwt?: string | null
-  ) => {
-    try {
-      const res = await fetch(`${backend_URL}/api/users/${userId}`, {
-        headers: jwt ? { Authorization: `Bearer ${jwt}` } : undefined,
+    if (response.type === "success") {
+      logSection("GOOGLE DEBUG / SUCCESS DETAILS", {
+        time: now(),
+        hasAuth: !!response.authentication,
+        auth: response.authentication
+          ? {
+              accessToken: mask((response.authentication as any).accessToken),
+              idToken: mask((response.authentication as any).idToken),
+              refreshToken: mask((response.authentication as any).refreshToken),
+              tokenType: (response.authentication as any).tokenType,
+              expiresIn: (response.authentication as any).expiresIn,
+              issuedAt: (response.authentication as any).issuedAt,
+              scope: (response.authentication as any).scope,
+            }
+          : null,
+        params: (response as any).params,
       });
 
-      if (!res.ok) {
-        const t = await res.text().catch(() => "");
-        console.log("⚠️ Nie udało się pobrać profilu usera:", res.status, t);
-        return;
+      const idToken = response.authentication?.idToken;
+      if (idToken) {
+        loginWithGoogleOnBackend(idToken);
+      } else {
+        Alert.alert("Błąd", "Google zalogowało, ale nie zwróciło id_token.");
       }
-
-      const profile = await res.json();
-      console.log("✅ Profil usera:", profile);
-
-      const g = normalizeGender(profile?.gender);
-      await setGender(g);
-      console.log("✅ setGender z profilu:", g);
-    } catch (e) {
-      console.log("⚠️ fetchAndSetGenderIfMissing error:", e);
+      return;
     }
-  };
 
+    if (response.type === "error") {
+      logSection("GOOGLE DEBUG / ERROR DETAILS", {
+        time: now(),
+        error: (response as any).error,
+        errorCode: (response as any).error?.code,
+        errorDesc: (response as any).error?.description,
+        params: (response as any).params,
+      });
+
+      Alert.alert("Błąd Google", "Google zwróciło błąd. Sprawdź logi w konsoli.");
+      return;
+    }
+
+    if (response.type === "dismiss") {
+      logSection("GOOGLE DEBUG / DISMISSED", { time: now() });
+      Alert.alert("Przerwano", "Użytkownik anulował logowanie");
+      return;
+    }
+
+    logSection("GOOGLE DEBUG / OTHER RESPONSE TYPE", {
+      time: now(),
+      type: response.type,
+      response,
+    });
+  }, [response]);
+
+  // ====== BACKEND GOOGLE DEBUG ======
   const loginWithGoogleOnBackend = async (idToken: string) => {
     try {
       setLoading(true);
+
+      logSection("GOOGLE DEBUG / SENDING ID_TOKEN TO BACKEND", {
+        time: now(),
+        endpoint: `${backend_URL}/api/login/google`,
+        idToken: mask(idToken),
+      });
 
       const res = await fetch(`${backend_URL}/api/login/google`, {
         method: "POST",
@@ -129,14 +264,22 @@ const Login = () => {
         body: JSON.stringify({ id_token: idToken }),
       });
 
+      const text = await res.text().catch(() => "");
+      logSection("GOOGLE DEBUG / BACKEND RAW RESPONSE", {
+        time: now(),
+        status: res.status,
+        ok: res.ok,
+        bodyText: text?.slice(0, 2000),
+      });
+
       if (!res.ok) {
-        const errText = await res.text().catch(() => "");
-        console.log("❌ Backend Google error:", errText);
-        Alert.alert("Błąd logowania", "Google zwróciło błąd.");
+        Alert.alert("Błąd logowania (backend)", `Status: ${res.status}\nZobacz logi w konsoli.`);
         return;
       }
 
-      const data = await res.json();
+      const data = text ? JSON.parse(text) : {};
+      logSection("GOOGLE DEBUG / BACKEND PARSED JSON", data);
+
       await afterAuthSuccess(data, "google");
     } catch (e) {
       console.error("❌ Google backend error:", e);
@@ -146,13 +289,24 @@ const Login = () => {
     }
   };
 
+  // ====== APPLE LOGIN ======
   const handleAppleLogin = async () => {
     try {
+      logSection("APPLE DEBUG / START", { time: now() });
+
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
           AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
         ],
+      });
+
+      logSection("APPLE DEBUG / CREDENTIAL", {
+        user: credential.user,
+        email: credential.email,
+        fullName: credential.fullName,
+        authorizationCode: mask(credential.authorizationCode),
+        identityToken: mask(credential.identityToken),
       });
 
       if (!credential.identityToken) {
@@ -166,105 +320,187 @@ const Login = () => {
         body: JSON.stringify({ id_token: credential.identityToken }),
       });
 
+      const text = await res.text().catch(() => "");
+      logSection("APPLE DEBUG / BACKEND RAW RESPONSE", {
+        time: now(),
+        status: res.status,
+        ok: res.ok,
+        bodyText: text?.slice(0, 2000),
+      });
+
       if (!res.ok) {
-        const err = await res.text().catch(() => "");
-        console.log("❌ Backend Apple error:", err);
         Alert.alert("Błąd logowania", "Nie udało się zweryfikować konta Apple");
         return;
       }
 
-      const data = await res.json();
+      const data = text ? JSON.parse(text) : {};
+      logSection("APPLE DEBUG / BACKEND PARSED JSON", data);
+
       await afterAuthSuccess(data, "apple");
     } catch (err: any) {
-      if (err?.code === "ERR_CANCELED") return;
+      if (err?.code === "ERR_CANCELED" || err?.code === "CANCELED") return;
       console.error("❌ Apple login failed:", err);
       Alert.alert("Błąd", "Nie udało się zalogować przez Apple");
     }
   };
 
-const afterAuthSuccess = async (data: any, provider: AuthProvider) => {
-  try {
-    console.log("✅ afterAuthSuccess provider:", provider);
-    console.log("✅ afterAuthSuccess payload:", data);
-
-    const jwt = data.token ?? null;
-    const uid = data.userId ?? null;
-
-    await setToken(jwt);
-    await setUserName(data.userName ?? "");
-    await setUserId(uid);
-    await setAvatar(data.avatar || null);
-    await setDescription(data.description || "");
-
-    // ✅ PŁEĆ
-    const gFromLogin = normalizeGender(data?.gender);
-    await setGender(gFromLogin);
-    console.log("✅ setGender z login payload:", gFromLogin);
-
-    if (!gFromLogin && uid) {
-      await fetchAndSetGenderIfMissing(Number(uid), jwt);
-    }
-
-    // ✅ FLAGS (z backendu)
-    const isPhoneVerified = data?.isPhoneVerified; // boolean
-    const isRegistrationComplete = data?.isRegistrationComplete; // boolean
-
-    console.log("✅ Flags from backend:", {
-      isPhoneVerified,
-      isRegistrationComplete,
-    });
-
-    // ✅ 1) GOOGLE / APPLE: najpierw CompleteRegistration, potem PhoneVerification
-    if ((provider === "google" || provider === "apple") && isRegistrationComplete === false) {
-      router.replace("/(main)/CompleteRegistration");
-      return;
-    }
-
-    // ✅ 2) EMAIL/hasło (po “fizycznej” rejestracji): ma przejść przez PhoneVerification
-    // ✅ oraz ogólnie każdy kto nie ma zweryfikowanego telefonu -> PhoneVerification
-    if (isPhoneVerified === false) {
-      router.replace("/(main)/PhoneVerification");
-      return;
-    }
-
-    // ✅ 3) INTERESTS / AKTYWNOŚCI
-    // dopiero po tym jak user ma komplet profilu i zweryfikowany telefon
-    let hasActivities = false;
-
+  // ====== GENDER FALLBACK ======
+  const fetchAndSetGenderIfMissing = async (userId: number, jwt?: string | null) => {
     try {
-      const interestsRes = await fetch(`${backend_URL}/api/interests/${uid}`, {
+      logSection("GENDER DEBUG / PROFILE FETCH REQUEST", {
+        time: now(),
+        url: `${backend_URL}/api/users/${userId}`,
+        hasJwt: !!jwt,
+      });
+
+      const res = await fetch(`${backend_URL}/api/users/${userId}`, {
         headers: jwt ? { Authorization: `Bearer ${jwt}` } : undefined,
       });
 
-      const interests = interestsRes.ok ? await interestsRes.json() : [];
-      hasActivities = Array.isArray(interests) && interests.length > 0;
+      const text = await res.text().catch(() => "");
+      logSection("GENDER DEBUG / PROFILE FETCH RESPONSE RAW", {
+        time: now(),
+        status: res.status,
+        ok: res.ok,
+        bodyText: text?.slice(0, 2000),
+      });
 
-      await setHasChosenActivities(hasActivities);
+      if (!res.ok) return;
 
-      console.log("✅ interests length:", Array.isArray(interests) ? interests.length : "not array");
+      const profile = text ? JSON.parse(text) : {};
+      logSection("GENDER DEBUG / PROFILE PARSED", {
+        time: now(),
+        profileGenderRaw: profile?.gender ?? null,
+        profileKeys: Object.keys(profile || {}),
+      });
+
+      const g = normalizeGender(profile?.gender);
+      logSection("GENDER DEBUG / PROFILE NORMALIZED", {
+        time: now(),
+        normalizedGender: g,
+      });
+
+      await setGender(g);
+      logSection("GENDER DEBUG / PROFILE setGender DONE", {
+        time: now(),
+        setGenderValue: g,
+      });
     } catch (e) {
-      console.log("⚠️ interests fetch failed:", e);
-      // nie blokuj logowania – fallback na Home lub Activity
-      hasActivities = false;
-      await setHasChosenActivities(false);
+      logSection("GENDER DEBUG / PROFILE FETCH ERROR", e);
     }
+  };
 
-    if (hasActivities) {
-      router.replace("/(auth)/Event");
-      return;
+  // ====== POST AUTH ======
+  const afterAuthSuccess = async (data: any, provider: AuthProvider) => {
+    try {
+      logSection("AUTH DEBUG / afterAuthSuccess INPUT", { provider, data });
+
+      const jwt = data.token ?? null;
+      const uid = data.userId ?? null;
+
+      await setToken(jwt);
+      await setUserName(data.userName ?? "");
+      await setUserId(uid);
+
+      // avatar/description w Twoich payloadach mogą mieć różne nazwy, ale logi pokażą
+      await setAvatar(data.avatar || data.avatarUrl || null);
+      await setDescription(data.description || "");
+
+      // ✅ GENDER DEBUG: payload -> normalize -> setGender
+      logSection("GENDER DEBUG / BACKlog", {
+        time: now(),
+        provider,
+        rawGenderFromBackend: data?.gender ?? null,
+        rawType: typeof data?.gender,
+        note:
+          "Jeśli rawGenderFromBackend jest null -> backend nie zwraca gender albo user w DB ma null (częste po Google/Apple).",
+      });
+
+      const gFromLogin = normalizeGender(data?.gender);
+
+      logSection("GENDER DEBUG / NORMALIZED", {
+        time: now(),
+        provider,
+        normalizedGender: gFromLogin,
+      });
+
+      await setGender(gFromLogin);
+
+      logSection("GENDER DEBUG / SET_GENDER_DONE", {
+        time: now(),
+        provider,
+        setGenderValue: gFromLogin,
+      });
+
+      if (!gFromLogin && uid) {
+        logSection("GENDER DEBUG / FALLBACK FETCH PROFILE (START)", {
+          time: now(),
+          userId: uid,
+          hasJwt: !!jwt,
+        });
+
+        await fetchAndSetGenderIfMissing(Number(uid), jwt);
+
+        logSection("GENDER DEBUG / FALLBACK FETCH PROFILE (END)", {
+          time: now(),
+          userId: uid,
+        });
+      }
+
+      const isPhoneVerified = data?.isPhoneVerified;
+      const isRegistrationComplete = data?.isRegistrationComplete;
+
+      logSection("AUTH DEBUG / FLAGS", {
+        provider,
+        isPhoneVerified,
+        isRegistrationComplete,
+        ENABLE_PHONE_VERIFICATION,
+      });
+
+      if ((provider === "google" || provider === "apple") && isRegistrationComplete === false) {
+        router.replace("/(main)/CompleteRegistration");
+        return;
+      }
+
+      if (ENABLE_PHONE_VERIFICATION && isPhoneVerified === false) {
+        router.replace("/(main)/PhoneVerification");
+        return;
+      }
+
+      let hasActivities = false;
+
+      try {
+        const interestsRes = await fetch(`${backend_URL}/api/interests/${uid}`, {
+          headers: jwt ? { Authorization: `Bearer ${jwt}` } : undefined,
+        });
+
+        const interests = interestsRes.ok ? await interestsRes.json() : [];
+        hasActivities = Array.isArray(interests) && interests.length > 0;
+        await setHasChosenActivities(hasActivities);
+
+        logSection("AUTH DEBUG / INTERESTS", {
+          interestsType: Array.isArray(interests) ? "array" : typeof interests,
+          interestsLength: Array.isArray(interests) ? interests.length : null,
+        });
+      } catch (e) {
+        logSection("AUTH DEBUG / INTERESTS ERROR", e);
+        hasActivities = false;
+        await setHasChosenActivities(false);
+      }
+
+      if (hasActivities) {
+        router.replace("/(auth)/Event");
+        return;
+      }
+
+      router.replace("/(main)/HomeScreen");
+    } catch (e) {
+      logSection("AUTH DEBUG / afterAuthSuccess ERROR", e);
+      Alert.alert("Błąd", "Nie udało się dokończyć logowania.");
     }
+  };
 
-    // jeśli nie ma aktywności, ale jest zweryfikowany -> Activity selection
-    router.replace("/(main)/HomeScreen"); // <-- ekran wyboru aktywności
-    return;
-
-  } catch (e) {
-    console.log("❌ Błąd afterAuthSuccess:", e);
-    Alert.alert("Błąd", "Nie udało się dokończyć logowania.");
-  }
-};
-
-
+  // ====== EMAIL/PASS LOGIN ======
   const onSubmit = async (dataLog: FormData) => {
     if (loading) return;
 
@@ -277,22 +513,27 @@ const afterAuthSuccess = async (data: any, provider: AuthProvider) => {
         body: JSON.stringify(dataLog),
       });
 
+      const text = await res.text().catch(() => "");
+      logSection("EMAIL LOGIN / BACKEND RAW", {
+        time: now(),
+        status: res.status,
+        ok: res.ok,
+        bodyText: text?.slice(0, 2000),
+      });
+
       if (!res.ok) {
-        const msg = await res.text().catch(() => "");
-        if (res.status === 422)
-          Alert.alert("Błąd", "Nieprawidłowe dane logowania");
-        else if (res.status === 401)
-          Alert.alert("Błąd", "Niepoprawny email lub hasło");
+        const msg = text || "";
+        if (res.status === 422) Alert.alert("Błąd", "Nieprawidłowe dane logowania");
+        else if (res.status === 401) Alert.alert("Błąd", "Niepoprawny email lub hasło");
         else if (res.status === 403)
-          Alert.alert(
-            "Wymagana weryfikacja",
-            "Zweryfikuj e-mail przed zalogowaniem."
-          );
+          Alert.alert("Wymagana weryfikacja", "Zweryfikuj e-mail przed zalogowaniem.");
         else Alert.alert("Coś poszło nie tak", `Status: ${res.status}\n${msg}`);
         return;
       }
 
-      const data = await res.json();
+      const data = text ? JSON.parse(text) : {};
+      logSection("EMAIL LOGIN / BACKEND PARSED", data);
+
       await afterAuthSuccess(data, "email");
     } catch (error) {
       console.log("❌ Login email error:", error);
@@ -302,12 +543,28 @@ const afterAuthSuccess = async (data: any, provider: AuthProvider) => {
     }
   };
 
+  // ====== GOOGLE LOGIN BUTTON ======
   const handleGoogleLogin = async () => {
     if (!request) {
       Alert.alert("Chwileczkę", "Google login jeszcze się inicjalizuje.");
       return;
     }
-    await promptAsync();
+
+    logSection("GOOGLE DEBUG / PROMPT ASYNC START", {
+      time: now(),
+      isExpoGo,
+      redirectUri,
+      note:
+        "Jeśli masz 400 invalid_request na ekranie Google, to zwykle redirect mismatch albo konfiguracja clientId/sha1.",
+    });
+
+    try {
+      await promptAsync();
+      logSection("GOOGLE DEBUG / PROMPT ASYNC END", { time: now() });
+    } catch (e) {
+      logSection("GOOGLE DEBUG / PROMPT ASYNC THROW", e);
+      Alert.alert("Błąd", "promptAsync rzucił wyjątek (zobacz logi).");
+    }
   };
 
   return (
@@ -326,10 +583,7 @@ const afterAuthSuccess = async (data: any, provider: AuthProvider) => {
               rules={{ required: true }}
               render={({ field: { onChange, value } }) => (
                 <TextInput
-                  style={[
-                    styles.input,
-                    { color: "black", opacity: loading ? 0.6 : 1 },
-                  ]}
+                  style={[styles.input, { color: "black", opacity: loading ? 0.6 : 1 }]}
                   placeholder="Email"
                   value={value}
                   onChangeText={onChange}
@@ -348,10 +602,7 @@ const afterAuthSuccess = async (data: any, provider: AuthProvider) => {
               rules={{ required: true }}
               render={({ field: { onChange, value } }) => (
                 <TextInput
-                  style={[
-                    styles.input,
-                    { color: "black", opacity: loading ? 0.6 : 1 },
-                  ]}
+                  style={[styles.input, { color: "black", opacity: loading ? 0.6 : 1 }]}
                   placeholder="Hasło"
                   value={value}
                   onChangeText={onChange}
@@ -398,7 +649,7 @@ const afterAuthSuccess = async (data: any, provider: AuthProvider) => {
                 resizeMode="contain"
               />
               <Text style={{ color: "#000", fontWeight: "600", fontSize: 16 }}>
-                Zaloguj się przez Google
+                Zaloguj się przez Google (DEBUG)
               </Text>
             </TouchableOpacity>
 
@@ -433,9 +684,7 @@ const afterAuthSuccess = async (data: any, provider: AuthProvider) => {
                   }}
                   resizeMode="contain"
                 />
-                <Text
-                  style={{ color: "#fff", fontWeight: "600", fontSize: 16 }}
-                >
+                <Text style={{ color: "#fff", fontWeight: "600", fontSize: 16 }}>
                   Zaloguj się przez Apple
                 </Text>
               </TouchableOpacity>
@@ -448,9 +697,7 @@ const afterAuthSuccess = async (data: any, provider: AuthProvider) => {
               style={styles.registerButton}
               disabled={loading}
             >
-              <Text
-                style={[styles.registerButtonText, loading && { opacity: 0.7 }]}
-              >
+              <Text style={[styles.registerButtonText, loading && { opacity: 0.7 }]}>
                 ZAREJESTRUJ SIĘ
               </Text>
             </TouchableOpacity>
@@ -477,9 +724,7 @@ const afterAuthSuccess = async (data: any, provider: AuthProvider) => {
               }}
             >
               <ActivityIndicator size="large" color="#00A9F4" />
-              <Text
-                style={{ color: "#EAF6FF", marginTop: 12, fontWeight: "600" }}
-              >
+              <Text style={{ color: "#EAF6FF", marginTop: 12, fontWeight: "600" }}>
                 Trwa logowanie…
               </Text>
             </View>

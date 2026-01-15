@@ -12,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 type Participant = {
   id: number;
@@ -59,9 +60,10 @@ const RateParticipantsModal = ({
   eventTitle = "",
   excludeUserId,
 }: Props) => {
-  const { userId } = useAuth(); // ✅ token niepotrzebny przy wyłączonym middleware
+  const { userId } = useAuth();
 
   const eventIdStr = useMemo(() => String(eventId ?? ""), [eventId]);
+  const raterIdNum = useMemo(() => Number(userId), [userId]);
 
   // ✅ Helper: wyciągnij id z różnych struktur
   const extractId = (p: any): number | null => {
@@ -131,13 +133,55 @@ const RateParticipantsModal = ({
   const [submitting, setSubmitting] = useState(false);
   const [ratings, setRatings] = useState<Record<number, RatingState>>({});
 
+  // ✅ blokada "tylko raz"
+  const [alreadyRatedEvent, setAlreadyRatedEvent] = useState(false);
+  const [checkingAlreadyRated, setCheckingAlreadyRated] = useState(false);
+
+  const storageKey = useMemo(() => {
+    const eventIdNum = Number(eventIdStr);
+    if (!Number.isFinite(eventIdNum) || eventIdNum <= 0) return null;
+    if (!Number.isFinite(raterIdNum) || raterIdNum <= 0) return null;
+    return `rated_event_${eventIdNum}_by_${raterIdNum}`;
+  }, [eventIdStr, raterIdNum]);
+
   // ✅ reset po zamknięciu
   useEffect(() => {
     if (!visible) {
       setSubmitting(false);
       setRatings({});
+      setAlreadyRatedEvent(false);
+      setCheckingAlreadyRated(false);
     }
   }, [visible]);
+
+  // ✅ sprawdzamy lokalnie czy już ocenił event (UX)
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      if (!visible) return;
+      if (!storageKey) return;
+
+      try {
+        setCheckingAlreadyRated(true);
+        const v = await AsyncStorage.getItem(storageKey);
+        if (!cancelled) {
+          const isRated = v === "1";
+          setAlreadyRatedEvent(isRated);
+          console.log("[ratings] alreadyRatedEvent from storage:", isRated, "key:", storageKey);
+        }
+      } catch (e) {
+        console.log("[ratings] storage read error:", e);
+      } finally {
+        if (!cancelled) setCheckingAlreadyRated(false);
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [visible, storageKey]);
 
   // ✅ inicjalizacja ocen po otwarciu modala / zmianie listy
   useEffect(() => {
@@ -173,12 +217,13 @@ const RateParticipantsModal = ({
       return;
     }
 
-    const raterIdNum = Number(userId);
     if (Number.isNaN(raterIdNum) || raterIdNum <= 0) {
-      Alert.alert(
-        "Błąd",
-        "Brak poprawnego userId (raterId). Zaloguj się ponownie."
-      );
+      Alert.alert("Błąd", "Brak poprawnego userId (raterId). Zaloguj się ponownie.");
+      return;
+    }
+
+    if (alreadyRatedEvent) {
+      Alert.alert("Już oceniłeś", "Możesz wystawić ocenę tylko raz na całe wydarzenie.");
       return;
     }
 
@@ -195,16 +240,16 @@ const RateParticipantsModal = ({
       return;
     }
 
-    const url = `${backend_URL}/api/events/${eventIdNum}/ratings?force=true`;
+    // ✅ UWAGA: usuwamy force=true (bo to obchodzi blokadę w backendzie)
+    const url = `${backend_URL}/api/events/${eventIdNum}/ratings`;
 
     try {
       setSubmitting(true);
 
-      // ✅ TU JEST KLUCZ: wysyłamy raterId w body (bez Authorization)
       const body = { raterId: raterIdNum, ratings: payloadRatings };
 
-      console.log("📤 URL:", url);
-      console.log("📤 BODY:", JSON.stringify(body, null, 2));
+      console.log("📤 [ratings] URL:", url);
+      console.log("📤 [ratings] BODY:", JSON.stringify(body, null, 2));
 
       const res = await fetch(url, {
         method: "POST",
@@ -213,8 +258,24 @@ const RateParticipantsModal = ({
       });
 
       const text = await res.text();
-      console.log("📥 STATUS:", res.status);
-      console.log("📥 RESPONSE:", text);
+      console.log("📥 [ratings] STATUS:", res.status);
+      console.log("📥 [ratings] RESPONSE:", text);
+
+      // ✅ jeśli backend zablokował “raz na event”
+      if (res.status === 409) {
+        let err = "ALREADY_RATED_EVENT";
+        try {
+          const j = JSON.parse(text);
+          err = j?.error ?? err;
+        } catch {}
+
+        if (err === "ALREADY_RATED_EVENT") {
+          setAlreadyRatedEvent(true);
+          if (storageKey) await AsyncStorage.setItem(storageKey, "1");
+          Alert.alert("Już oceniłeś", "Możesz wystawić ocenę tylko raz na całe wydarzenie.");
+          return;
+        }
+      }
 
       if (!res.ok) {
         let errMsg = "Nie udało się zapisać ocen.";
@@ -226,10 +287,14 @@ const RateParticipantsModal = ({
         return;
       }
 
+      // ✅ sukces -> oznacz lokalnie że już ocenił event
+      if (storageKey) await AsyncStorage.setItem(storageKey, "1");
+      setAlreadyRatedEvent(true);
+
       Alert.alert("Dziękujemy!", "Twoje oceny zostały zapisane.");
       onClose();
     } catch (err) {
-      console.log("❌ submit error:", err);
+      console.log("❌ [ratings] submit error:", err);
       Alert.alert("Błąd", "Wystąpił problem podczas zapisywania ocen.");
     } finally {
       setSubmitting(false);
@@ -238,8 +303,9 @@ const RateParticipantsModal = ({
 
   const shouldShowLoading =
     visible &&
-    (participants == null ||
-      (Array.isArray(participants) && participants.length === 0));
+    (participants == null || (Array.isArray(participants) && participants.length === 0));
+
+  const submitDisabled = submitting || alreadyRatedEvent || checkingAlreadyRated;
 
   return (
     <Modal
@@ -303,6 +369,29 @@ const RateParticipantsModal = ({
             </TouchableOpacity>
           </View>
 
+          {/* ✅ banner jeśli już ocenił */}
+          {checkingAlreadyRated ? (
+            <Text style={{ color: "#cfe8ff", marginBottom: 10 }}>
+              Sprawdzam, czy już oceniłeś…
+            </Text>
+          ) : alreadyRatedEvent ? (
+            <View
+              style={{
+                backgroundColor: "rgba(255,255,255,0.10)",
+                borderRadius: 12,
+                padding: 10,
+                marginBottom: 10,
+              }}
+            >
+              <Text style={{ color: "#cfe8ff", fontWeight: "700" }}>
+                Już oceniłeś to wydarzenie.
+              </Text>
+              <Text style={{ color: "#cfe8ff", marginTop: 4, opacity: 0.9 }}>
+                Możesz wystawić ocenę tylko raz na całe wydarzenie.
+              </Text>
+            </View>
+          ) : null}
+
           {/* Body */}
           {shouldShowLoading ? (
             <View style={{ paddingVertical: 24, alignItems: "center" }}>
@@ -314,8 +403,7 @@ const RateParticipantsModal = ({
           ) : rateableParticipants.length === 0 ? (
             <View style={{ paddingVertical: 24, alignItems: "center" }}>
               <Text style={{ color: "#cfe8ff", textAlign: "center" }}>
-                Brak osób do oceny (jesteś sam w wydarzeniu lub dane nie mają
-                poprawnych ID).
+                Brak osób do oceny (jesteś sam w wydarzeniu lub dane nie mają poprawnych ID).
               </Text>
             </View>
           ) : (
@@ -326,10 +414,7 @@ const RateParticipantsModal = ({
                 contentContainerStyle={{ paddingBottom: 90 }}
                 showsVerticalScrollIndicator={false}
                 renderItem={({ item }) => {
-                  const currentRating = ratings[item.id] || {
-                    stars: 0,
-                    tags: [],
-                  };
+                  const currentRating = ratings[item.id] || { stars: 0, tags: [] };
 
                   const tagsToShow =
                     currentRating.stars === 5
@@ -347,6 +432,7 @@ const RateParticipantsModal = ({
                         marginBottom: 12,
                         flexDirection: "row",
                         alignItems: "flex-start",
+                        opacity: alreadyRatedEvent ? 0.6 : 1,
                       }}
                     >
                       <View
@@ -362,10 +448,7 @@ const RateParticipantsModal = ({
                         }}
                       >
                         {item.avatar ? (
-                          <Image
-                            source={{ uri: item.avatar }}
-                            style={{ width: 50, height: 50 }}
-                          />
+                          <Image source={{ uri: item.avatar }} style={{ width: 50, height: 50 }} />
                         ) : (
                           <Text style={{ color: "#fff", fontSize: 18 }}>
                             {item.userName?.charAt(0)?.toUpperCase() || "?"}
@@ -383,31 +466,29 @@ const RateParticipantsModal = ({
                           }}
                         >
                           {item.userName}
-                          {typeof item.age === "number"
-                            ? `, ${item.age} lat`
-                            : ""}
+                          {typeof item.age === "number" ? `, ${item.age} lat` : ""}
                         </Text>
 
                         <StarRating
                           value={currentRating.stars}
-                          onChange={(v: number) => handleStarChange(item.id, v)}
+                          onChange={(v: number) => {
+                            if (alreadyRatedEvent) return;
+                            handleStarChange(item.id, v);
+                          }}
                         />
 
                         {tagsToShow.length > 0 && (
-                          <View
-                            style={{
-                              flexDirection: "row",
-                              flexWrap: "wrap",
-                              marginTop: 8,
-                            }}
-                          >
+                          <View style={{ flexDirection: "row", flexWrap: "wrap", marginTop: 8 }}>
                             {tagsToShow.map((tag) => {
                               const selected = currentRating.tags.includes(tag);
 
                               return (
                                 <TouchableOpacity
                                   key={tag}
-                                  onPress={() => toggleTag(item.id, tag)}
+                                  onPress={() => {
+                                    if (alreadyRatedEvent) return;
+                                    toggleTag(item.id, tag);
+                                  }}
                                   style={{
                                     paddingHorizontal: 10,
                                     paddingVertical: 6,
@@ -442,16 +523,17 @@ const RateParticipantsModal = ({
 
               <TouchableOpacity
                 onPress={handleSubmit}
-                disabled={submitting}
+                disabled={submitDisabled}
                 style={{
                   position: "absolute",
                   bottom: 16,
                   left: 16,
                   right: 16,
-                  backgroundColor: submitting ? "#007bb8" : "#00A9F4",
+                  backgroundColor: submitDisabled ? "#007bb8" : "#00A9F4",
                   paddingVertical: 14,
                   borderRadius: 12,
                   alignItems: "center",
+                  opacity: submitDisabled ? 0.7 : 1,
                 }}
               >
                 {submitting ? (
@@ -468,10 +550,12 @@ const RateParticipantsModal = ({
                       Zapisywanie…
                     </Text>
                   </View>
+                ) : alreadyRatedEvent ? (
+                  <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>
+                    Już ocenione
+                  </Text>
                 ) : (
-                  <Text
-                    style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}
-                  >
+                  <Text style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}>
                     Zapisz oceny
                   </Text>
                 )}

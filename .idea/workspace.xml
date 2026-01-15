@@ -5,7 +5,21 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="f8f0bf5b-7ad0-40cb-94ee-cdf641474b64" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/.gradle/9.0.0/checksums/checksums.lock" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/9.0.0/fileChanges/last-build.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/9.0.0/fileHashes/fileHashes.bin" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/9.0.0/fileHashes/fileHashes.lock" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gradle/9.0.0/gc.properties" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/caches/deviceStreaming.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/app.config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(auth)/Profile.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(auth)/Profile.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/(main)/Login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/(main)/Login.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/screens/LocalEventRoom.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/screens/LocalEventRoom.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/screens/MyEventRoom.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/screens/MyEventRoom.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/components/RateParticipants.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/components/RateParticipants.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/hooks/useEventRatings.ts" beforeDir="false" afterPath="$PROJECT_DIR$/hooks/useEventRatings.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/styles/EventScreenRoom.styles.ts" beforeDir="false" afterPath="$PROJECT_DIR$/styles/EventScreenRoom.styles.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -1,7 +1,7 @@
 import ChatBox, { Message } from "@/components/ChatBox";
 import RateParticipantsModal from "@/components/RateParticipants";
+import ParticipantDetailsModal from "@/components/ParticipantDetailsModal";
 import { useEndEventListener } from "@/hooks/useEndEventListener";
-import { useEventRatings } from "@/hooks/useEventRatings";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -62,6 +62,72 @@ const RatingBadge = ({ avg, count }: { avg?: number; count?: number }) => {
   );
 };
 
+type TagCount = { tag: string; count: number };
+
+type RatingsUserRow = {
+  userId: number;
+  stars?: { average?: number; count?: number; distribution?: any };
+  tags?: Array<TagCount | string>;
+};
+
+type RatingsEntry = {
+  avg: number;
+  count: number;
+  tags: TagCount[];
+};
+
+function toNum(v: any): number | null {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/**
+ * ✅ KLUCZOWE: wyciąga PRAWDZIWE User.id z obiektu participant
+ * Bo często item.id bywa EventParticipant.id i wtedy wszystko się miesza.
+ */
+function resolveUserIdFromParticipant(p: any): number | null {
+  const candidates = [
+    p?.userId,
+    p?.user?.id,
+    p?.user?.userId,
+    p?.participant?.userId,
+    p?.id, // na końcu dopiero
+  ];
+
+  for (const c of candidates) {
+    const n = toNum(c);
+    if (n) return n;
+  }
+  return null;
+}
+
+function resolveUserNameFromParticipant(p: any): string {
+  return (
+    p?.userName ??
+    p?.username ??
+    p?.name ??
+    p?.user?.userName ??
+    p?.user?.username ??
+    p?.user?.name ??
+    "Użytkownik"
+  );
+}
+
+function resolveAvatarFromParticipant(p: any): string | null {
+  return (
+    (p?.avatar ??
+      p?.avatarUrl ??
+      p?.user?.avatar ??
+      p?.user?.avatarUrl ??
+      null) as string | null
+  );
+}
+
+function resolveAgeFromParticipant(p: any): number | null {
+  const a = p?.age ?? p?.user?.age;
+  return typeof a === "number" ? a : null;
+}
+
 const LocalEventRoom = () => {
   const insets = useSafeAreaInsets();
   const router = useRouter();
@@ -73,21 +139,25 @@ const LocalEventRoom = () => {
     return typeof raw === "string" ? raw : Array.isArray(raw) ? raw[0] : undefined;
   }, [params]);
 
-  // ✅ Hook z ocenami eventu
-  const { getUserRating, refetch: refetchRatings } = useEventRatings(currentEventId);
-
   const [participants, setParticipants] = useState<any[]>([]);
   const [currentEvent, setCurrentEvent] = useState<any | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [selectedParticipant, setSelectedParticipant] = useState<any>(null);
+
+  // ✅ Modal profilu
+  const [detailsModalVisible, setDetailsModalVisible] = useState(false);
+  const [selectedParticipant, setSelectedParticipant] = useState<any | null>(null);
+  const [selectedRating, setSelectedRating] = useState<{ avg: number; count: number } | null>(null);
+  const [selectedTags, setSelectedTags] = useState<TagCount[]>([]);
+
   const [isExpanded, setIsExpanded] = useState(false);
-  const [isCreatorDescModalVisible, setIsCreatorDescModalVisible] = useState(false);
 
   const { showRatingModal, setShowRatingModal } = useEndEventListener({
     socket,
     currentEventId,
   });
+
+  // ✅ MAPA OCEN Z EVENTU: userId -> {avg,count,tags[{tag,count}]}
+  const [eventRatingsMap, setEventRatingsMap] = useState<Record<number, RatingsEntry>>({});
 
   const fetchEventDetails = useCallback(async () => {
     if (!currentEventId) return;
@@ -99,22 +169,85 @@ const LocalEventRoom = () => {
       const data = await res.json();
       setCurrentEvent(data);
       setParticipants(data.participants || []);
+
+      // ✅ log: sprawdź strukturę participants (raz na fetch)
+      console.log("[DETAILS] participants sample:", (data.participants || [])?.[0]);
     } catch (err) {
       console.error("Błąd pobierania szczegółów wydarzenia:", err);
     }
   }, [currentEventId]);
 
+  // ✅ pobierz ratingi + tagi(count) dla całego eventu
+  const fetchEventRatings = useCallback(async () => {
+    if (!currentEventId) return;
+
+    const url = `https://meeton-backend-ffmo.onrender.com/api/events/${currentEventId}/ratings`;
+
+    try {
+      const res = await fetch(url);
+      const data = await res.json();
+
+      console.log("[event ratings] url:", url);
+      console.log("[event ratings] raw:", data);
+
+      const users: RatingsUserRow[] = Array.isArray(data?.users) ? data.users : [];
+
+      const nextMap: Record<number, RatingsEntry> = {};
+
+      for (const u of users) {
+        const uid = toNum(u?.userId);
+        if (!uid) continue;
+
+        const avg = Number(u?.stars?.average ?? 0);
+        const count = Number(u?.stars?.count ?? 0);
+
+        const tagsArr = Array.isArray(u?.tags) ? u.tags : [];
+        const normalizedTags: TagCount[] = tagsArr
+          .map((t: any) => {
+            if (typeof t === "string") {
+              const clean = t.trim();
+              return clean ? { tag: clean, count: 1 } : null;
+            }
+
+            const tag = String(t?.tag ?? t?.name ?? t?.label ?? "").trim();
+            const c = Number(t?.count ?? t?.votes ?? t?.total ?? 1);
+            if (!tag) return null;
+            return { tag, count: Number.isFinite(c) ? c : 1 };
+          })
+          .filter(Boolean) as TagCount[];
+
+        normalizedTags.sort((a, b) => (b.count ?? 0) - (a.count ?? 0));
+
+        nextMap[uid] = {
+          avg: Number.isFinite(avg) ? avg : 0,
+          count: Number.isFinite(count) ? count : 0,
+          tags: normalizedTags,
+        };
+      }
+
+      console.log("[event ratings] map keys:", Object.keys(nextMap));
+      const firstKey = Object.keys(nextMap)[0];
+      if (firstKey) console.log("[event ratings] sample tags:", nextMap[Number(firstKey)]?.tags);
+
+      setEventRatingsMap(nextMap);
+    } catch (e) {
+      console.log("[event ratings] FAIL:", e);
+      setEventRatingsMap({});
+    }
+  }, [currentEventId]);
+
   useEffect(() => {
     fetchEventDetails();
-  }, [fetchEventDetails]);
+    fetchEventRatings();
+  }, [fetchEventDetails, fetchEventRatings]);
 
-  // ✅ Jak modal ocen się otworzy (event:ended albo ręcznie), odśwież dane + oceny
+  // ✅ po zakończeniu eventu / po ocenianiu – odśwież
   useEffect(() => {
     if (showRatingModal) {
       fetchEventDetails();
-      refetchRatings();
+      fetchEventRatings();
     }
-  }, [showRatingModal, fetchEventDetails, refetchRatings]);
+  }, [showRatingModal, fetchEventDetails, fetchEventRatings]);
 
   useEffect(() => {
     if (!currentEventId) return;
@@ -147,18 +280,33 @@ const LocalEventRoom = () => {
     });
   };
 
-  const fetchParticipantDetails = async (participantId: number) => {
-    try {
-      const res = await fetch(
-        `https://meeton-backend-ffmo.onrender.com/api/user/profile/${participantId}`
-      );
-      const data = await res.json();
-      setSelectedParticipant(data);
-      setModalVisible(true);
-    } catch (err) {
-      console.error("Błąd pobierania danych uczestnika:", err);
-    }
-  };
+  // ✅ otwieramy modal po kliknięciu w usera: używamy PRAWDZIWEGO User.id
+  const openUserDetailsModal = useCallback(
+    async (targetUserId: number) => {
+      try {
+        const profileRes = await fetch(
+          `https://meeton-backend-ffmo.onrender.com/api/user/profile/${targetUserId}`
+        );
+        const profile = await profileRes.json();
+
+        const keyId =
+          toNum(profile?.id) ??
+          toNum(profile?.userId) ??
+          toNum(targetUserId);
+
+        const entry = keyId ? eventRatingsMap[keyId] : undefined;
+
+
+        setSelectedParticipant(profile);
+        setSelectedRating(entry ? { avg: entry.avg, count: entry.count } : null);
+        setSelectedTags(entry?.tags ?? []);
+        setDetailsModalVisible(true);
+      } catch (err) {
+        console.error("Błąd pobierania danych użytkownika:", err);
+      }
+    },
+    [eventRatingsMap]
+  );
 
   const handleLeave = async () => {
     const numericEventId = Number(currentEventId);
@@ -188,66 +336,70 @@ const LocalEventRoom = () => {
     router.replace("./MyEvents");
   };
 
+  // ✅ Creator info z eventu (to jest User.id)
+  const creatorId = useMemo(() => {
+    const cands = [
+      currentEvent?.creatorId,
+      currentEvent?.creator?.id,
+      currentEvent?.creator?.userId,
+      currentEvent?.ownerId,
+      currentEvent?.hostId,
+      currentEvent?.createdById,
+    ];
+    for (const c of cands) {
+      const n = toNum(c);
+      if (n) return n;
+    }
+    return null;
+  }, [currentEvent]);
+
+  const creatorName =
+    currentEvent?.creator?.userName ??
+    currentEvent?.creator?.username ??
+    currentEvent?.creatorName ??
+    "Twórca";
+
+  const creatorAvatar =
+    currentEvent?.creator?.avatar ??
+    currentEvent?.creator?.avatarUrl ??
+    null;
+
+  const getUserEntry = useCallback(
+    (uid?: number | null) => {
+      if (!uid) return null;
+      return eventRatingsMap[uid] ?? null;
+    },
+    [eventRatingsMap]
+  );
+
+  // ✅ lista do oceniania: MUSI mieć User.id
   const participantsForRating = useMemo(() => {
     const list: any[] = [];
 
     (participants || []).forEach((p: any) => {
-      const idNum = Number(p?.id);
-      if (!Number.isNaN(idNum) && idNum > 0) {
-        list.push({
-          id: idNum,
-          userName: p?.userName ?? p?.username ?? p?.name ?? "Użytkownik",
-          avatar: p?.avatar ?? p?.avatarUrl ?? null,
-          age: typeof p?.age === "number" ? p.age : null,
-        });
-      }
+      const uid = resolveUserIdFromParticipant(p);
+      if (!uid) return;
+
+      list.push({
+        id: uid, // ✅ TU JEST USER.ID
+        userName: resolveUserNameFromParticipant(p),
+        avatar: resolveAvatarFromParticipant(p),
+        age: resolveAgeFromParticipant(p),
+      });
     });
 
-    const creator = currentEvent?.creator;
-    const creatorName = creator?.userName;
-
-    let creatorIdFromParticipants: number | null = null;
-    if (creatorName) {
-      const found = (participants || []).find(
-        (p: any) => String(p?.userName ?? p?.username ?? p?.name ?? "") === String(creatorName)
-      );
-      const idNum = Number(found?.id);
-      if (!Number.isNaN(idNum) && idNum > 0) creatorIdFromParticipants = idNum;
-    }
-
-    const creatorIdCandidates = [
-      currentEvent?.creatorId,
-      currentEvent?.ownerId,
-      currentEvent?.hostId,
-      currentEvent?.createdById,
-      creator?.id,
-    ];
-
-    let creatorIdFromEvent: number | null = null;
-    for (const c of creatorIdCandidates) {
-      const n = Number(c);
-      if (!Number.isNaN(n) && n > 0) {
-        creatorIdFromEvent = n;
-        break;
-      }
-    }
-
-    const finalCreatorId = creatorIdFromParticipants ?? creatorIdFromEvent;
-
-    if (finalCreatorId && creatorName) {
+    if (creatorId && creatorName) {
       list.push({
-        id: finalCreatorId,
+        id: creatorId,
         userName: creatorName,
-        avatar: creator?.avatar ?? null,
-        age: typeof creator?.age === "number" ? creator.age : null,
+        avatar: creatorAvatar,
       });
     }
 
     const map = new Map<number, any>();
     for (const p of list) map.set(p.id, p);
-
     return Array.from(map.values());
-  }, [participants, currentEvent]);
+  }, [participants, creatorId, creatorName, creatorAvatar]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -267,14 +419,79 @@ const LocalEventRoom = () => {
         />
 
         <View style={[styles.container, { flex: 1 }]}>
-          {/* Szczegóły wydarzenia */}
+          {/* HEADER */}
           <View style={styles.header}>
-            <View style={styles.eventInfo}>
+            <View style={[styles.eventInfo, { flex: 1 }]}>
+              {/* ✅ Twórca / miejsce / czas POD SOBĄ */}
+              {creatorId ? (
+                <TouchableOpacity
+                  onPress={() => openUserDetailsModal(creatorId)}
+                  activeOpacity={0.85}
+                  style={{
+                    alignSelf: "flex-start",
+                    marginBottom: 8,
+                    paddingHorizontal: 10,
+                    paddingVertical: 8,
+                    borderRadius: 14,
+                    backgroundColor: "#F3FAFF",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    maxWidth: "100%",
+                  }}
+                >
+                  <View
+                    style={{
+                      width: 38,
+                      height: 38,
+                      borderRadius: 19,
+                      backgroundColor: "#EAF6FF",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      overflow: "hidden",
+                    }}
+                  >
+                    {creatorAvatar ? (
+                      <Image source={{ uri: creatorAvatar }} style={{ width: 38, height: 38 }} />
+                    ) : (
+                      <Text style={{ fontWeight: "900", color: "#00A9F4", fontSize: 16 }}>
+                        {creatorName?.charAt(0)?.toUpperCase?.() ?? "?"}
+                      </Text>
+                    )}
+                  </View>
+
+                  <View style={{ marginLeft: 8, flexShrink: 1 }}>
+                    <Text
+                      style={{ fontWeight: "800", color: "#1B4D6B" }}
+                      numberOfLines={1}
+                      ellipsizeMode="tail"
+                    >
+                      {creatorName}
+                    </Text>
+
+                    {(() => {
+                      const e = getUserEntry(creatorId);
+                      return (
+                        <View style={{ flexDirection: "row", alignItems: "center", marginTop: 2 }}>
+                          <Text style={{ fontSize: 11, color: "#1B4D6B" }}>Twórca</Text>
+                          <RatingBadge avg={e?.avg} count={e?.count} />
+                        </View>
+                      );
+                    })()}
+                  </View>
+
+                  <Ionicons
+                    name="chevron-forward"
+                    size={16}
+                    color="#1B4D6B"
+                    style={{ marginLeft: 8, opacity: 0.7 }}
+                  />
+                </TouchableOpacity>
+              ) : null}
+
               <Text style={styles.title}>{currentEvent?.location || "Brak lokalizacji"}</Text>
+
               <Text>
-                {currentEvent?.startDate
-                  ? new Date(currentEvent.startDate).toLocaleDateString()
-                  : ""}{" "}
+                {currentEvent?.startDate ? new Date(currentEvent.startDate).toLocaleDateString() : ""}{" "}
                 {" • "}
                 {currentEvent?.startDate
                   ? new Date(currentEvent.startDate).toLocaleTimeString([], {
@@ -292,7 +509,13 @@ const LocalEventRoom = () => {
               </Text>
             </View>
 
-            <View style={styles.buttonContainer}>
+            {/* ✅ Buttony pod sobą */}
+            <View
+              style={[
+                styles.buttonContainer,
+                { flexDirection: "column", gap: 10, alignItems: "flex-end" },
+              ]}
+            >
               <TouchableOpacity style={styles.leaveButtonWrapper} onPress={handleLeave}>
                 <View style={styles.leaveTextWrapper}>
                   <Text style={styles.leaveButton}>Opuść</Text>
@@ -325,7 +548,6 @@ const LocalEventRoom = () => {
                 </Text>
               </TouchableOpacity>
 
-              {/* ✅ Przycisk testowy – ręczne otwieranie modala */}
               <TouchableOpacity
                 onPress={() => {
                   if (!currentEventId) return;
@@ -347,46 +569,49 @@ const LocalEventRoom = () => {
             {isExpanded && (
               <FlatList
                 data={participants}
-                keyExtractor={(item) => item.id.toString()}
+                keyExtractor={(item) => String(item?.id ?? Math.random())}
                 ListEmptyComponent={<Text style={styles.emptyText}>Brak uczestników</Text>}
                 renderItem={({ item }) => {
-                  const r = getUserRating(item.id);
+                  const uid = resolveUserIdFromParticipant(item);
+
+                  // ✅ debug: zobacz jakie id ma participant
+                  console.log("[LIST] participant raw:", item);
+                  console.log("[LIST] resolved uid:", uid);
+
+                  const e = uid ? getUserEntry(uid) : null;
 
                   return (
                     <TouchableOpacity
-                      onPress={() => fetchParticipantDetails(item.id)}
+                      onPress={() => {
+                        if (!uid) return;
+                        openUserDetailsModal(uid);
+                      }}
                       style={styles.participantCard}
                     >
                       <View style={styles.avatar}>
-                        {item.avatar && item.avatar.trim() !== "" ? (
+                        {resolveAvatarFromParticipant(item) ? (
                           <Image
-                            source={{ uri: item.avatar }}
+                            source={{ uri: resolveAvatarFromParticipant(item)! }}
                             style={{ width: 40, height: 40, borderRadius: 20 }}
                           />
                         ) : (
                           <Text style={styles.avatarText}>
-                            {item.userName?.charAt(0).toUpperCase()}
+                            {resolveUserNameFromParticipant(item)?.charAt(0).toUpperCase()}
                           </Text>
                         )}
                       </View>
 
                       <View style={{ flexDirection: "column", marginLeft: 10 }}>
                         <View style={{ flexDirection: "row", alignItems: "center" }}>
-                          <Text style={styles.userName}>{item.userName}</Text>
-
-                          {/* ✅ Ocena obok imienia */}
-                          <RatingBadge avg={r?.avg} count={r?.count} />
-
-                          {item.id === userId && (
-                            <Text style={{ marginLeft: 6, fontSize: 12, color: "#00A9F4" }}>
-                              👤
-                            </Text>
-                          )}
+                          <Text style={styles.userName}>{resolveUserNameFromParticipant(item)}</Text>
+                          <RatingBadge avg={e?.avg} count={e?.count} />
                         </View>
 
-                        {item.age && (
-                          <Text style={{ color: "#777", fontSize: 12 }}>Wiek: {item.age}</Text>
-                        )}
+                        {resolveAgeFromParticipant(item) ? (
+                          <Text style={{ color: "#777", fontSize: 12 }}>
+                            Wiek: {resolveAgeFromParticipant(item)}
+                          </Text>
+                        ) : null}
                       </View>
                     </TouchableOpacity>
                   );
@@ -399,17 +624,32 @@ const LocalEventRoom = () => {
             <ChatBox messages={messages} onSend={handleSendMessage} />
           </View>
 
-          {/* ✅ MODAL OCEN */}
+          {/* MODAL OCEN */}
           <RateParticipantsModal
             visible={showRatingModal}
-            eventId={currentEventId ?? ""} // ✅ bez ! i bez undefined
+            eventId={currentEventId ?? ""}
             onClose={() => {
               setShowRatingModal(false);
-              refetchRatings(); // ✅ po ocenieniu odśwież
+              // ✅ po zapisaniu ocen od razu odśwież mapę eventową
+              fetchEventRatings();
             }}
             participants={participantsForRating}
             excludeUserId={typeof userId === "number" ? userId : undefined}
             eventTitle={currentEvent?.location || "Wydarzenie"}
+          />
+
+          {/* MODAL PROFILU */}
+          <ParticipantDetailsModal
+            visible={detailsModalVisible}
+            onClose={() => {
+              setDetailsModalVisible(false);
+              setSelectedParticipant(null);
+              setSelectedRating(null);
+              setSelectedTags([]);
+            }}
+            participant={selectedParticipant}
+            rating={selectedRating}
+            tags={selectedTags} // ✅ [{tag,count}]
           />
         </View>
       </KeyboardAvoidingView>

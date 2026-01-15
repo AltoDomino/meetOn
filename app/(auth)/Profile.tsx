@@ -6,41 +6,38 @@ import {
   Image,
   KeyboardAvoidingView,
   Platform,
-  SafeAreaView,
-  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View,
 } from "react-native";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../context/AuthContext";
-import { styles } from "../../styles/Pofile.styles";
 import { UserRankTracker } from "@/components/PlayerStatus/UserRankTracker";
-
-// ✅ NEW: import z utils/api
 import { fetchMyRatingStats } from "@/hooks/userRatings";
+import { useFocusEffect } from "expo-router";
 
 const API_BASE = "https://meeton-backend-ffmo.onrender.com";
 
-const SaveButton = ({ onPress }: { onPress: () => void }) => (
-  <TouchableOpacity
-    onPress={onPress}
+const THEME = {
+  bg: "#6e8ac2",
+  card: "#1E2F5C",
+  primary: "#00A9F4",
+  text: "#FFFFFF",
+  muted: "#9FB4D1",
+};
+
+const Card = ({ children }: { children: React.ReactNode }) => (
+  <View
     style={{
-      backgroundColor: "#00A9F4",
-      paddingVertical: 16,
-      borderRadius: 14,
-      alignItems: "center",
-      shadowColor: "#000",
-      shadowOpacity: Platform.OS === "ios" ? 0.08 : 0.12,
-      shadowRadius: 6,
-      elevation: 3,
-      marginTop: 10,
+      backgroundColor: THEME.card,
+      borderRadius: 20,
+      padding: 14,
+      marginBottom: 14,
     }}
   >
-    <Text style={{ color: "#fff", fontWeight: "800", fontSize: 18 }}>
-      Zapisz zmiany
-    </Text>
-  </TouchableOpacity>
+    {children}
+  </View>
 );
 
 export default function ProfileScreen() {
@@ -51,369 +48,219 @@ export default function ProfileScreen() {
     description,
     setAvatar,
     setDescription,
-    // token, // jeśli masz w AuthContext token, możesz go użyć poniżej
   } = useAuth();
+
+  const insets = useSafeAreaInsets();
 
   const [rankLoading, setRankLoading] = useState(true);
   const [completedEvents, setCompletedEvents] = useState(0);
   const [uniqueLocations, setUniqueLocations] = useState(0);
 
-  // ⭐ Oceny od innych użytkowników
   const [ratingsLoading, setRatingsLoading] = useState(true);
-  const [avgStars, setAvgStars] = useState<number>(0);
+  const [avgStars, setAvgStars] = useState(0);
   const [totalRatings, setTotalRatings] = useState(0);
-  const [tagsSummary, setTagsSummary] = useState<
-    { tag: string; count: number }[]
-  >([]);
 
-  // 🔹 Pobieranie rangi
   useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      if (!userId) return setRankLoading(false);
-      try {
-        const res = await fetch(`${API_BASE}/api/users/${userId}/rank`);
-        if (!isMounted) return;
-        const data = res.ok ? await res.json() : {};
-        setCompletedEvents(Number(data?.completedEvents ?? 0));
-        setUniqueLocations(Number(data?.uniqueLocations ?? 0));
-      } catch (e) {
-        console.warn("Rank stats fetch error:", (e as Error).message);
-      } finally {
-        if (isMounted) setRankLoading(false);
-      }
-    })();
-    return () => {
-      isMounted = false;
-    };
+    if (!userId) return;
+
+    fetch(`${API_BASE}/api/users/${userId}/rank`)
+      .then((r) => r.json())
+      .then((d) => {
+        setCompletedEvents(d.completedEvents || 0);
+        setUniqueLocations(d.uniqueLocations || 0);
+      })
+      .finally(() => setRankLoading(false));
   }, [userId]);
 
-  // ✅ Pobieranie ocen (NOWE API: /api/users/:id/ratings-stats)
-  useEffect(() => {
-    let isMounted = true;
-    (async () => {
-      if (!userId) return setRatingsLoading(false);
+  useFocusEffect(
+    React.useCallback(() => {
+      let active = true;
 
-      try {
-        const data = await fetchMyRatingStats({
-          baseUrl: API_BASE,
-          userId,
-          // token, // odkomentuj jeśli masz token w kontekście
-        });
+      (async () => {
+        try {
+          const data = await fetchMyRatingStats({ baseUrl: API_BASE, userId });
+          if (!active) return;
+          setAvgStars(Number(data?.stars?.average ?? 0));
+          setTotalRatings(Number(data?.stars?.count ?? 0));
+        } catch {}
+        setRatingsLoading(false);
+      })();
 
-        if (!isMounted) return;
-
-        setAvgStars(Number(data?.stars?.average ?? 0));
-        setTotalRatings(Number(data?.stars?.count ?? 0));
-        setTagsSummary(Array.isArray(data?.tags) ? data.tags : []);
-      } catch (e) {
-        console.warn("User ratings-stats fetch error:", (e as Error).message);
-      } finally {
-        if (isMounted) setRatingsLoading(false);
-      }
-    })();
-
-    return () => {
-      isMounted = false;
-    };
-  }, [userId]);
+      return () => {
+        active = false;
+      };
+    }, [userId])
+  );
 
   const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.7,
+    const res = await ImagePicker.launchImageLibraryAsync({
       allowsEditing: true,
       aspect: [1, 1],
-      base64: false,
+      quality: 0.7,
     });
 
-    if (!result.canceled) {
-      const image = result.assets[0];
-      const formData = new FormData();
-      formData.append("avatar", {
-        uri: image.uri,
+    if (!res.canceled) {
+      const img = res.assets[0];
+      const form = new FormData();
+      form.append("avatar", {
+        uri: img.uri,
         name: "avatar.jpg",
         type: "image/jpeg",
       } as any);
-      formData.append("userId", userId?.toString() || "");
+      form.append("userId", String(userId));
 
-      try {
-        const response = await fetch(`${API_BASE}/api/avatar`, {
-          method: "POST",
-          body: formData,
-          headers: { "Content-Type": "multipart/form-data" },
-        });
-        const data = await response.json();
-        if (response.ok) {
-          setAvatar(data.avatarUrl);
-          Alert.alert("Sukces", "Avatar zapisany!");
-        } else {
-          Alert.alert("Błąd", data.error || "Coś poszło nie tak.");
-        }
-      } catch (error) {
-        console.error("❌ Błąd przesyłania avatara:", error);
-        Alert.alert("Błąd", "Nie udało się wysłać avatara.");
-      }
+      const r = await fetch(`${API_BASE}/api/avatar`, {
+        method: "POST",
+        body: form,
+      });
+
+      const d = await r.json();
+      if (r.ok) setAvatar(d.avatarUrl);
     }
   };
 
   const handleSave = async () => {
-    try {
-      const res = await fetch(`${API_BASE}/api/user/profile`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, description }),
-      });
+    const r = await fetch(`${API_BASE}/api/user/profile`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId, description }),
+    });
 
-      const data = await res.json();
-
-      if (res.ok) {
-        // ✅ Aktualizujemy tylko opis
-        setDescription(data.description);
-        Alert.alert("✅ Zmiany zapisane!");
-      } else {
-        Alert.alert("❌ Błąd", data.error || "Nie udało się zapisać zmian.");
-      }
-    } catch (err) {
-      console.error("❌ Błąd zapisu profilu:", err);
-      Alert.alert("❌ Błąd połączenia", "Spróbuj ponownie później.");
-    }
+    if (r.ok) Alert.alert("Zapisano");
+    else Alert.alert("Błąd");
   };
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: "#c5def3ff" }}>
+    <SafeAreaView style={{ flex: 1, backgroundColor: THEME.bg }}>
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
-        keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
       >
-        <ScrollView
-          style={{ flex: 1 }}
-          contentContainerStyle={{
-            paddingHorizontal: 24,
-            paddingTop: 24,
-            paddingBottom: 120,
+        <View
+          style={{
+            flex: 1,
+            padding: 16,
+            paddingBottom: 16 + insets.bottom, // 🔥 ANDROID NAV BAR FIX
           }}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-          showsVerticalScrollIndicator
-          contentInsetAdjustmentBehavior="automatic"
         >
-          {/* AVATAR */}
-          <TouchableOpacity
-            onPress={pickImage}
-            activeOpacity={0.8}
-            style={{ alignSelf: "center", marginBottom: 16 }}
-          >
-            {avatar ? (
-              <Image
-                source={{ uri: avatar }}
-                style={{
-                  width: 200,
-                  height: 200,
-                  borderRadius: 100,
-                  borderWidth: 0,
-                }}
-              />
-            ) : (
+          <Card>
+            <TouchableOpacity
+              onPress={pickImage}
+              style={{ flexDirection: "row", alignItems: "center", gap: 16 }}
+            >
               <View
                 style={{
-                  width: 200,
-                  height: 200,
-                  borderRadius: 100,
-                  backgroundColor: "#ddd",
+                  width: 64,
+                  height: 64,
+                  borderRadius: 32,
+                  backgroundColor: "#2F4C7A",
                   justifyContent: "center",
                   alignItems: "center",
                 }}
               >
-                <Text style={styles.avatarHint}>Zmień avatar</Text>
-              </View>
-            )}
-          </TouchableOpacity>
-
-          {/* RANGA */}
-          <View style={{ width: "100%", marginTop: 4, marginBottom: 12 }}>
-            {rankLoading ? (
-              <View
-                style={{
-                  marginHorizontal: 12,
-                  borderRadius: 16,
-                  borderWidth: 1,
-                  borderColor: "#E8E8E8",
-                  backgroundColor: "#FFF",
-                  paddingVertical: 18,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 6,
-                }}
-              >
-                <ActivityIndicator />
-                <Text style={{ color: "#666" }}>Ładowanie rangi...</Text>
-              </View>
-            ) : (
-              <UserRankTracker
-                userId={userId!}
-                initialCompletedEvents={completedEvents}
-                initialUniqueLocations={uniqueLocations}
-                apiBaseUrl={API_BASE}
-                onRankChange={() => {}}
-                onCompletedIncrement={() => {}}
-              />
-            )}
-          </View>
-
-          {/* OCENA SPOŁECZNOŚCI */}
-          <View
-            style={{ width: "100%", marginBottom: 16, paddingHorizontal: 4 }}
-          >
-            {ratingsLoading ? (
-              <View
-                style={{
-                  marginHorizontal: 12,
-                  borderRadius: 16,
-                  borderWidth: 1,
-                  borderColor: "#E8E8E8",
-                  backgroundColor: "#FFF",
-                  paddingVertical: 16,
-                  paddingHorizontal: 16,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: 6,
-                }}
-              >
-                <ActivityIndicator />
-                <Text style={{ color: "#666" }}>Ładowanie ocen...</Text>
-              </View>
-            ) : (
-              <View
-                style={{
-                  marginHorizontal: 12,
-                  borderRadius: 16,
-                  borderWidth: 1,
-                  borderColor: "#E0E7FF",
-                  backgroundColor: "#F8FBFF",
-                  paddingVertical: 14,
-                  paddingHorizontal: 16,
-                  gap: 8,
-                }}
-              >
-                <Text
-                  style={{
-                    fontSize: 16,
-                    fontWeight: "700",
-                    color: "#0f172a",
-                    marginBottom: 2,
-                  }}
-                >
-                  Ocena społeczności
-                </Text>
-
-                {totalRatings === 0 ? (
-                  <Text style={{ color: "#64748b", fontSize: 14 }}>
-                    Nikt jeszcze Cię nie ocenił. Zbieraj dobre wrażenia na
-                    wydarzeniach! 🙂
-                  </Text>
+                {avatar ? (
+                  <Image
+                    source={{ uri: avatar }}
+                    style={{ width: 64, height: 64, borderRadius: 32 }}
+                  />
                 ) : (
-                  <>
-                    <View
-                      style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        justifyContent: "space-between",
-                      }}
-                    >
-                      <View
-                        style={{ flexDirection: "row", alignItems: "center" }}
-                      >
-                        <Text
-                          style={{
-                            fontSize: 28,
-                            fontWeight: "800",
-                            color: "#0f172a",
-                            marginRight: 6,
-                          }}
-                        >
-                          {avgStars.toFixed(1)}
-                        </Text>
-                        <Text style={{ fontSize: 16, color: "#fbbf24" }}>★</Text>
-                      </View>
-
-                      <Text style={{ color: "#64748b", fontSize: 13 }}>
-                        Na podstawie {totalRatings} ocen
-                      </Text>
-                    </View>
-
-                    {tagsSummary.length > 0 && (
-                      <View style={{ marginTop: 8 }}>
-                        <Text
-                          style={{
-                            fontSize: 13,
-                            color: "#475569",
-                            marginBottom: 4,
-                          }}
-                        >
-                          Najczęściej opisywany jako:
-                        </Text>
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            flexWrap: "wrap",
-                            gap: 6,
-                          }}
-                        >
-                          {tagsSummary.slice(0, 6).map((t) => (
-                            <View
-                              key={t.tag}
-                              style={{
-                                backgroundColor: "#e0f2fe",
-                                borderRadius: 999,
-                                paddingHorizontal: 10,
-                                paddingVertical: 4,
-                              }}
-                            >
-                              <Text
-                                style={{
-                                  fontSize: 12,
-                                  color: "#0369a1",
-                                  fontWeight: "600",
-                                }}
-                              >
-                                {t.tag} · {t.count}
-                              </Text>
-                            </View>
-                          ))}
-                        </View>
-                      </View>
-                    )}
-                  </>
+                  <Text style={{ color: "#fff" }}>AV</Text>
                 )}
               </View>
+              <View>
+                <Text style={{ color: "#fff", fontWeight: "800", fontSize: 18 }}>
+                  {userName}
+                </Text>
+                <Text style={{ color: THEME.muted }}>
+                  Kliknij avatar aby zmienić
+                </Text>
+              </View>
+            </TouchableOpacity>
+          </Card>
+
+          <Card>
+            <Text style={{ color: THEME.text, fontWeight: "800" }}>
+              Ocena społeczności
+            </Text>
+            {ratingsLoading ? (
+              <ActivityIndicator />
+            ) : (
+              <Text style={{ fontSize: 28, color: "#fff", fontWeight: "900" }}>
+                {avgStars.toFixed(1)} ⭐ ({totalRatings})
+              </Text>
             )}
-          </View>
+          </Card>
 
-          {/* FORMULARZ PROFILU */}
-          <Text style={styles.label}>Nazwa użytkownika</Text>
-          <TextInput
-            value={userName}
-            editable={false}
-            selectTextOnFocus={false}
-            style={[styles.input, { opacity: 0.6 }]}
-          />
+          <Card>
+            <Text style={{ color: THEME.text, fontWeight: "800", marginBottom: 8 }}>
+              Ranga
+            </Text>
 
-          <Text style={styles.label}>Opis</Text>
-          <TextInput
-            value={description}
-            onChangeText={(text) => {
-              if (text.length <= 100) setDescription(text);
+            {rankLoading ? (
+              <ActivityIndicator />
+            ) : (
+              <View
+                style={{
+                  height: 110,
+                  overflow: "hidden",
+                  justifyContent: "center",
+                }}
+              >
+                <View
+                  style={{
+                    transform: [{ scale: 0.55 }],
+                    width: "180%",
+                    alignSelf: "center",
+                  }}
+                >
+                  <UserRankTracker
+                    userId={userId!}
+                    initialCompletedEvents={completedEvents}
+                    initialUniqueLocations={uniqueLocations}
+                    apiBaseUrl={API_BASE}
+                    onRankChange={() => {}}
+                    onCompletedIncrement={() => {}}
+                  />
+                </View>
+              </View>
+            )}
+          </Card>
+
+          <Card>
+            <Text style={{ color: THEME.text, fontWeight: "800" }}>
+              Opis (max 100)
+            </Text>
+            <TextInput
+              value={description}
+              onChangeText={setDescription}
+              maxLength={100}
+              multiline
+              style={{
+                backgroundColor: "#2F4C7A",
+                borderRadius: 12,
+                padding: 12,
+                color: "#fff",
+                marginTop: 8,
+                height: 80,
+              }}
+            />
+          </Card>
+
+          <TouchableOpacity
+            onPress={handleSave}
+            style={{
+              backgroundColor: THEME.primary,
+              paddingVertical: 16,
+              borderRadius: 16,
+              alignItems: "center",
+
             }}
-            style={[styles.input, { height: 80 }]}
-            multiline
-            maxLength={100}
-          />
-
-          <SaveButton onPress={handleSave} />
-          <View style={{ height: 24 }} />
-        </ScrollView>
+          >
+            <Text style={{ color: "#fff", fontWeight: "900", fontSize: 18 }}>
+              Zapisz zmiany
+            </Text>
+          </TouchableOpacity>
+        </View>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
