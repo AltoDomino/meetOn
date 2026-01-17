@@ -31,8 +31,8 @@ export default function DrawerLayout() {
       <Drawer.Screen
         name="FriendList"
         options={{
-          title: "📨 ZNAJOMI",
-          drawerLabel: "📨 ZAPROŚ ZNAJOMYCH",
+          title: "👫 ZNAJOMI",
+          drawerLabel: "👫 ZNAJOMI",
         }}
       />
       <Drawer.Screen

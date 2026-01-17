@@ -31,6 +31,9 @@ export const activityImages: Record<string, any> = {
 "LYŻWY": require("../../assets/images/lyzwy.png"),
 "SZTUKI WALKI": require("../../assets/images/sztuki_walki.png"),
 "IMPREZKA": require("../../assets/images/klub.png"),
+"SPACER Z PSEM": require("../../assets/images/wyjscie-z-psem.png"),
+"BASEN": require("../../assets/images/basen.png"),
+"KINO": require("../../assets/images/kino.png"),
 "STWÓRZ WŁASNE": require("../../assets/images/wlasne.png"),
 
 };

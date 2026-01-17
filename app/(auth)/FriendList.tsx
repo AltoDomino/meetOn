@@ -1,6 +1,6 @@
 import { styles } from "@/styles//FriendList.styles";
 import { Ionicons } from "@expo/vector-icons";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -16,35 +16,55 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from "react-native-safe-area-context";
+import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 import { useAuth } from "../../context/AuthContext";
 
-// ✅ DODAJ TEN IMPORT (dopasuj ścieżkę do swojego projektu)
 import ChatModal from "@/components/ChatModal";
 
 type Friend = { id: number; userName: string };
 
 type FriendRequest = {
-  id: string;
   senderId: number; // requesterId
   senderName: string; // userName
 };
 
 const BACKEND_URL = "https://meeton-backend-ffmo.onrender.com";
 
-const friendsUrl = (userId: number) =>
-  `${BACKEND_URL}/api/invite-friends/${userId}`;
-const pendingUrl = (userId: number) =>
-  `${BACKEND_URL}/api/invite-friends/requests/${userId}`;
+const friendsUrl = (userId: number) => `${BACKEND_URL}/api/invite-friends/${userId}`;
+const pendingUrl = (userId: number) => `${BACKEND_URL}/api/invite-friends/requests/${userId}`;
 const sendInviteUrl = () => `${BACKEND_URL}/api/invite-friends/send`;
 const acceptInviteUrl = () => `${BACKEND_URL}/api/invite-friends/accept`;
 
-// ⚠️ tych tras NIE MA w Twoim routerze (dopóki nie dodasz w backendzie)
+// backend ma mieć te trasy
 const removeFriendUrl = () => `${BACKEND_URL}/api/invite-friends/remove`;
-const cancelInviteUrl = () => `${BACKEND_URL}/api/invite-friends/cancel`;
+const rejectInviteUrl = () => `${BACKEND_URL}/api/invite-friends/reject`; // recipient odrzuca (PENDING)
+const cancelInviteUrl = () => `${BACKEND_URL}/api/invite-friends/cancel`; // requester anuluje (opcjonalnie)
+
+/** ✅ deduplikacja po id (naprawia warning o key) */
+const uniqByNumericId = <T extends { id: number }>(arr: T[]) => {
+  const seen = new Set<number>();
+  const out: T[] = [];
+  for (const x of arr) {
+    if (!Number.isFinite(x.id)) continue;
+    if (seen.has(x.id)) continue;
+    seen.add(x.id);
+    out.push(x);
+  }
+  return out;
+};
+
+/** ✅ deduplikacja zaproszeń po senderId */
+const uniqBySenderId = (arr: FriendRequest[]) => {
+  const seen = new Set<number>();
+  const out: FriendRequest[] = [];
+  for (const x of arr) {
+    if (!Number.isFinite(x.senderId) || x.senderId <= 0) continue;
+    if (seen.has(x.senderId)) continue;
+    seen.add(x.senderId);
+    out.push(x);
+  }
+  return out;
+};
 
 export default function InviteFriendsScreen() {
   const insets = useSafeAreaInsets();
@@ -75,7 +95,8 @@ export default function InviteFriendsScreen() {
     setChatFriend(null);
   };
 
-  const canInvite = query.trim().length >= 3 && !sending;
+  const trimmedQuery = query.trim();
+  const canInviteBase = trimmedQuery.length >= 3 && !sending;
 
   const initials = (name: string) => (name?.trim()?.[0] || "U").toUpperCase();
 
@@ -92,37 +113,35 @@ export default function InviteFriendsScreen() {
     return data
       .map((x: any) => ({
         id: Number(x?.id),
-        userName: String(x?.userName ?? x?.name ?? x?.login ?? ""),
+        userName: String(x?.userName ?? x?.name ?? x?.login ?? "").trim(),
       }))
       .filter((x: Friend) => !!x.userName && Number.isFinite(x.id));
   };
 
+  // backend: [{ requesterId, userName }]
   const normalizePending = (data: any): FriendRequest[] => {
     if (!Array.isArray(data)) return [];
-
-    const mapped = data
-      .map((x: any, i: number) => {
+    return data
+      .map((x: any) => {
         const senderId = Number(x?.requesterId);
         const senderName = String(x?.userName ?? "").trim();
-
-        if (!Number.isFinite(senderId) || senderId <= 0 || !senderName)
-          return null;
-
-        return {
-          id: `req:${senderId}:${senderName}:${i}`,
-          senderId,
-          senderName,
-        } as FriendRequest;
+        if (!Number.isFinite(senderId) || senderId <= 0 || !senderName) return null;
+        return { senderId, senderName } as FriendRequest;
       })
       .filter(Boolean) as FriendRequest[];
-
-    const seen = new Set<number>();
-    return mapped.filter((r) => {
-      if (seen.has(r.senderId)) return false;
-      seen.add(r.senderId);
-      return true;
-    });
   };
+
+  const alreadyFriend = useMemo(() => {
+    const q = trimmedQuery.toLowerCase();
+    return q && friends.some((f) => f.userName.toLowerCase() === q);
+  }, [friends, trimmedQuery]);
+
+  const hasIncomingRequestFromThatUser = useMemo(() => {
+    const q = trimmedQuery.toLowerCase();
+    return q && pending.some((p) => p.senderName.toLowerCase() === q);
+  }, [pending, trimmedQuery]);
+
+  const canInvite = canInviteBase && !alreadyFriend;
 
   const fetchFriends = async () => {
     if (!userId) return;
@@ -130,7 +149,9 @@ export default function InviteFriendsScreen() {
       setLoadingFriends(true);
       const res = await fetch(friendsUrl(userId));
       const data = await safeJson(res);
-      setFriends(normalizeFriends(data));
+
+      // ✅ dedupe to avoid "same key" warnings
+      setFriends(uniqByNumericId(normalizeFriends(data)));
     } catch (e) {
       console.error("Błąd pobierania znajomych:", e);
       setFriends([]);
@@ -145,7 +166,9 @@ export default function InviteFriendsScreen() {
       setLoadingPending(true);
       const res = await fetch(pendingUrl(userId));
       const data = await safeJson(res);
-      setPending(normalizePending(data));
+
+      // ✅ dedupe
+      setPending(uniqBySenderId(normalizePending(data)));
     } catch (e) {
       console.warn("Błąd pobierania zaproszeń:", e);
       setPending([]);
@@ -171,9 +194,30 @@ export default function InviteFriendsScreen() {
     }
   };
 
+  const showBackendError = (data: any, status: number) => {
+    const msg = String(data?.error ?? "").trim();
+    if (msg) {
+      Alert.alert("Info", msg);
+      return;
+    }
+    Alert.alert("Błąd", `Nie udało się wykonać operacji (${status}).`);
+  };
+
   const onInvite = async () => {
     if (!userId) return;
-    if (!canInvite) return;
+    if (!canInviteBase) return;
+
+    if (alreadyFriend) {
+      Alert.alert("Info", "Jesteście już znajomymi.");
+      return;
+    }
+    if (hasIncomingRequestFromThatUser) {
+      Alert.alert(
+        "Info",
+        "Masz już zaproszenie od tego użytkownika. Zaakceptuj je w 'Zaproszenia oczekujące'."
+      );
+      return;
+    }
 
     try {
       setSending(true);
@@ -183,17 +227,14 @@ export default function InviteFriendsScreen() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           senderId: userId,
-          receiverName: query.trim(),
+          receiverName: trimmedQuery,
         }),
       });
 
       const data = await safeJson(res);
 
       if (!res.ok) {
-        Alert.alert(
-          "Błąd",
-          data?.error || `Nie udało się wysłać zaproszenia (${res.status}).`
-        );
+        showBackendError(data, res.status);
         return;
       }
 
@@ -224,10 +265,7 @@ export default function InviteFriendsScreen() {
       const data = await safeJson(res);
 
       if (!res.ok) {
-        Alert.alert(
-          "Błąd",
-          data?.error || `Nie udało się zaakceptować (${res.status}).`
-        );
+        showBackendError(data, res.status);
         return;
       }
 
@@ -239,7 +277,6 @@ export default function InviteFriendsScreen() {
     }
   };
 
-  // ⚠️ nadal nie zadziała bez tras w backendzie
   const onRemoveFriend = async (id: number) => {
     if (!userId) return;
     try {
@@ -252,10 +289,7 @@ export default function InviteFriendsScreen() {
       const data = await safeJson(res);
 
       if (!res.ok) {
-        Alert.alert(
-          "Błąd",
-          data?.error || `Nie udało się usunąć znajomego (${res.status}).`
-        );
+        showBackendError(data, res.status);
         return;
       }
 
@@ -265,23 +299,20 @@ export default function InviteFriendsScreen() {
     }
   };
 
-  // ⚠️ nadal nie zadziała bez tras w backendzie
-  const onCancelInvite = async (id: string) => {
+  // ✅ recipient odrzuca zaproszenie po senderId
+  const onRejectInvite = async (senderId: number) => {
     if (!userId) return;
     try {
-      const res = await fetch(cancelInviteUrl(), {
+      const res = await fetch(rejectInviteUrl(), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userId, inviteId: id }),
+        body: JSON.stringify({ userId, requesterId: senderId }),
       });
 
       const data = await safeJson(res);
 
       if (!res.ok) {
-        Alert.alert(
-          "Błąd",
-          data?.error || `Nie udało się odrzucić zaproszenia (${res.status}).`
-        );
+        showBackendError(data, res.status);
         return;
       }
 
@@ -318,7 +349,7 @@ export default function InviteFriendsScreen() {
             }
           >
             <View style={styles.titleRow}>
-              <Text style={styles.title}>ZAPROŚ ZNAJOMYCH</Text>
+              <Text style={styles.title}>ZNAJOMI</Text>
             </View>
 
             <View style={styles.inputCard}>
@@ -350,20 +381,24 @@ export default function InviteFriendsScreen() {
                     <ActivityIndicator color="#fff" />
                   ) : (
                     <>
-                      <Ionicons
-                        name="person-add-outline"
-                        size={16}
-                        color="#fff"
-                      />
+                      <Ionicons name="person-add-outline" size={16} color="#fff" />
                       <Text style={styles.inviteButtonText}>Zaproś</Text>
                     </>
                   )}
                 </TouchableOpacity>
               </View>
 
-              <Text style={styles.helper}>
-                Min. 3 znaki. Zaproszenie trafi do „ZAPROSZENIA OCZEKUJĄCE”.
-              </Text>
+              {alreadyFriend ? (
+                <Text style={styles.helper}>Ten użytkownik jest już Twoim znajomym.</Text>
+              ) : hasIncomingRequestFromThatUser ? (
+                <Text style={styles.helper}>
+                  Masz już zaproszenie od tego użytkownika — zaakceptuj je w „ZAPROSZENIA OCZEKUJĄCE”.
+                </Text>
+              ) : (
+                <Text style={styles.helper}>
+                  Min. 3 znaki. Zaproszenie trafi do „ZAPROSZENIA OCZEKUJĄCE”.
+                </Text>
+              )}
             </View>
 
             <View style={[styles.columnsRow, { flexDirection: "column" }]}>
@@ -380,12 +415,10 @@ export default function InviteFriendsScreen() {
                   ) : friends.length === 0 ? (
                     <Text style={styles.empty}>Brak znajomych.</Text>
                   ) : (
-                    friends.map((f, index) => (
-                      <View key={`f:${f.id}:${index}`} style={styles.item}>
+                    friends.map((f) => (
+                      <View key={`f:${f.id}`} style={styles.item}>
                         <View style={styles.avatar}>
-                          <Text style={styles.avatarText}>
-                            {initials(f.userName)}
-                          </Text>
+                          <Text style={styles.avatarText}>{initials(f.userName)}</Text>
                         </View>
 
                         <View style={styles.itemMain}>
@@ -397,32 +430,16 @@ export default function InviteFriendsScreen() {
                           </Text>
                         </View>
 
-                        {/* ✅ CHMURKA + USUŃ */}
-                        <View
-                          style={{
-                            flexDirection: "row",
-                            gap: 8,
-                            alignItems: "center",
-                          }}
-                        >
+                        <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
                           <TouchableOpacity
                             onPress={() => openChat(f)}
                             activeOpacity={0.85}
                             style={[
                               styles.smallBtn,
-                              {
-                                width: 40,
-                                paddingHorizontal: 0,
-                                alignItems: "center",
-                                justifyContent: "center",
-                              },
+                              { width: 40, paddingHorizontal: 0, alignItems: "center", justifyContent: "center" },
                             ]}
                           >
-                            <Ionicons
-                              name="chatbubble-ellipses-outline"
-                              size={18}
-                              color="#EAF6FF"
-                            />
+                            <Ionicons name="chatbubble-ellipses-outline" size={18} color="#EAF6FF" />
                           </TouchableOpacity>
 
                           <TouchableOpacity
@@ -452,15 +469,10 @@ export default function InviteFriendsScreen() {
                   ) : pending.length === 0 ? (
                     <Text style={styles.empty}>Brak zaproszeń.</Text>
                   ) : (
-                    pending.map((p, index) => (
-                      <View
-                        key={p.id ?? `p:${p.senderId}:${index}`}
-                        style={styles.item}
-                      >
+                    pending.map((p) => (
+                      <View key={`p:${p.senderId}`} style={styles.item}>
                         <View style={styles.avatar}>
-                          <Text style={styles.avatarText}>
-                            {initials(p.senderName)}
-                          </Text>
+                          <Text style={styles.avatarText}>{initials(p.senderName)}</Text>
                         </View>
 
                         <View style={styles.itemMain}>
@@ -478,21 +490,14 @@ export default function InviteFriendsScreen() {
                             activeOpacity={0.85}
                             style={[
                               styles.smallBtn,
-                              {
-                                backgroundColor: "#007AFF",
-                                borderColor: "#007AFF",
-                              },
+                              { backgroundColor: "#007AFF", borderColor: "#007AFF" },
                             ]}
                           >
-                            <Text
-                              style={[styles.smallBtnText, { color: "#fff" }]}
-                            >
-                              Akceptuj
-                            </Text>
+                            <Text style={[styles.smallBtnText, { color: "#fff" }]}>Akceptuj</Text>
                           </TouchableOpacity>
 
                           <TouchableOpacity
-                            onPress={() => onCancelInvite(p.id)}
+                            onPress={() => onRejectInvite(p.senderId)}
                             activeOpacity={0.85}
                             style={styles.smallBtn}
                           >
@@ -507,13 +512,7 @@ export default function InviteFriendsScreen() {
             </View>
           </ScrollView>
 
-          {/* ✅ MODAL CZATU */}
-          <ChatModal
-            visible={chatVisible}
-            onClose={closeChat}
-            friend={chatFriend}
-            userId={userId}
-          />
+          <ChatModal visible={chatVisible} onClose={closeChat} friend={chatFriend} userId={userId} />
         </KeyboardAvoidingView>
       </Pressable>
     </SafeAreaView>
