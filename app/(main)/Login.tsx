@@ -100,10 +100,75 @@ const Login = () => {
     });
   }, [(auth as any)?.gender, (auth as any)?.userId, (auth as any)?.token]);
 
-  const { control, handleSubmit } = useForm<FormData>();
+  const { control, handleSubmit, watch } = useForm<FormData>();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const screenHeight = Dimensions.get("window").height;
+
+  // ====== "ZAPOMNIAŁEŚ HASŁA?" ======
+  const [forgotVisible, setForgotVisible] = useState(false);
+  const [forgotEmail, setForgotEmail] = useState("");
+  const [forgotSending, setForgotSending] = useState(false);
+
+  const openForgotModal = () => {
+    if (loading) return;
+    const currentEmail = (watch("email") || "").trim();
+    setForgotEmail(currentEmail);
+    setForgotVisible(true);
+  };
+
+const submitForgotPassword = async () => {
+  const email = forgotEmail.trim().toLowerCase();
+  if (!email || !email.includes("@")) {
+    Alert.alert("Błąd", "Podaj poprawny adres e-mail.");
+    return;
+  }
+
+  const url = `${backend_URL}/api/login/forgot-password`;
+
+  try {
+    setForgotSending(true);
+
+    logSection("FORGOT PASSWORD / REQUEST", {
+      time: now(),
+      endpoint: url,
+      email,
+    });
+
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ email }),
+    });
+
+    const text = await res.text().catch(() => "");
+    logSection("FORGOT PASSWORD / RESPONSE", {
+      time: now(),
+      status: res.status,
+      ok: res.ok,
+      bodyText: text?.slice(0, 2000),
+    });
+
+    if (!res.ok) {
+      Alert.alert("Błąd", "Nie udało się wysłać linku. Spróbuj ponownie.");
+      return;
+    }
+
+    setForgotVisible(false);
+    setForgotEmail("");
+
+    Alert.alert(
+      "Sprawdź skrzynkę",
+      "Jeśli konto istnieje, wysłaliśmy link do zresetowania hasła."
+    );
+  } catch (e) {
+    logSection("FORGOT PASSWORD / ERROR", e);
+    Alert.alert("Błąd połączenia", "Nie udało się połączyć z serwerem.");
+  } finally {
+    setForgotSending(false);
+  }
+};
+
 
   // ====== ENV / BUILD DEBUG ======
   const isExpoGo =
@@ -127,7 +192,7 @@ const Login = () => {
       slug: (Constants as any)?.expoConfig?.slug,
       version: (Constants as any)?.expoConfig?.version,
     }),
-    [isExpoGo]
+    [isExpoGo],
   );
 
   // ====== REDIRECT DEBUG ======
@@ -149,7 +214,7 @@ const Login = () => {
       iosClientId: mask(process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID),
       note: "Maskowane. Jeśli któryś jest null/undefined -> masz problem w env. Android/iOS Client ID muszą pochodzić z Google Cloud (typ Android/iOS).",
     }),
-    []
+    [],
   );
 
   useEffect(() => {
@@ -233,7 +298,7 @@ const Login = () => {
 
       Alert.alert(
         "Błąd Google",
-        "Google zwróciło błąd. Sprawdź logi w konsoli."
+        "Google zwróciło błąd. Sprawdź logi w konsoli.",
       );
       return;
     }
@@ -279,7 +344,7 @@ const Login = () => {
       if (!res.ok) {
         Alert.alert(
           "Błąd logowania (backend)",
-          `Status: ${res.status}\nZobacz logi w konsoli.`
+          `Status: ${res.status}\nZobacz logi w konsoli.`,
         );
         return;
       }
@@ -354,7 +419,7 @@ const Login = () => {
   // ====== GENDER FALLBACK ======
   const fetchAndSetGenderIfMissing = async (
     userId: number,
-    jwt?: string | null
+    jwt?: string | null,
   ) => {
     try {
       logSection("GENDER DEBUG / PROFILE FETCH REQUEST", {
@@ -486,7 +551,7 @@ const Login = () => {
           `${backend_URL}/api/interests/${uid}`,
           {
             headers: jwt ? { Authorization: `Bearer ${jwt}` } : undefined,
-          }
+          },
         );
 
         const interests = interestsRes.ok ? await interestsRes.json() : [];
@@ -545,7 +610,7 @@ const Login = () => {
         else if (res.status === 403)
           Alert.alert(
             "Wymagana weryfikacja",
-            "Zweryfikuj e-mail przed zalogowaniem."
+            "Zweryfikuj e-mail przed zalogowaniem.",
           );
         else Alert.alert("Coś poszło nie tak", `Status: ${res.status}\n${msg}`);
         return;
@@ -593,8 +658,13 @@ const Login = () => {
         style={[styles.background, { marginTop: -screenHeight * 0.3 }]}
         resizeMode="contain"
       >
-        <View style={styles.centeredContainer}>
-          <View style={styles.form}>
+        <View
+          style={[
+            styles.centeredContainer,
+            { transform: [{ translateY: screenHeight * 0.05 }] },
+          ]}
+        >
+          <View style={[styles.form]}>
             <Text style={styles.label}>Email:</Text>
             <Controller
               control={control}
@@ -638,6 +708,18 @@ const Login = () => {
                 />
               )}
             />
+
+            {/* ✅ ZAPOMNIAŁEŚ HASŁA? */}
+            <TouchableOpacity
+              onPress={openForgotModal}
+              disabled={loading}
+              style={{ alignSelf: "center", marginTop: 6, marginBottom: 10 }}
+              activeOpacity={0.85}
+            >
+              <Text style={{ color: "#EAF6FF", fontWeight: "700" }}>
+                Zapomniałeś hasła?
+              </Text>
+            </TouchableOpacity>
 
             <TouchableOpacity
               style={[styles.loginButton, loading && { opacity: 0.7 }]}
@@ -732,6 +814,133 @@ const Login = () => {
             </TouchableOpacity>
           </View>
         </View>
+
+        {/* ✅ MODAL: Reset hasła */}
+        <Modal
+          transparent
+          visible={forgotVisible}
+          animationType="fade"
+          onRequestClose={() => !forgotSending && setForgotVisible(false)}
+        >
+          <TouchableWithoutFeedback
+            onPress={() => !forgotSending && setForgotVisible(false)}
+          >
+            <View
+              style={{
+                flex: 1,
+                backgroundColor: "rgba(0,0,0,0.45)",
+                justifyContent: "center",
+                alignItems: "center",
+                padding: 18,
+              }}
+            >
+              <TouchableWithoutFeedback>
+                <View
+                  style={{
+                    width: "100%",
+                    maxWidth: 420,
+                    backgroundColor: "#0d1a4d",
+                    borderRadius: 16,
+                    padding: 18,
+                  }}
+                >
+                  <Text
+                    style={{
+                      color: "#EAF6FF",
+                      fontSize: 18,
+                      fontWeight: "800",
+                    }}
+                  >
+                    Reset hasła
+                  </Text>
+
+                  <Text
+                    style={{
+                      color: "#EAF6FF",
+                      opacity: 0.9,
+                      marginTop: 8,
+                    }}
+                  >
+                    Podaj e-mail. Wyślemy link do ustawienia nowego hasła.
+                  </Text>
+
+                  <View style={{ marginTop: 14 }}>
+                    <Text
+                      style={{
+                        color: "#EAF6FF",
+                        fontWeight: "700",
+                        marginBottom: 6,
+                      }}
+                    >
+                      Email
+                    </Text>
+
+                    <TextInput
+                      value={forgotEmail}
+                      onChangeText={setForgotEmail}
+                      placeholder="email@domena.pl"
+                      placeholderTextColor="rgba(255,255,255,0.55)"
+                      autoCapitalize="none"
+                      keyboardType="email-address"
+                      editable={!forgotSending}
+                      style={{
+                        backgroundColor: "rgba(255,255,255,0.9)",
+                        borderRadius: 10,
+                        paddingHorizontal: 12,
+                        paddingVertical: 10,
+                        color: "#000",
+                        opacity: forgotSending ? 0.7 : 1,
+                      }}
+                    />
+                  </View>
+
+                  <View
+                    style={{ flexDirection: "row", gap: 10, marginTop: 16 }}
+                  >
+                    <TouchableOpacity
+                      onPress={() => setForgotVisible(false)}
+                      disabled={forgotSending}
+                      style={{
+                        flex: 1,
+                        paddingVertical: 12,
+                        borderRadius: 12,
+                        borderWidth: 1,
+                        borderColor: "rgba(234,246,255,0.5)",
+                        alignItems: "center",
+                        opacity: forgotSending ? 0.6 : 1,
+                      }}
+                    >
+                      <Text style={{ color: "#EAF6FF", fontWeight: "800" }}>
+                        Anuluj
+                      </Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      onPress={submitForgotPassword}
+                      disabled={forgotSending}
+                      style={{
+                        flex: 1,
+                        paddingVertical: 12,
+                        borderRadius: 12,
+                        backgroundColor: "#3A8FB7",
+                        alignItems: "center",
+                        opacity: forgotSending ? 0.7 : 1,
+                      }}
+                    >
+                      {forgotSending ? (
+                        <ActivityIndicator />
+                      ) : (
+                        <Text style={{ color: "#EAF6FF", fontWeight: "800" }}>
+                          Wyślij link
+                        </Text>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </TouchableWithoutFeedback>
+            </View>
+          </TouchableWithoutFeedback>
+        </Modal>
 
         <Modal transparent visible={loading} animationType="fade">
           <View
