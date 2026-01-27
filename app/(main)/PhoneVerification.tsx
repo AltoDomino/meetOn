@@ -40,7 +40,7 @@ export default function PhoneVerification() {
 
     if (loading) {
       console.log(
-        "⏹ [sendCode] przerwane – loading=true (drugi klik / podwójne wywołanie)"
+        "⏹ [sendCode] przerwane – loading=true (drugi klik / podwójne wywołanie)",
       );
       return;
     }
@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     marginBottom: 16,
   },
   button: {
-    backgroundColor: "#3A8FB7",
+    backgroundColor: "#1E3A8A",
     borderRadius: 10,
     paddingVertical: 12,
     alignItems: "center",

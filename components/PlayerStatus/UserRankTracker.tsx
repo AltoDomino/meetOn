@@ -147,7 +147,8 @@ function evaluateRank(ctx: RankContext) {
   const max = base.max ?? Number.POSITIVE_INFINITY;
 
   const next = RANKS.find(
-    (r) => (r.min ?? 0) === (isFinite(max) ? max + 1 : Number.POSITIVE_INFINITY)
+    (r) =>
+      (r.min ?? 0) === (isFinite(max) ? max + 1 : Number.POSITIVE_INFINITY),
   );
   let progress = 1;
   const current = clamp(completedEvents - min, 0, Math.max(max - min, 1));
@@ -223,7 +224,7 @@ export const UserRankTracker: React.FC<UserRankTrackerProps> = ({
 
   const rankInfo = useMemo(
     () => evaluateRank({ completedEvents: completed, uniqueLocations }),
-    [completed, uniqueLocations]
+    [completed, uniqueLocations],
   );
 
   useEffect(() => {
@@ -250,7 +251,7 @@ export const UserRankTracker: React.FC<UserRankTrackerProps> = ({
       } catch (e) {
         console.warn(
           "[UserRankTracker] awarding failed:",
-          (e as Error).message
+          (e as Error).message,
         );
       }
     };
@@ -318,7 +319,7 @@ export const UserRankTracker: React.FC<UserRankTrackerProps> = ({
         style={{
           height: "100%",
           width: `${Math.round(progress * 100)}%`,
-          backgroundColor: "#3A8FB7",
+          backgroundColor: "#1E3A8A",
         }}
       />
     </View>

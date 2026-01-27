@@ -172,7 +172,7 @@ const RateParticipantsModal = ({
             "[ratings] alreadyRatedEvent from storage:",
             isRated,
             "key:",
-            storageKey
+            storageKey,
           );
         }
       } catch (e) {
@@ -225,7 +225,7 @@ const RateParticipantsModal = ({
     if (Number.isNaN(raterIdNum) || raterIdNum <= 0) {
       Alert.alert(
         "Błąd",
-        "Brak poprawnego userId (raterId). Zaloguj się ponownie."
+        "Brak poprawnego userId (raterId). Zaloguj się ponownie.",
       );
       return;
     }
@@ -233,7 +233,7 @@ const RateParticipantsModal = ({
     if (alreadyRatedEvent) {
       Alert.alert(
         "Już oceniłeś",
-        "Możesz wystawić ocenę tylko raz na całe wydarzenie."
+        "Możesz wystawić ocenę tylko raz na całe wydarzenie.",
       );
       return;
     }
@@ -285,7 +285,7 @@ const RateParticipantsModal = ({
           if (storageKey) await AsyncStorage.setItem(storageKey, "1");
           Alert.alert(
             "Już oceniłeś",
-            "Możesz wystawić ocenę tylko raz na całe wydarzenie."
+            "Możesz wystawić ocenę tylko raz na całe wydarzenie.",
           );
           return;
         }
@@ -411,7 +411,7 @@ const RateParticipantsModal = ({
           {/* Body */}
           {shouldShowLoading ? (
             <View style={{ paddingVertical: 24, alignItems: "center" }}>
-              <ActivityIndicator size="large" color="#3A8FB7" />
+              <ActivityIndicator size="large" color="#1E3A8A" />
               <Text style={{ color: "#cfe8ff", marginTop: 12 }}>
                 Ładowanie uczestników…
               </Text>
@@ -439,8 +439,8 @@ const RateParticipantsModal = ({
                     currentRating.stars === 5
                       ? positiveTags
                       : currentRating.stars > 0
-                      ? negativeTags
-                      : [];
+                        ? negativeTags
+                        : [];
 
                   return (
                     <View
@@ -524,7 +524,7 @@ const RateParticipantsModal = ({
                                     paddingVertical: 6,
                                     borderRadius: 16,
                                     borderWidth: 1,
-                                    borderColor: selected ? "#3A8FB7" : "#445",
+                                    borderColor: selected ? "#1E3A8A" : "#445",
                                     backgroundColor: selected
                                       ? "rgba(0,169,244,0.2)"
                                       : "transparent",
@@ -559,7 +559,7 @@ const RateParticipantsModal = ({
                   bottom: 16,
                   left: 16,
                   right: 16,
-                  backgroundColor: submitDisabled ? "#007bb8" : "#3A8FB7",
+                  backgroundColor: submitDisabled ? "#007bb8" : "#1E3A8A",
                   paddingVertical: 14,
                   borderRadius: 12,
                   alignItems: "center",

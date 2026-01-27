@@ -80,7 +80,7 @@ const Registration = () => {
             Accept: "application/json",
           },
           body: JSON.stringify(finalData),
-        }
+        },
       );
 
       // spróbuj JSON -> fallback na tekst
@@ -97,14 +97,14 @@ const Registration = () => {
       if (res.status === 201) {
         Alert.alert(
           "Sukces",
-          msg || "Zostałeś zarejestrowany, email weryfikacyjny został wysłany!"
+          msg || "Zostałeś zarejestrowany, email weryfikacyjny został wysłany!",
         );
         // (opcjonalnie) automatyczny powrót do logowania:
         // router.replace("/(main)/Login");
       } else if (res.status === 409) {
         Alert.alert(
           "Email już istnieje",
-          msg || "Ten adres e-mail jest już zarejestrowany."
+          msg || "Ten adres e-mail jest już zarejestrowany.",
         );
         emailRef.current?.focus();
       } else if (res.status === 400) {
@@ -368,7 +368,7 @@ const Registration = () => {
                 minWidth: 200,
               }}
             >
-              <ActivityIndicator size="large" color="#3A8FB7" />
+              <ActivityIndicator size="large" color="#1E3A8A" />
               <Text
                 style={{ color: "#EAF6FF", marginTop: 12, fontWeight: "600" }}
               >

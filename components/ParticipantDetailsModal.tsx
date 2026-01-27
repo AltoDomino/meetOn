@@ -49,7 +49,7 @@ export default function ParticipantDetailsModal({
         }
 
         const tag = String(
-          t?.tag ?? t?.name ?? t?.label ?? t?.value ?? ""
+          t?.tag ?? t?.name ?? t?.label ?? t?.value ?? "",
         ).trim();
         const countRaw = Number(t?.count ?? t?.votes ?? t?.total ?? 1);
         const count = Number.isFinite(countRaw) ? countRaw : 1;
@@ -140,7 +140,7 @@ export default function ParticipantDetailsModal({
                     style={{
                       fontSize: 24,
                       fontWeight: "900",
-                      color: "#3A8FB7",
+                      color: "#1E3A8A",
                     }}
                   >
                     {initials}
@@ -168,7 +168,7 @@ export default function ParticipantDetailsModal({
                       marginTop: 6,
                     }}
                   >
-                    <Ionicons name="star" size={16} color="#3A8FB7" />
+                    <Ionicons name="star" size={16} color="#1E3A8A" />
                     <Text
                       style={{
                         marginLeft: 6,
@@ -232,7 +232,7 @@ export default function ParticipantDetailsModal({
             onPress={onClose}
             style={{
               marginTop: 12,
-              backgroundColor: "#3A8FB7",
+              backgroundColor: "#1E3A8A",
               paddingVertical: 12,
               borderRadius: 12,
               alignItems: "center",

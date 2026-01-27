@@ -41,7 +41,7 @@ const RatingBadge = ({ avg, count }: { avg?: number; count?: number }) => {
         borderRadius: 999,
       }}
     >
-      <Ionicons name="star" size={14} color="#3A8FB7" />
+      <Ionicons name="star" size={14} color="#1E3A8A" />
       <Text
         style={{
           marginLeft: 4,
@@ -137,8 +137,8 @@ const LocalEventRoom = () => {
     return typeof raw === "string"
       ? raw
       : Array.isArray(raw)
-      ? raw[0]
-      : undefined;
+        ? raw[0]
+        : undefined;
   }, [params]);
 
   const [participants, setParticipants] = useState<any[]>([]);
@@ -148,7 +148,7 @@ const LocalEventRoom = () => {
   // ✅ Modal profilu
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<any | null>(
-    null
+    null,
   );
   const [selectedRating, setSelectedRating] = useState<{
     avg: number;
@@ -173,7 +173,7 @@ const LocalEventRoom = () => {
 
     try {
       const res = await fetch(
-        `https://meeton-backend-ffmo.onrender.com/api/event/${currentEventId}/details`
+        `https://meeton-backend-ffmo.onrender.com/api/event/${currentEventId}/details`,
       );
       const data = await res.json();
       setCurrentEvent(data);
@@ -182,7 +182,7 @@ const LocalEventRoom = () => {
       // ✅ log: sprawdź strukturę participants (raz na fetch)
       console.log(
         "[DETAILS] participants sample:",
-        (data.participants || [])?.[0]
+        (data.participants || [])?.[0],
       );
     } catch (err) {
       console.error("Błąd pobierania szczegółów wydarzenia:", err);
@@ -244,7 +244,7 @@ const LocalEventRoom = () => {
       if (firstKey)
         console.log(
           "[event ratings] sample tags:",
-          nextMap[Number(firstKey)]?.tags
+          nextMap[Number(firstKey)]?.tags,
         );
 
       setEventRatingsMap(nextMap);
@@ -303,7 +303,7 @@ const LocalEventRoom = () => {
     async (targetUserId: number) => {
       try {
         const profileRes = await fetch(
-          `https://meeton-backend-ffmo.onrender.com/api/user/profile/${targetUserId}`
+          `https://meeton-backend-ffmo.onrender.com/api/user/profile/${targetUserId}`,
         );
         const profile = await profileRes.json();
 
@@ -314,7 +314,7 @@ const LocalEventRoom = () => {
 
         setSelectedParticipant(profile);
         setSelectedRating(
-          entry ? { avg: entry.avg, count: entry.count } : null
+          entry ? { avg: entry.avg, count: entry.count } : null,
         );
         setSelectedTags(entry?.tags ?? []);
         setDetailsModalVisible(true);
@@ -322,7 +322,7 @@ const LocalEventRoom = () => {
         console.error("Błąd pobierania danych użytkownika:", err);
       }
     },
-    [eventRatingsMap]
+    [eventRatingsMap],
   );
 
   const handleLeave = async () => {
@@ -336,7 +336,7 @@ const LocalEventRoom = () => {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ userId, eventId: numericEventId }),
-        }
+        },
       );
 
       if (res.ok) {
@@ -387,7 +387,7 @@ const LocalEventRoom = () => {
       if (!uid) return null;
       return eventRatingsMap[uid] ?? null;
     },
-    [eventRatingsMap]
+    [eventRatingsMap],
   );
 
   // ✅ lista do oceniania: MUSI mieć User.id
@@ -429,7 +429,7 @@ const LocalEventRoom = () => {
         <Stack.Screen
           options={{
             title: "WYDARZENIA",
-            headerStyle: { backgroundColor: "#3A8FB7" },
+            headerStyle: { backgroundColor: "#1E3A8A" },
             headerTintColor: "#fff",
             headerTitleAlign: "center",
             headerLeft: () => null,
@@ -477,7 +477,7 @@ const LocalEventRoom = () => {
                       <Text
                         style={{
                           fontWeight: "900",
-                          color: "#3A8FB7",
+                          color: "#1E3A8A",
                           fontSize: 16,
                         }}
                       >

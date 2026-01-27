@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
   },
 
   button: {
-    backgroundColor: "#3A8FB7",
+    backgroundColor: "#1E3A8A",
     paddingVertical: 12,
     borderRadius: 10,
     alignItems: "center",
@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
 
   linkText: {
     fontSize: 15,
-    color: "#3A8FB7",
+    color: "#1E3A8A",
     fontWeight: "500",
   },
 });

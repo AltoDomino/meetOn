@@ -26,7 +26,7 @@ export const styles = StyleSheet.create({
 
   // karta inputu
   inputCard: {
-    backgroundColor: "#3A8FB7",
+    backgroundColor: "#1E3A8A",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.10)",
     borderRadius: 20,
@@ -107,7 +107,7 @@ export const styles = StyleSheet.create({
   },
 
   listCard: {
-    backgroundColor: "#3A8FB7",
+    backgroundColor: "#1E3A8A",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.10)",
     borderRadius: 20,

@@ -49,7 +49,7 @@ export const styles = StyleSheet.create({
   participantsTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#3A8FB7",
+    color: "#1E3A8A",
     marginBottom: 8,
   },
   participantCard: {

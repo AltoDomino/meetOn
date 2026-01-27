@@ -103,7 +103,7 @@ export default function ProfileScreen() {
       return () => {
         isMounted = false;
       };
-    }, [userId])
+    }, [userId]),
   );
 
   const pickImage = async () => {
@@ -251,7 +251,7 @@ export default function ProfileScreen() {
 
               {ratingsLoading ? (
                 <View style={styles.loadingRow}>
-                  <ActivityIndicator color="#3A8FB7" />
+                  <ActivityIndicator color="#1E3A8A" />
                   <Text style={styles.muted}>Ładowanie…</Text>
                 </View>
               ) : totalRatings === 0 ? (
@@ -295,7 +295,7 @@ export default function ProfileScreen() {
               <Text style={styles.sectionTitle}>Ranga</Text>
 
               {rankLoading ? (
-                <ActivityIndicator color="#3A8FB7" />
+                <ActivityIndicator color="#1E3A8A" />
               ) : (
                 <View style={styles.rankBox}>
                   <View

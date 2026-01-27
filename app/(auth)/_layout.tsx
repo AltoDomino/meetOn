@@ -15,7 +15,7 @@ export default function DrawerLayout() {
           </TouchableOpacity>
         ),
         headerStyle: {
-          backgroundColor: "#3A8FB7",
+          backgroundColor: "#1E3A8A",
         },
         headerTintColor: "#fff",
         headerTitleAlign: "center",

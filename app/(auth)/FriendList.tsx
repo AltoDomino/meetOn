@@ -16,7 +16,10 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  SafeAreaView,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
 import { useAuth } from "../../context/AuthContext";
 
 import ChatModal from "@/components/ChatModal";
@@ -30,8 +33,10 @@ type FriendRequest = {
 
 const BACKEND_URL = "https://meeton-backend-ffmo.onrender.com";
 
-const friendsUrl = (userId: number) => `${BACKEND_URL}/api/invite-friends/${userId}`;
-const pendingUrl = (userId: number) => `${BACKEND_URL}/api/invite-friends/requests/${userId}`;
+const friendsUrl = (userId: number) =>
+  `${BACKEND_URL}/api/invite-friends/${userId}`;
+const pendingUrl = (userId: number) =>
+  `${BACKEND_URL}/api/invite-friends/requests/${userId}`;
 const sendInviteUrl = () => `${BACKEND_URL}/api/invite-friends/send`;
 const acceptInviteUrl = () => `${BACKEND_URL}/api/invite-friends/accept`;
 
@@ -125,7 +130,8 @@ export default function InviteFriendsScreen() {
       .map((x: any) => {
         const senderId = Number(x?.requesterId);
         const senderName = String(x?.userName ?? "").trim();
-        if (!Number.isFinite(senderId) || senderId <= 0 || !senderName) return null;
+        if (!Number.isFinite(senderId) || senderId <= 0 || !senderName)
+          return null;
         return { senderId, senderName } as FriendRequest;
       })
       .filter(Boolean) as FriendRequest[];
@@ -343,8 +349,8 @@ export default function InviteFriendsScreen() {
               <RefreshControl
                 refreshing={refreshing}
                 onRefresh={onPullRefresh}
-                tintColor="#3A8FB7"
-                colors={["#3A8FB7"]}
+                tintColor="#1E3A8A"
+                colors={["#1E3A8A"]}
               />
             }
           >
@@ -389,10 +395,13 @@ export default function InviteFriendsScreen() {
               </View>
 
               {alreadyFriend ? (
-                <Text style={styles.helper}>Ten użytkownik jest już Twoim znajomym.</Text>
+                <Text style={styles.helper}>
+                  Ten użytkownik jest już Twoim znajomym.
+                </Text>
               ) : hasIncomingRequestFromThatUser ? (
                 <Text style={styles.helper}>
-                  Masz już zaproszenie od tego użytkownika — zaakceptuj je w „ZAPROSZENIA OCZEKUJĄCE”.
+                  Masz już zaproszenie od tego użytkownika — zaakceptuj je w
+                  „ZAPROSZENIA OCZEKUJĄCE”.
                 </Text>
               ) : (
                 <Text style={styles.helper}>
@@ -402,68 +411,14 @@ export default function InviteFriendsScreen() {
             </View>
 
             <View style={[styles.columnsRow, { flexDirection: "column" }]}>
-              {/* MOI ZNAJOMI */}
-              <View style={styles.col}>
-                <Text style={styles.colHeader}>MOI ZNAJOMI</Text>
-
-                <View style={styles.listCard}>
-                  {loadingFriends ? (
-                    <View style={styles.loadingRow}>
-                      <ActivityIndicator color="#3A8FB7" />
-                      <Text style={styles.loadingText}>Ładowanie…</Text>
-                    </View>
-                  ) : friends.length === 0 ? (
-                    <Text style={styles.empty}>Brak znajomych.</Text>
-                  ) : (
-                    friends.map((f) => (
-                      <View key={`f:${f.id}`} style={styles.item}>
-                        <View style={styles.avatar}>
-                          <Text style={styles.avatarText}>{initials(f.userName)}</Text>
-                        </View>
-
-                        <View style={styles.itemMain}>
-                          <Text style={styles.itemName} numberOfLines={1}>
-                            {f.userName}
-                          </Text>
-                          <Text style={styles.itemSub} numberOfLines={1}>
-                            Znajomy
-                          </Text>
-                        </View>
-
-                        <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-                          <TouchableOpacity
-                            onPress={() => openChat(f)}
-                            activeOpacity={0.85}
-                            style={[
-                              styles.smallBtn,
-                              { width: 40, paddingHorizontal: 0, alignItems: "center", justifyContent: "center" },
-                            ]}
-                          >
-                            <Ionicons name="chatbubble-ellipses-outline" size={18} color="#EAF6FF" />
-                          </TouchableOpacity>
-
-                          <TouchableOpacity
-                            onPress={() => onRemoveFriend(f.id)}
-                            activeOpacity={0.85}
-                            style={styles.smallBtn}
-                          >
-                            <Text style={styles.smallBtnText}>Usuń</Text>
-                          </TouchableOpacity>
-                        </View>
-                      </View>
-                    ))
-                  )}
-                </View>
-              </View>
-
-              {/* ZAPROSZENIA OCZEKUJĄCE */}
+              {/* ✅ ZAPROSZENIA OCZEKUJĄCE — TERAZ NA GÓRZE */}
               <View style={styles.col}>
                 <Text style={styles.colHeader}>ZAPROSZENIA OCZEKUJĄCE</Text>
 
                 <View style={styles.listCard}>
                   {loadingPending ? (
                     <View style={styles.loadingRow}>
-                      <ActivityIndicator color="#3A8FB7" />
+                      <ActivityIndicator color="#1E3A8A" />
                       <Text style={styles.loadingText}>Ładowanie…</Text>
                     </View>
                   ) : pending.length === 0 ? (
@@ -472,7 +427,9 @@ export default function InviteFriendsScreen() {
                     pending.map((p) => (
                       <View key={`p:${p.senderId}`} style={styles.item}>
                         <View style={styles.avatar}>
-                          <Text style={styles.avatarText}>{initials(p.senderName)}</Text>
+                          <Text style={styles.avatarText}>
+                            {initials(p.senderName)}
+                          </Text>
                         </View>
 
                         <View style={styles.itemMain}>
@@ -493,7 +450,9 @@ export default function InviteFriendsScreen() {
                               { backgroundColor: "#007AFF", borderColor: "#007AFF" },
                             ]}
                           >
-                            <Text style={[styles.smallBtnText, { color: "#fff" }]}>Akceptuj</Text>
+                            <Text style={[styles.smallBtnText, { color: "#fff" }]}>
+                              Akceptuj
+                            </Text>
                           </TouchableOpacity>
 
                           <TouchableOpacity
@@ -509,10 +468,80 @@ export default function InviteFriendsScreen() {
                   )}
                 </View>
               </View>
+
+              {/* ✅ MOI ZNAJOMI — TERAZ POD ZAPROSZENIAMI */}
+              <View style={styles.col}>
+                <Text style={styles.colHeader}>MOI ZNAJOMI</Text>
+
+                <View style={styles.listCard}>
+                  {loadingFriends ? (
+                    <View style={styles.loadingRow}>
+                      <ActivityIndicator color="#1E3A8A" />
+                      <Text style={styles.loadingText}>Ładowanie…</Text>
+                    </View>
+                  ) : friends.length === 0 ? (
+                    <Text style={styles.empty}>Brak znajomych.</Text>
+                  ) : (
+                    friends.map((f) => (
+                      <View key={`f:${f.id}`} style={styles.item}>
+                        <View style={styles.avatar}>
+                          <Text style={styles.avatarText}>
+                            {initials(f.userName)}
+                          </Text>
+                        </View>
+
+                        <View style={styles.itemMain}>
+                          <Text style={styles.itemName} numberOfLines={1}>
+                            {f.userName}
+                          </Text>
+                          <Text style={styles.itemSub} numberOfLines={1}>
+                            Znajomy
+                          </Text>
+                        </View>
+
+                        <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+                          <TouchableOpacity
+                            onPress={() => openChat(f)}
+                            activeOpacity={0.85}
+                            style={[
+                              styles.smallBtn,
+                              {
+                                width: 40,
+                                paddingHorizontal: 0,
+                                alignItems: "center",
+                                justifyContent: "center",
+                              },
+                            ]}
+                          >
+                            <Ionicons
+                              name="chatbubble-ellipses-outline"
+                              size={18}
+                              color="#EAF6FF"
+                            />
+                          </TouchableOpacity>
+
+                          <TouchableOpacity
+                            onPress={() => onRemoveFriend(f.id)}
+                            activeOpacity={0.85}
+                            style={styles.smallBtn}
+                          >
+                            <Text style={styles.smallBtnText}>Usuń</Text>
+                          </TouchableOpacity>
+                        </View>
+                      </View>
+                    ))
+                  )}
+                </View>
+              </View>
             </View>
           </ScrollView>
 
-          <ChatModal visible={chatVisible} onClose={closeChat} friend={chatFriend} userId={userId} />
+          <ChatModal
+            visible={chatVisible}
+            onClose={closeChat}
+            friend={chatFriend}
+            userId={userId}
+          />
         </KeyboardAvoidingView>
       </Pressable>
     </SafeAreaView>

@@ -48,7 +48,7 @@ export default function Activity() {
     setSelectedActivities((prev) =>
       prev.includes(activity)
         ? prev.filter((item) => item !== activity)
-        : [...prev, activity]
+        : [...prev, activity],
     );
   };
 
@@ -98,7 +98,7 @@ export default function Activity() {
         options={{
           title: "WYBIERZ AKTYWNOŚĆ",
           headerStyle: {
-            backgroundColor: "#3A8FB7",
+            backgroundColor: "#1E3A8A",
           },
           headerTintColor: "#fff",
           headerTitleAlign: "center",

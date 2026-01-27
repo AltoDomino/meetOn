@@ -65,10 +65,7 @@ export default function ResetPasswordScreen() {
       }
 
       if (!res.ok) {
-        Alert.alert(
-          "Błąd",
-          data?.message || "Nie udało się zresetować hasła."
-        );
+        Alert.alert("Błąd", data?.message || "Nie udało się zresetować hasła.");
         return;
       }
 
@@ -122,7 +119,9 @@ export default function ResetPasswordScreen() {
               </Text>
             ) : null}
 
-            <Text style={{ color: "#EAF6FF", fontWeight: "700", marginTop: 16 }}>
+            <Text
+              style={{ color: "#EAF6FF", fontWeight: "700", marginTop: 16 }}
+            >
               Nowe hasło
             </Text>
             <TextInput
@@ -143,7 +142,9 @@ export default function ResetPasswordScreen() {
               }}
             />
 
-            <Text style={{ color: "#EAF6FF", fontWeight: "700", marginTop: 14 }}>
+            <Text
+              style={{ color: "#EAF6FF", fontWeight: "700", marginTop: 14 }}
+            >
               Powtórz hasło
             </Text>
             <TextInput
@@ -170,7 +171,7 @@ export default function ResetPasswordScreen() {
               activeOpacity={0.85}
               style={{
                 marginTop: 18,
-                backgroundColor: "#3A8FB7",
+                backgroundColor: "#1E3A8A",
                 paddingVertical: 13,
                 borderRadius: 14,
                 alignItems: "center",
@@ -189,11 +190,13 @@ export default function ResetPasswordScreen() {
             <TouchableOpacity
               onPress={() => router.back()}
               disabled={loading}
-              style={{ alignItems: "center", marginTop: 14, opacity: loading ? 0.6 : 1 }}
+              style={{
+                alignItems: "center",
+                marginTop: 14,
+                opacity: loading ? 0.6 : 1,
+              }}
             >
-              <Text style={{ color: "#EAF6FF", fontWeight: "700" }}>
-                Wróć
-              </Text>
+              <Text style={{ color: "#EAF6FF", fontWeight: "700" }}>Wróć</Text>
             </TouchableOpacity>
           </View>
         </View>

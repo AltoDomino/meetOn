@@ -52,9 +52,23 @@ module.exports = {
       fullBackupContent: "@xml/secure_store_backup_rules",
 
       intentFilters: [
+        // ✅ Twój custom scheme
         {
           action: "VIEW",
           data: [{ scheme: "meeton" }],
+          category: ["BROWSABLE", "DEFAULT"],
+        },
+
+        // ✅ GOOGLE native redirect scheme (MUSI PASOWAĆ DO ANDROID CLIENT ID)
+        {
+          action: "VIEW",
+          data: [
+            {
+              scheme:
+                "com.googleusercontent.apps.547147710127-v1edmllj1mlfmpq7dthquo8hohrae8bh",
+              pathPrefix: "/oauthredirect",
+            },
+          ],
           category: ["BROWSABLE", "DEFAULT"],
         },
       ],
@@ -113,7 +127,8 @@ module.exports = {
           {
             CFBundleURLSchemes: [
               "meeton",
-              // 🔥 TO MUSI PASOWAĆ DO iOS Client ID
+
+              // ✅ TO MUSI PASOWAĆ DO iOS Client ID
               "com.googleusercontent.apps.547147710127-d4avsbe3ffoold6jiu22tfrkf3lbc1sp",
             ],
           },

@@ -116,13 +116,13 @@ const styles = StyleSheet.create({
 
   loginButton: {
     height: 48,
-    backgroundColor: "#3A8FB7",
+    backgroundColor: "#1E3A8A",
     borderRadius: 10,
     justifyContent: "center",
     alignItems: "center",
     marginTop: 2,
     marginBottom: 14,
-    shadowColor: "#3A8FB7",
+    shadowColor: "#1E3A8A",
     shadowOpacity: 0.25,
     shadowRadius: 8,
     shadowOffset: { width: 0, height: 4 },

@@ -5,7 +5,7 @@ const colors = {
   bg: "#c5def3ff",
   card: "#ffffff",
   primary: "#1E3A8A",
-  accent: "#007AFF",
+  accent: "#1E3A8A",
   text: "#0B1220",
   muted: "#4B5563",
   border: "rgba(0,0,0,0.08)",
@@ -25,7 +25,7 @@ export const styles = StyleSheet.create({
     marginBottom: 20,
   },
   createButton: {
-    backgroundColor: "#007BFF",
+    backgroundColor: "#1E3A8A",
     paddingVertical: 14,
     paddingHorizontal: 24,
     borderRadius: 10,

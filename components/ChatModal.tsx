@@ -298,6 +298,6 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: "center",
     justifyContent: "center",
-    backgroundColor: "#3A8FB7",
+    backgroundColor: "#1E3A8A",
   },
 });

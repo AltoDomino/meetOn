@@ -1,16 +1,19 @@
+import { backend_URL } from "@/backendURL";
+import { useAuth } from "@/context/AuthContext";
+import { styles } from "@/styles/CompleteRegistration.styles";
+import DateTimePicker from "@react-native-community/datetimepicker";
+import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  View,
+  Alert,
+  ImageBackground,
+  Platform,
+  SafeAreaView,
   Text,
   TouchableOpacity,
-  Alert,
-  Platform,
+  View,
 } from "react-native";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import DropDownPicker from "react-native-dropdown-picker";
-import { useAuth } from "@/context/AuthContext";
-import { backend_URL } from "@/backendURL";
-import { useRouter } from "expo-router";
 
 const CompleteRegistration = () => {
   const { userId, token } = useAuth();
@@ -19,14 +22,16 @@ const CompleteRegistration = () => {
   const [gender, setGender] = useState<string | null>(null);
   const [description, setDescription] = useState("");
   const [open, setOpen] = useState(false);
+  const [tempDate, setTempDate] = useState<Date | null>(null);
+
   const [items, setItems] = useState([
     { label: "Mężczyzna", value: "male" },
     { label: "Kobieta", value: "female" },
     { label: "Inna", value: "other" },
   ]);
+
   const router = useRouter();
 
-  // 🔹 Funkcja do obliczania wieku
   const calculateAge = (date: Date) => {
     const diff = Date.now() - date.getTime();
     const ageDt = new Date(diff);
@@ -42,19 +47,23 @@ const CompleteRegistration = () => {
     const age = calculateAge(birthDate);
 
     try {
-      const res = await fetch(`${backend_URL}/api/login/complete-registration`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+      const res = await fetch(
+        `${backend_URL}/api/login/complete-registration`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            userId,
+            age,
+            gender,
+            dateOfBirth: birthDate.toISOString(),
+            description,
+          }),
         },
-        body: JSON.stringify({
-          userId,
-          age,
-          gender,
-          dateOfBirth: birthDate.toISOString(),
-        }),
-      });
+      );
 
       if (!res.ok) {
         Alert.alert("Błąd", "Nie udało się zapisać danych.");
@@ -70,109 +79,134 @@ const CompleteRegistration = () => {
   };
 
   return (
-    <View style={{ flex: 1, justifyContent: "center", padding: 20 }}>
-      <Text
-        style={{
-          fontSize: 22,
-          fontWeight: "700",
-          marginBottom: 20,
-          textAlign: "center",
-        }}
-      >
-        Uzupełnij dane profilu
-      </Text>
-
-      {/* 🔹 Wybór daty urodzenia */}
-      <TouchableOpacity
-        onPress={() => setShowPicker(true)}
-        style={{
-          borderWidth: 1,
-          borderColor: "#ccc",
-          padding: 12,
-          borderRadius: 8,
-          marginBottom: 12,
-        }}
-      >
-        <Text style={{ color: birthDate ? "#000" : "#777" }}>
-          {birthDate
-            ? `Data urodzenia: ${birthDate.toLocaleDateString()} (${calculateAge(
-                birthDate
-              )} lat)`
-            : "Wybierz datę urodzenia"}
-        </Text>
-      </TouchableOpacity>
-
-      {showPicker && (
-        <DateTimePicker
-          value={birthDate || new Date(2000, 0, 1)}
-          mode="date"
-          display={Platform.OS === "ios" ? "spinner" : "default"}
-          maximumDate={new Date()}
-          onChange={(_, selectedDate) => {
-            setShowPicker(Platform.OS === "ios");
-            if (selectedDate) setBirthDate(selectedDate);
-          }}
-        />
-      )}
-
-      {/* 🔹 DropDownPicker — płeć */}
-      <Text style={{ marginTop: 8, marginBottom: 4, fontWeight: "600" }}>
-        Płeć:
-      </Text>
-      <DropDownPicker
-        open={open}
-        value={gender}
-        items={items}
-        setOpen={setOpen}
-        setValue={setGender}
-        setItems={setItems}
-        placeholder="Wybierz płeć"
-        style={{
-          marginBottom: open ? 150 : 16,
-          borderColor: "#ccc",
-        }}
-        dropDownContainerStyle={{ borderColor: "#ccc" }}
-        zIndex={1000}
-        zIndexInverse={1000}
-        listMode="SCROLLVIEW"
+    <SafeAreaView style={styles.safe}>
+      {/* GRAFIKA (TYLKO DEKORACJA) */}
+      <ImageBackground
+        source={require("@/assets/images/ikonameeton.png")}
+        style={styles.headerBg}
+        resizeMode="contain"
+        imageStyle={{ width: "100%", height: "100%" }}
       />
 
-      {/* 🔹 Opis */}
-      <TouchableOpacity
-        onPress={() =>
-          Alert.prompt("Opis", "Napisz coś o sobie", (text) =>
-            setDescription(text || "")
-          )
-        }
-        style={{
-          borderWidth: 1,
-          borderColor: "#ccc",
-          padding: 12,
-          borderRadius: 8,
-          marginBottom: 20,
-        }}
-      >
-        <Text style={{ color: description ? "#000" : "#777" }}>
-          {description || "Dodaj krótki opis o sobie"}
-        </Text>
-      </TouchableOpacity>
+      {/* CONTENT */}
+      <View style={styles.container}>
+        {/* ✅ NAGŁÓWEK FORMULARZA – 10px NAD KARTĄ */}
+        <View style={styles.formHeader}>
+          <Text style={styles.formTitle}>Uzupełnij dane profilu</Text>
+        </View>
 
-      {/* 🔹 Przycisk */}
-      <TouchableOpacity
-        onPress={handleComplete}
-        style={{
-          backgroundColor: "#007AFF",
-          paddingVertical: 14,
-          borderRadius: 8,
-        }}
-      >
-        <Text
-          style={{ color: "#fff", textAlign: "center", fontWeight: "600" }}
-        >
-          Zapisz i przejdź dalej
-        </Text>
-      </TouchableOpacity>
-    </View>
+        {/* FORMULARZ */}
+        <View style={styles.card}>
+          {/* Data urodzenia */}
+          <Text style={styles.label}>Data urodzenia</Text>
+          <TouchableOpacity
+            onPress={() => setShowPicker(true)}
+            style={styles.inputLike}
+            activeOpacity={0.85}
+          >
+            <Text style={[styles.inputText, !birthDate && styles.placeholder]}>
+              {birthDate
+                ? `${birthDate.toLocaleDateString()} • ${calculateAge(
+                    birthDate,
+                  )} lat`
+                : "Wybierz datę urodzenia"}
+            </Text>
+          </TouchableOpacity>
+
+          {showPicker && (
+            <View style={styles.pickerWrap}>
+              <DateTimePicker
+                value={tempDate || birthDate || new Date(2000, 0, 1)}
+                mode="date"
+                display={Platform.OS === "ios" ? "spinner" : "default"}
+                maximumDate={new Date()}
+                onChange={(_, selectedDate) => {
+                  if (selectedDate) setTempDate(selectedDate);
+
+                  // Android zamyka się sam
+                  if (Platform.OS === "android") {
+                    setBirthDate(selectedDate || null);
+                    setShowPicker(false);
+                  }
+                }}
+              />
+
+              {/* ✅ PRZYCISK ZAMYKAJĄCY MODAL (iOS) */}
+              {Platform.OS === "ios" && (
+                <TouchableOpacity
+                  style={styles.dateConfirmButton}
+                  onPress={() => {
+                    if (tempDate) setBirthDate(tempDate);
+                    setShowPicker(false);
+                    setTempDate(null);
+                  }}
+                  activeOpacity={0.9}
+                >
+                  <Text style={styles.dateConfirmText}>Gotowe</Text>
+                </TouchableOpacity>
+              )}
+            </View>
+          )}
+
+          {/* Płeć */}
+          <Text style={[styles.label, { marginTop: 14 }]}>Płeć</Text>
+          <View style={{ zIndex: 2000 }}>
+            <DropDownPicker
+              open={open}
+              value={gender}
+              items={items}
+              setOpen={setOpen}
+              setValue={setGender}
+              setItems={setItems}
+              placeholder="Wybierz płeć"
+              style={styles.dropdown}
+              dropDownContainerStyle={styles.dropdownContainer}
+              textStyle={styles.dropdownText}
+              placeholderStyle={styles.dropdownPlaceholder}
+              listItemLabelStyle={styles.dropdownItemLabel}
+              listMode="SCROLLVIEW"
+              zIndex={2000}
+              zIndexInverse={1000}
+            />
+          </View>
+
+          {/* Opis */}
+          <Text style={[styles.label, { marginTop: 14 }]}>Opis</Text>
+<TouchableOpacity
+  onPress={() =>
+    Alert.prompt(
+      "Opis",
+      "Maks. 70 znaków",
+      (text) => {
+        const value = (text || "").slice(0, 70);
+        setDescription(value);
+      }
+    )
+  }
+  style={styles.inputLike}
+  activeOpacity={0.85}
+>
+  <Text style={[styles.inputText, !description && styles.placeholder]}>
+    {description || "Dodaj krótki opis o sobie"}
+  </Text>
+</TouchableOpacity>
+
+<Text style={styles.charCounter}>
+  {description.length}/70
+</Text>
+
+
+          {/* CTA */}
+          <TouchableOpacity
+            onPress={handleComplete}
+            style={styles.button}
+            activeOpacity={0.9}
+          >
+            <Text style={styles.buttonText}>Zapisz i przejdź dalej</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </SafeAreaView>
   );
 };
 

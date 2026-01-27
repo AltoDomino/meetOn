@@ -44,8 +44,8 @@ const EventRoomScreen = () => {
     typeof eventId === "string"
       ? eventId
       : Array.isArray(eventId)
-      ? eventId[0]
-      : undefined;
+        ? eventId[0]
+        : undefined;
 
   const {
     getUserRating,
@@ -60,7 +60,7 @@ const EventRoomScreen = () => {
 
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<any | null>(
-    null
+    null,
   );
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const [selectedRating, setSelectedRating] = useState<{
@@ -79,7 +79,7 @@ const EventRoomScreen = () => {
       const res = await fetch(
         `https://meeton-backend-ffmo.onrender.com/api/event/${
           currentEventId ?? eventId
-        }/details`
+        }/details`,
       );
       const data = await res.json();
       setCurrentEvent(data);
@@ -157,13 +157,13 @@ const EventRoomScreen = () => {
                   method: "DELETE",
                   headers: { "Content-Type": "application/json" },
                   body: JSON.stringify({ userId }),
-                }
+                },
               );
 
               if (!res.ok) {
                 const errorData = await res.json();
                 throw new Error(
-                  errorData.error || "Błąd podczas usuwania wydarzenia"
+                  errorData.error || "Błąd podczas usuwania wydarzenia",
                 );
               }
 
@@ -172,12 +172,12 @@ const EventRoomScreen = () => {
             } catch (error: unknown) {
               Alert.alert(
                 "Błąd",
-                error instanceof Error ? error.message : "Nieznany błąd"
+                error instanceof Error ? error.message : "Nieznany błąd",
               );
             }
           },
         },
-      ]
+      ],
     );
   };
 
@@ -206,7 +206,7 @@ const EventRoomScreen = () => {
         const tags = Array.isArray(tagsRaw)
           ? tagsRaw
               .map((t: any) =>
-                typeof t === "string" ? t : t?.tag ?? t?.name ?? t?.label
+                typeof t === "string" ? t : (t?.tag ?? t?.name ?? t?.label),
               )
               .filter(Boolean)
           : [];
@@ -216,13 +216,13 @@ const EventRoomScreen = () => {
             data?.avgRating ??
             data?.ratingAvg ??
             data?.stars?.avg ??
-            data?.stars?.average
+            data?.stars?.average,
         );
         const count = Number(
           data?.count ??
             data?.ratingsCount ??
             data?.stars?.count ??
-            data?.stars?.total
+            data?.stars?.total,
         );
 
         return {
@@ -242,7 +242,7 @@ const EventRoomScreen = () => {
   const openUserDetailsModal = async (targetUserId: number) => {
     try {
       const res = await fetch(
-        `https://meeton-backend-ffmo.onrender.com/api/user/profile/${targetUserId}`
+        `https://meeton-backend-ffmo.onrender.com/api/user/profile/${targetUserId}`,
       );
       const profile = await res.json();
 
@@ -253,7 +253,7 @@ const EventRoomScreen = () => {
 
       setSelectedRating(extra.rating ?? getUserRating(targetUserId));
       setSelectedTags(
-        extra.tags?.length ? extra.tags : getUserTags(targetUserId)
+        extra.tags?.length ? extra.tags : getUserTags(targetUserId),
       );
 
       setDetailsModalVisible(true);
@@ -286,7 +286,7 @@ const EventRoomScreen = () => {
 
     if (!creatorId && creatorName) {
       const found = (participants || []).find(
-        (p: any) => String(p?.userName ?? "") === String(creatorName)
+        (p: any) => String(p?.userName ?? "") === String(creatorName),
       );
       const n = Number(found?.id);
       if (!Number.isNaN(n) && n > 0) creatorId = n;
@@ -332,7 +332,7 @@ const EventRoomScreen = () => {
           <Stack.Screen
             options={{
               title: "MOJE WYDARZENIA",
-              headerStyle: { backgroundColor: "#3A8FB7" },
+              headerStyle: { backgroundColor: "#1E3A8A" },
               headerTintColor: "#fff",
               headerTitleAlign: "center",
             }}
@@ -343,11 +343,11 @@ const EventRoomScreen = () => {
               <Text style={styles.title}>{location}</Text>
               <Text>
                 {new Date(
-                  Array.isArray(startDate) ? startDate[0] : startDate
+                  Array.isArray(startDate) ? startDate[0] : startDate,
                 ).toLocaleString()}{" "}
                 -{" "}
                 {new Date(
-                  Array.isArray(endDate) ? endDate[0] : endDate
+                  Array.isArray(endDate) ? endDate[0] : endDate,
                 ).toLocaleTimeString()}
               </Text>
             </View>
@@ -438,7 +438,7 @@ const EventRoomScreen = () => {
                             style={{
                               marginLeft: 6,
                               fontSize: 12,
-                              color: "#3A8FB7",
+                              color: "#1E3A8A",
                             }}
                           >
                             👤

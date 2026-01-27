@@ -76,6 +76,15 @@ const logSection = (title: string, payload?: any) => {
 // ✅ FEATURE FLAG: tymczasowo wyłączona weryfikacja telefonu
 const ENABLE_PHONE_VERIFICATION = false;
 
+/**
+ * ✅ Google Native Redirect URI dla mobile:
+ * com.googleusercontent.apps.<CLIENT_ID_BEZ_.apps.googleusercontent.com>:/oauthredirect
+ */
+const getNativeGoogleRedirectUri = (clientId: string) => {
+  const base = clientId.replace(".apps.googleusercontent.com", "");
+  return `com.googleusercontent.apps.${base}:/oauthredirect`;
+};
+
 const Login = () => {
   const auth = useAuth();
 
@@ -117,58 +126,57 @@ const Login = () => {
     setForgotVisible(true);
   };
 
-const submitForgotPassword = async () => {
-  const email = forgotEmail.trim().toLowerCase();
-  if (!email || !email.includes("@")) {
-    Alert.alert("Błąd", "Podaj poprawny adres e-mail.");
-    return;
-  }
-
-  const url = `${backend_URL}/api/login/forgot-password`;
-
-  try {
-    setForgotSending(true);
-
-    logSection("FORGOT PASSWORD / REQUEST", {
-      time: now(),
-      endpoint: url,
-      email,
-    });
-
-    const res = await fetch(url, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email }),
-    });
-
-    const text = await res.text().catch(() => "");
-    logSection("FORGOT PASSWORD / RESPONSE", {
-      time: now(),
-      status: res.status,
-      ok: res.ok,
-      bodyText: text?.slice(0, 2000),
-    });
-
-    if (!res.ok) {
-      Alert.alert("Błąd", "Nie udało się wysłać linku. Spróbuj ponownie.");
+  const submitForgotPassword = async () => {
+    const email = forgotEmail.trim().toLowerCase();
+    if (!email || !email.includes("@")) {
+      Alert.alert("Błąd", "Podaj poprawny adres e-mail.");
       return;
     }
 
-    setForgotVisible(false);
-    setForgotEmail("");
+    const url = `${backend_URL}/api/login/forgot-password`;
 
-    Alert.alert(
-      "Sprawdź skrzynkę",
-      "Jeśli konto istnieje, wysłaliśmy link do zresetowania hasła."
-    );
-  } catch (e) {
-    logSection("FORGOT PASSWORD / ERROR", e);
-    Alert.alert("Błąd połączenia", "Nie udało się połączyć z serwerem.");
-  } finally {
-    setForgotSending(false);
-  }
-};
+    try {
+      setForgotSending(true);
 
+      logSection("FORGOT PASSWORD / REQUEST", {
+        time: now(),
+        endpoint: url,
+        email,
+      });
+
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email }),
+      });
+
+      const text = await res.text().catch(() => "");
+      logSection("FORGOT PASSWORD / RESPONSE", {
+        time: now(),
+        status: res.status,
+        ok: res.ok,
+        bodyText: text?.slice(0, 2000),
+      });
+
+      if (!res.ok) {
+        Alert.alert("Błąd", "Nie udało się wysłać linku. Spróbuj ponownie.");
+        return;
+      }
+
+      setForgotVisible(false);
+      setForgotEmail("");
+
+      Alert.alert(
+        "Sprawdź skrzynkę",
+        "Jeśli konto istnieje, wysłaliśmy link do zresetowania hasła.",
+      );
+    } catch (e) {
+      logSection("FORGOT PASSWORD / ERROR", e);
+      Alert.alert("Błąd połączenia", "Nie udało się połączyć z serwerem.");
+    } finally {
+      setForgotSending(false);
+    }
+  };
 
   // ====== ENV / BUILD DEBUG ======
   const isExpoGo =
@@ -195,24 +203,12 @@ const submitForgotPassword = async () => {
     [isExpoGo],
   );
 
-  // ====== REDIRECT DEBUG ======
-  const redirectUri = useMemo(() => {
-    const uri = AuthSession.makeRedirectUri({
-      scheme: "meeton",
-      path: "oauth2redirect/google",
-    });
-    console.log("✅ [GOOGLE] redirectUri:", uri);
-    return uri;
-  }, []);
-
-  // ====== CLIENT IDS DEBUG ======
   const clientIds = useMemo(
     () => ({
-      expoClientId: mask(process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID),
       webClientId: mask(process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID),
       androidClientId: mask(process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID),
       iosClientId: mask(process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID),
-      note: "Maskowane. Jeśli któryś jest null/undefined -> masz problem w env. Android/iOS Client ID muszą pochodzić z Google Cloud (typ Android/iOS).",
+      note: "Jeśli dalej masz issue: upewnij się, że app.config ma scheme dla com.googleusercontent.apps.<ID> na platformie, na której testujesz.",
     }),
     [],
   );
@@ -222,15 +218,35 @@ const submitForgotPassword = async () => {
     logSection("GOOGLE DEBUG / CLIENT IDS", clientIds);
   }, [buildInfo, clientIds]);
 
+  const discovery = Google.discovery;
+
+  // ✅ platformowy clientId (DO redirectUri)
+  const platformClientId =
+    Platform.OS === "android"
+      ? process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!
+      : process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID!;
+
+  // ✅ redirectUri w formacie wymaganym przez Google dla native
+  const googleRedirectUri = useMemo(() => {
+    const uri = getNativeGoogleRedirectUri(platformClientId);
+    logSection("GOOGLE DEBUG / NATIVE REDIRECT URI", {
+      time: now(),
+      platform: Platform.OS,
+      platformClientId: mask(platformClientId),
+      redirectUri: uri,
+    });
+    return uri;
+  }, [platformClientId]);
+
   const [request, response, promptAsync] = Google.useAuthRequest({
     webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID!,
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!,
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID!,
-
     scopes: ["openid", "profile", "email"],
-    responseType: "id_token",
+    responseType: "code",
+    usePKCE: true,
     selectAccount: true,
-    redirectUri,
+    redirectUri: googleRedirectUri,
   });
 
   // ====== REQUEST DEBUG ======
@@ -250,73 +266,10 @@ const submitForgotPassword = async () => {
             url: (request as any)?.url,
           }
         : null,
-      hint: "Jeśli request.url jest null lub wygląda dziwnie, to znaczy że config requestu jest niepoprawny.",
     });
   }, [request]);
 
-  // ====== RESPONSE DEBUG ======
-  useEffect(() => {
-    if (!response) return;
-
-    logSection("GOOGLE DEBUG / RAW RESPONSE (FULL)", safeJson(response));
-
-    if (response.type === "success") {
-      logSection("GOOGLE DEBUG / SUCCESS DETAILS", {
-        time: now(),
-        hasAuth: !!response.authentication,
-        auth: response.authentication
-          ? {
-              accessToken: mask((response.authentication as any).accessToken),
-              idToken: mask((response.authentication as any).idToken),
-              refreshToken: mask((response.authentication as any).refreshToken),
-              tokenType: (response.authentication as any).tokenType,
-              expiresIn: (response.authentication as any).expiresIn,
-              issuedAt: (response.authentication as any).issuedAt,
-              scope: (response.authentication as any).scope,
-            }
-          : null,
-        params: (response as any).params,
-      });
-
-      const idToken = response.authentication?.idToken;
-      if (idToken) {
-        loginWithGoogleOnBackend(idToken);
-      } else {
-        Alert.alert("Błąd", "Google zalogowało, ale nie zwróciło id_token.");
-      }
-      return;
-    }
-
-    if (response.type === "error") {
-      logSection("GOOGLE DEBUG / ERROR DETAILS", {
-        time: now(),
-        error: (response as any).error,
-        errorCode: (response as any).error?.code,
-        errorDesc: (response as any).error?.description,
-        params: (response as any).params,
-      });
-
-      Alert.alert(
-        "Błąd Google",
-        "Google zwróciło błąd. Sprawdź logi w konsoli.",
-      );
-      return;
-    }
-
-    if (response.type === "dismiss") {
-      logSection("GOOGLE DEBUG / DISMISSED", { time: now() });
-      Alert.alert("Przerwano", "Użytkownik anulował logowanie");
-      return;
-    }
-
-    logSection("GOOGLE DEBUG / OTHER RESPONSE TYPE", {
-      time: now(),
-      type: response.type,
-      response,
-    });
-  }, [response]);
-
-  // ====== BACKEND GOOGLE DEBUG ======
+  // ====== BACKEND GOOGLE ======
   const loginWithGoogleOnBackend = async (idToken: string) => {
     try {
       setLoading(true);
@@ -360,6 +313,124 @@ const submitForgotPassword = async () => {
       setLoading(false);
     }
   };
+
+  // ====== RESPONSE HANDLER (KLUCZOWA POPRAWKA) ======
+  useEffect(() => {
+    if (!response) return;
+
+    logSection("GOOGLE DEBUG / RAW RESPONSE (FULL)", safeJson(response));
+
+    if (response.type === "success") {
+      // ✅ U Ciebie Google już zwraca id_token w authentication/params
+      const idToken =
+        response.authentication?.idToken || (response as any)?.params?.id_token;
+
+      logSection("GOOGLE DEBUG / SUCCESS", {
+        time: now(),
+        hasAuthentication: !!response.authentication,
+        idToken: mask(idToken),
+        code: mask((response as any)?.params?.code),
+        redirectUri: googleRedirectUri,
+      });
+
+      if (idToken) {
+        // ✅ Najpewniejsza ścieżka: NIE robimy exchange, bo token już jest
+        loginWithGoogleOnBackend(idToken);
+        return;
+      }
+
+      // ===== fallback (gdyby kiedyś id_token nie było) =====
+      const code = (response as any)?.params?.code;
+      if (!code || !request?.codeVerifier) {
+        Alert.alert("Błąd", "Brak id_token i brak danych do wymiany code.");
+        return;
+      }
+
+      (async () => {
+        try {
+          setLoading(true);
+
+          logSection("GOOGLE DEBUG / EXCHANGE START (FALLBACK)", {
+            time: now(),
+            clientId: mask(platformClientId),
+            redirectUri: googleRedirectUri,
+            hasCodeVerifier: !!request.codeVerifier,
+          });
+
+          const tokenRes = await AuthSession.exchangeCodeAsync(
+            {
+              clientId: platformClientId,
+              code,
+              redirectUri: googleRedirectUri,
+              extraParams: {
+                code_verifier: request.codeVerifier!,
+              },
+            },
+            discovery,
+          );
+
+          const idTokenFromExchange = (tokenRes as any)?.idToken;
+
+          logSection("GOOGLE DEBUG / EXCHANGE RESULT (FALLBACK)", {
+            time: now(),
+            idToken: mask(idTokenFromExchange),
+          });
+
+          if (!idTokenFromExchange) {
+            Alert.alert("Błąd", "Nie udało się uzyskać id_token (fallback).");
+            return;
+          }
+
+          await loginWithGoogleOnBackend(idTokenFromExchange);
+        } catch (e: any) {
+          console.log("❌ exchangeCodeAsync fallback error:", e);
+          Alert.alert(
+            "Błąd",
+            `Nie udało się wymienić code na token.\n${e?.message ?? ""}`,
+          );
+        } finally {
+          setLoading(false);
+        }
+      })();
+
+      return;
+    }
+
+    if (response.type === "error") {
+      logSection("GOOGLE DEBUG / ERROR DETAILS", {
+        time: now(),
+        error: (response as any).error,
+        errorCode: (response as any).error?.code,
+        errorDesc: (response as any).error?.description,
+        params: (response as any).params,
+      });
+
+      Alert.alert(
+        "Błąd Google",
+        "Google zwróciło błąd. Sprawdź logi w konsoli.",
+      );
+      return;
+    }
+
+    if (response.type === "dismiss") {
+      logSection("GOOGLE DEBUG / DISMISSED", { time: now() });
+      Alert.alert("Przerwano", "Użytkownik anulował logowanie");
+      return;
+    }
+
+    logSection("GOOGLE DEBUG / OTHER RESPONSE TYPE", {
+      time: now(),
+      type: response.type,
+      response,
+    });
+  }, [
+    response,
+    request,
+    discovery,
+    platformClientId,
+    googleRedirectUri,
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  ]);
 
   // ====== APPLE LOGIN ======
   const handleAppleLogin = async () => {
@@ -422,54 +493,22 @@ const submitForgotPassword = async () => {
     jwt?: string | null,
   ) => {
     try {
-      logSection("GENDER DEBUG / PROFILE FETCH REQUEST", {
-        time: now(),
-        url: `${backend_URL}/api/users/${userId}`,
-        hasJwt: !!jwt,
-      });
-
       const res = await fetch(`${backend_URL}/api/users/${userId}`, {
         headers: jwt ? { Authorization: `Bearer ${jwt}` } : undefined,
       });
 
-      const text = await res.text().catch(() => "");
-      logSection("GENDER DEBUG / PROFILE FETCH RESPONSE RAW", {
-        time: now(),
-        status: res.status,
-        ok: res.ok,
-        bodyText: text?.slice(0, 2000),
-      });
-
       if (!res.ok) return;
 
+      const text = await res.text().catch(() => "");
       const profile = text ? JSON.parse(text) : {};
-      logSection("GENDER DEBUG / PROFILE PARSED", {
-        time: now(),
-        profileGenderRaw: profile?.gender ?? null,
-        profileKeys: Object.keys(profile || {}),
-      });
-
       const g = normalizeGender(profile?.gender);
-      logSection("GENDER DEBUG / PROFILE NORMALIZED", {
-        time: now(),
-        normalizedGender: g,
-      });
-
       await setGender(g);
-      logSection("GENDER DEBUG / PROFILE setGender DONE", {
-        time: now(),
-        setGenderValue: g,
-      });
-    } catch (e) {
-      logSection("GENDER DEBUG / PROFILE FETCH ERROR", e);
-    }
+    } catch {}
   };
 
   // ====== POST AUTH ======
   const afterAuthSuccess = async (data: any, provider: AuthProvider) => {
     try {
-      logSection("AUTH DEBUG / afterAuthSuccess INPUT", { provider, data });
-
       const jwt = data.token ?? null;
       const uid = data.userId ?? null;
 
@@ -477,59 +516,18 @@ const submitForgotPassword = async () => {
       await setUserName(data.userName ?? "");
       await setUserId(uid);
 
-      // avatar/description w Twoich payloadach mogą mieć różne nazwy, ale logi pokażą
       await setAvatar(data.avatar || data.avatarUrl || null);
       await setDescription(data.description || "");
 
-      // ✅ GENDER DEBUG: payload -> normalize -> setGender
-      logSection("GENDER DEBUG / BACKlog", {
-        time: now(),
-        provider,
-        rawGenderFromBackend: data?.gender ?? null,
-        rawType: typeof data?.gender,
-        note: "Jeśli rawGenderFromBackend jest null -> backend nie zwraca gender albo user w DB ma null (częste po Google/Apple).",
-      });
-
       const gFromLogin = normalizeGender(data?.gender);
-
-      logSection("GENDER DEBUG / NORMALIZED", {
-        time: now(),
-        provider,
-        normalizedGender: gFromLogin,
-      });
-
       await setGender(gFromLogin);
 
-      logSection("GENDER DEBUG / SET_GENDER_DONE", {
-        time: now(),
-        provider,
-        setGenderValue: gFromLogin,
-      });
-
       if (!gFromLogin && uid) {
-        logSection("GENDER DEBUG / FALLBACK FETCH PROFILE (START)", {
-          time: now(),
-          userId: uid,
-          hasJwt: !!jwt,
-        });
-
         await fetchAndSetGenderIfMissing(Number(uid), jwt);
-
-        logSection("GENDER DEBUG / FALLBACK FETCH PROFILE (END)", {
-          time: now(),
-          userId: uid,
-        });
       }
 
       const isPhoneVerified = data?.isPhoneVerified;
       const isRegistrationComplete = data?.isRegistrationComplete;
-
-      logSection("AUTH DEBUG / FLAGS", {
-        provider,
-        isPhoneVerified,
-        isRegistrationComplete,
-        ENABLE_PHONE_VERIFICATION,
-      });
 
       if (
         (provider === "google" || provider === "apple") &&
@@ -557,13 +555,7 @@ const submitForgotPassword = async () => {
         const interests = interestsRes.ok ? await interestsRes.json() : [];
         hasActivities = Array.isArray(interests) && interests.length > 0;
         await setHasChosenActivities(hasActivities);
-
-        logSection("AUTH DEBUG / INTERESTS", {
-          interestsType: Array.isArray(interests) ? "array" : typeof interests,
-          interestsLength: Array.isArray(interests) ? interests.length : null,
-        });
-      } catch (e) {
-        logSection("AUTH DEBUG / INTERESTS ERROR", e);
+      } catch {
         hasActivities = false;
         await setHasChosenActivities(false);
       }
@@ -637,9 +629,10 @@ const submitForgotPassword = async () => {
 
     logSection("GOOGLE DEBUG / PROMPT ASYNC START", {
       time: now(),
+      platform: Platform.OS,
       isExpoGo,
-      redirectUri,
-      note: "Jeśli masz 400 invalid_request na ekranie Google, to zwykle redirect mismatch albo konfiguracja clientId/sha1.",
+      redirectUri: googleRedirectUri,
+      note: "Jeśli Google zwraca id_token w response.authentication/params, NIE robimy exchangeCodeAsync.",
     });
 
     try {
@@ -709,7 +702,6 @@ const submitForgotPassword = async () => {
               )}
             />
 
-            {/* ✅ ZAPOMNIAŁEŚ HASŁA? */}
             <TouchableOpacity
               onPress={openForgotModal}
               disabled={loading}
@@ -855,11 +847,7 @@ const submitForgotPassword = async () => {
                   </Text>
 
                   <Text
-                    style={{
-                      color: "#EAF6FF",
-                      opacity: 0.9,
-                      marginTop: 8,
-                    }}
+                    style={{ color: "#EAF6FF", opacity: 0.9, marginTop: 8 }}
                   >
                     Podaj e-mail. Wyślemy link do ustawienia nowego hasła.
                   </Text>
@@ -922,7 +910,7 @@ const submitForgotPassword = async () => {
                         flex: 1,
                         paddingVertical: 12,
                         borderRadius: 12,
-                        backgroundColor: "#3A8FB7",
+                        backgroundColor: "#1E3A8A",
                         alignItems: "center",
                         opacity: forgotSending ? 0.7 : 1,
                       }}
@@ -961,7 +949,7 @@ const submitForgotPassword = async () => {
                 minWidth: 200,
               }}
             >
-              <ActivityIndicator size="large" color="#3A8FB7" />
+              <ActivityIndicator size="large" color="#1E3A8A" />
               <Text
                 style={{ color: "#EAF6FF", marginTop: 12, fontWeight: "600" }}
               >

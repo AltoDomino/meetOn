@@ -10,7 +10,7 @@ export default function FormLayout() {
         options={{
           title: "LOKALIZACJA I DATA",
           headerStyle: {
-            backgroundColor: "#3A8FB7",
+            backgroundColor: "#1E3A8A",
           },
           headerTintColor: "#fff",
           headerLeft: () => (
@@ -29,7 +29,7 @@ export default function FormLayout() {
         options={{
           title: "SZCZEGÓŁY WYDARZENIA",
           headerStyle: {
-            backgroundColor: "#3A8FB7",
+            backgroundColor: "#1E3A8A",
           },
           headerTintColor: "#fff",
           headerLeft: () => (

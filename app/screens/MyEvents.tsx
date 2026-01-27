@@ -49,7 +49,7 @@ export default function MyEvents() {
     if (!userId) return;
     try {
       const res = await fetch(
-        `${BACKEND_URL}/api/events?userId=${userId}&ownOnly=true`
+        `${BACKEND_URL}/api/events?userId=${userId}&ownOnly=true`,
       );
       const data = await res.json();
       setEvents(data);
@@ -73,7 +73,7 @@ export default function MyEvents() {
   useFocusEffect(
     useCallback(() => {
       fetchEvents();
-    }, [])
+    }, []),
   );
 
   useEffect(() => {
@@ -132,7 +132,7 @@ export default function MyEvents() {
         options={{
           title: "MOJE WYDARZENIA",
           headerStyle: {
-            backgroundColor: "#3A8FB7",
+            backgroundColor: "#1E3A8A",
           },
           headerTintColor: "#fff",
           headerTitleAlign: "center",

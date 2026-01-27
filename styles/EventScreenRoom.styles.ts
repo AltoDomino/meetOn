@@ -26,7 +26,7 @@ export const styles = StyleSheet.create({
     width: 50,
     height: 50,
     borderRadius: 25,
-    backgroundColor: "#3A8FB7",
+    backgroundColor: "#1E3A8A",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 12,
@@ -99,7 +99,7 @@ export const styles = StyleSheet.create({
   participantsTitle: {
     fontSize: 16,
     fontWeight: "bold",
-    color: "#3A8FB7",
+    color: "#1E3A8A",
     marginBottom: 8,
   },
   participantCard: {

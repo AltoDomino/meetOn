@@ -29,7 +29,7 @@ export const profileStyles = StyleSheet.create({
 
   // przycisk jak w FriendsList (chatButton vibe)
   headerButton: {
-    backgroundColor: "#3A8FB7",
+    backgroundColor: "#1E3A8A",
     paddingVertical: 10,
     paddingHorizontal: 14,
     borderRadius: 14,
@@ -58,7 +58,7 @@ export const profileStyles = StyleSheet.create({
 
   // karta (jak styles.card)
   card: {
-    backgroundColor: "#3A8FB7",
+    backgroundColor: "#1E3A8A",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.10)",
     borderRadius: 18,

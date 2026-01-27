@@ -27,7 +27,7 @@ export default function VerifiedEmailScreen() {
       }
       try {
         const res = await fetch(
-          `${BACKEND_URL}/api/verify-email?token=${encodeURIComponent(token)}`
+          `${BACKEND_URL}/api/verify-email?token=${encodeURIComponent(token)}`,
         );
         setOk(res.ok);
       } catch {
@@ -42,7 +42,7 @@ export default function VerifiedEmailScreen() {
   const openApp = () => {
     if (token) {
       Linking.openURL(
-        `meeton://verify-email?token=${encodeURIComponent(token)}`
+        `meeton://verify-email?token=${encodeURIComponent(token)}`,
       );
     }
   };
@@ -50,7 +50,7 @@ export default function VerifiedEmailScreen() {
   return (
     <View style={styles.container}>
       {loading ? (
-        <ActivityIndicator size="large" color="#3A8FB7" />
+        <ActivityIndicator size="large" color="#1E3A8A" />
       ) : ok ? (
         <>
           <Text style={styles.title}>✅ E-mail został zweryfikowany!</Text>
@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   button: {
-    backgroundColor: "#3A8FB7",
+    backgroundColor: "#1E3A8A",
     paddingVertical: 12,
     paddingHorizontal: 24,
     borderRadius: 10,
