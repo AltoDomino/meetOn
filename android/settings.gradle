@@ -31,7 +31,7 @@ plugins {
 }
 
 extensions.configure(com.facebook.react.ReactSettingsExtension) { ex ->
-  // ✅ WYMUSZONE Expo autolinking – brak warunków ENV
+  // ✅ WYMUSZONE Expo autolinking – bez community autolinking i bez warunków ENV
   ex.autolinkLibrariesFromCommand(expoAutolinking.rnConfigCommand)
 }
 

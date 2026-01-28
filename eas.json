@@ -9,22 +9,34 @@
       "distribution": "internal",
       "android": { "buildType": "apk" },
       "env": {
-        "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON",
         "NODE_ENV": "production",
-        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "xxx.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "yyy.apps.googleusercontent.com"
+        "EXPO_USE_COMMUNITY_AUTOLINKING": "0",
+        "GOOGLE_SERVICES_JSON": "./google-services.json",
+
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "547147710127-u10vha6f3862bs4co05r0iordb2es2.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "547147710127-v1edmllj1mlfmpq7dthquo8hohrae8bh.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "547147710127-d4avsbe3ffoold6jiu22tfrkf3lbc1sp.apps.googleusercontent.com",
+
+        "EXPO_PUBLIC_ADMOB_ANDROID_APP_ID": "ca-app-pub-4590930660721541~1689041712",
+        "EXPO_PUBLIC_ADMOB_IOS_APP_ID": "ca-app-pub-4590930660721541~2628957980"
       }
     },
 
     "production": {
       "developmentClient": false,
       "distribution": "store",
-      "android": { "buildType": "apk" },
+      "android": { "buildType": "app-bundle" },
       "env": {
-        "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON",
         "NODE_ENV": "production",
-        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "xxx.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "yyy.apps.googleusercontent.com"
+        "EXPO_USE_COMMUNITY_AUTOLINKING": "0",
+        "GOOGLE_SERVICES_JSON": "./google-services.json",
+
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "547147710127-u10vha6f3862bs4co05r0iordb2es2.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "547147710127-v1edmllj1mlfmpq7dthquo8hohrae8bh.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "547147710127-d4avsbe3ffoold6jiu22tfrkf3lbc1sp.apps.googleusercontent.com",
+
+        "EXPO_PUBLIC_ADMOB_ANDROID_APP_ID": "ca-app-pub-4590930660721541~1689041712",
+        "EXPO_PUBLIC_ADMOB_IOS_APP_ID": "ca-app-pub-4590930660721541~2628957980"
       }
     },
 
@@ -33,21 +45,33 @@
       "distribution": "internal",
       "android": { "buildType": "apk" },
       "env": {
-        "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON",
         "NODE_ENV": "development",
-        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "xxx.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "yyy.apps.googleusercontent.com"
+        "EXPO_USE_COMMUNITY_AUTOLINKING": "0",
+        "GOOGLE_SERVICES_JSON": "./google-services.json",
+
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "547147710127-u10vha6f3862bs4co05r0iordb2es2.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "547147710127-v1edmllj1mlfmpq7dthquo8hohrae8bh.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "547147710127-d4avsbe3ffoold6jiu22tfrkf3lbc1sp.apps.googleusercontent.com",
+
+        "EXPO_PUBLIC_ADMOB_ANDROID_APP_ID": "ca-app-pub-4590930660721541~1689041712",
+        "EXPO_PUBLIC_ADMOB_IOS_APP_ID": "ca-app-pub-4590930660721541~2628957980"
       }
     },
 
     "dev-client-testflight": {
       "developmentClient": true,
-      "distribution": "store",      
+      "distribution": "store",
       "env": {
-        "GOOGLE_SERVICES_JSON": "@GOOGLE_SERVICES_JSON",
         "NODE_ENV": "development",
-        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "xxx.apps.googleusercontent.com",
-        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "yyy.apps.googleusercontent.com"
+        "EXPO_USE_COMMUNITY_AUTOLINKING": "0",
+        "GOOGLE_SERVICES_JSON": "./google-services.json",
+
+        "EXPO_PUBLIC_GOOGLE_CLIENT_ID": "547147710127-u10vha6f3862bs4co05r0iordb2es2.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID": "547147710127-v1edmllj1mlfmpq7dthquo8hohrae8bh.apps.googleusercontent.com",
+        "EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID": "547147710127-d4avsbe3ffoold6jiu22tfrkf3lbc1sp.apps.googleusercontent.com",
+
+        "EXPO_PUBLIC_ADMOB_ANDROID_APP_ID": "ca-app-pub-4590930660721541~1689041712",
+        "EXPO_PUBLIC_ADMOB_IOS_APP_ID": "ca-app-pub-4590930660721541~2628957980"
       }
     }
   },
@@ -55,7 +79,7 @@
   "submit": {
     "dev-client-testflight": {
       "ios": {
-        "ascAppId": "6753621454"     
+        "ascAppId": "6753621454"
       }
     }
   }
