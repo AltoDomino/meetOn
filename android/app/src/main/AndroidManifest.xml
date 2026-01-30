@@ -45,6 +45,13 @@
         <category android:name="android.intent.category.BROWSABLE"/>
         <category android:name="android.intent.category.DEFAULT"/>
       </intent-filter>
+      <intent-filter data-generated="true">
+        <action android:name="android.intent.action.VIEW"/>
+        <data android:scheme="com.googleusercontent.apps.547147710127-v1edmllj1mlfmpq7dthquo8hohrae8bh" android:pathPrefix="/oauthredirect"/>
+        <data android:scheme="exp+meeton"/>
+        <category android:name="android.intent.category.BROWSABLE"/>
+        <category android:name="android.intent.category.DEFAULT"/>
+      </intent-filter>
     </activity>
   </application>
 </manifest>

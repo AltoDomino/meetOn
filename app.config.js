@@ -5,7 +5,7 @@ module.exports = {
   expo: {
     name: "meetOn",
     slug: "meetOn",
-    version: "1.0.13",
+    version: "1.0.14",
     orientation: "portrait",
     icon: "./assets/images/ikonkameeton.png",
 
@@ -113,7 +113,7 @@ module.exports = {
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.domino96.meetOn",
-      buildNumber: "13",
+      buildNumber: "14",
       googleServicesFile: "./GoogleService-Info.plist",
 
       infoPlist: {

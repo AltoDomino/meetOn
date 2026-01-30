@@ -1,7 +1,7 @@
 import { backend_URL } from "@/backendURL";
 import { useAuth } from "@/context/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { StarRating } from "components/StarRating";
+import { StarRating } from "./StarRating";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,

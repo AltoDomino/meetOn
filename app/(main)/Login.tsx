@@ -76,13 +76,10 @@ const logSection = (title: string, payload?: any) => {
 // ✅ FEATURE FLAG: tymczasowo wyłączona weryfikacja telefonu
 const ENABLE_PHONE_VERIFICATION = false;
 
-/**
- * ✅ Google Native Redirect URI dla mobile:
- * com.googleusercontent.apps.<CLIENT_ID_BEZ_.apps.googleusercontent.com>:/oauthredirect
- */
-const getNativeGoogleRedirectUri = (clientId: string) => {
+// ✅ helper: z CLIENT ID robimy scheme com.googleusercontent.apps.<ID_BEZ_SUFFIX>
+const googleClientIdToScheme = (clientId: string) => {
   const base = clientId.replace(".apps.googleusercontent.com", "");
-  return `com.googleusercontent.apps.${base}:/oauthredirect`;
+  return `com.googleusercontent.apps.${base}`;
 };
 
 const Login = () => {
@@ -97,17 +94,6 @@ const Login = () => {
     setToken,
     setGender,
   } = auth;
-
-  // ✅ LIVE podgląd kontekstu — czy gender faktycznie się ustawia
-  useEffect(() => {
-    logSection("AUTH CONTEXT DEBUG / CURRENT", {
-      time: now(),
-      gender: (auth as any)?.gender ?? null,
-      userId: (auth as any)?.userId ?? null,
-      userName: (auth as any)?.userName ?? null,
-      hasToken: !!(auth as any)?.token,
-    });
-  }, [(auth as any)?.gender, (auth as any)?.userId, (auth as any)?.token]);
 
   const { control, handleSubmit, watch } = useForm<FormData>();
   const router = useRouter();
@@ -181,7 +167,7 @@ const Login = () => {
   // ====== ENV / BUILD DEBUG ======
   const isExpoGo =
     Constants.appOwnership === "expo" ||
-    Constants.executionEnvironment === "storeClient";
+    (Constants as any).executionEnvironment === "storeClient";
 
   const buildInfo = useMemo(
     () => ({
@@ -190,9 +176,6 @@ const Login = () => {
       isExpoGo,
       appOwnership: Constants.appOwnership,
       executionEnvironment: (Constants as any)?.executionEnvironment,
-      releaseChannel: (Constants as any)?.manifest2?.extra?.expoClient
-        ?.releaseChannel,
-      updateId: (Constants as any)?.expoConfig?.updates?.url,
       schemeFromConfig: (Constants as any)?.expoConfig?.scheme,
       androidPackage: (Constants as any)?.expoConfig?.android?.package,
       iosBundleId: (Constants as any)?.expoConfig?.ios?.bundleIdentifier,
@@ -203,69 +186,58 @@ const Login = () => {
     [isExpoGo],
   );
 
-  const clientIds = useMemo(
-    () => ({
-      webClientId: mask(process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID),
-      androidClientId: mask(process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID),
-      iosClientId: mask(process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID),
-      note: "Jeśli dalej masz issue: upewnij się, że app.config ma scheme dla com.googleusercontent.apps.<ID> na platformie, na której testujesz.",
-    }),
-    [],
-  );
-
   useEffect(() => {
     logSection("APP / BUILD INFO", buildInfo);
-    logSection("GOOGLE DEBUG / CLIENT IDS", clientIds);
-  }, [buildInfo, clientIds]);
+  }, [buildInfo]);
 
-  const discovery = Google.discovery;
-
-  // ✅ platformowy clientId (DO redirectUri)
-  const platformClientId =
-    Platform.OS === "android"
-      ? process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!
-      : process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID!;
-
-  // ✅ redirectUri w formacie wymaganym przez Google dla native
+  /**
+   * ✅ Redirect URI dla Google native
+   * com.googleusercontent.apps.<ID>:/oauthredirect
+   */
   const googleRedirectUri = useMemo(() => {
-    const uri = getNativeGoogleRedirectUri(platformClientId);
-    logSection("GOOGLE DEBUG / NATIVE REDIRECT URI", {
+    const androidClientId = process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!;
+    const iosClientId = process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID!;
+    const platformClientId =
+      Platform.OS === "android" ? androidClientId : iosClientId;
+
+    const scheme = googleClientIdToScheme(platformClientId);
+
+    const uri = AuthSession.makeRedirectUri({
+      native: `${scheme}:/oauthredirect`,
+      preferLocalhost: false,
+    });
+
+    logSection("GOOGLE DEBUG / REDIRECT URI (native)", {
       time: now(),
       platform: Platform.OS,
       platformClientId: mask(platformClientId),
+      scheme,
       redirectUri: uri,
+      expectedPattern: `${scheme}:/oauthredirect`,
     });
-    return uri;
-  }, [platformClientId]);
 
-  const [request, response, promptAsync] = Google.useAuthRequest({
-    webClientId: process.env.EXPO_PUBLIC_GOOGLE_CLIENT_ID!,
+    return uri;
+  }, []);
+
+  /**
+   * ✅ Najważniejsza zmiana:
+   * zamiast code+exchange, prosimy od razu o ID TOKEN (bez token exchange)
+   */
+  const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!,
     iosClientId: process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID!,
     scopes: ["openid", "profile", "email"],
-    responseType: "code",
-    usePKCE: true,
     selectAccount: true,
     redirectUri: googleRedirectUri,
   });
 
-  // ====== REQUEST DEBUG ======
   useEffect(() => {
-    logSection("GOOGLE DEBUG / REQUEST OBJECT", {
+    logSection("GOOGLE DEBUG / REQUEST OBJECT (ID TOKEN FLOW)", {
       time: now(),
       requestExists: !!request,
-      request: request
-        ? {
-            clientId: (request as any)?.clientId,
-            redirectUri: (request as any)?.redirectUri,
-            responseType: (request as any)?.responseType,
-            scopes: (request as any)?.scopes,
-            state: (request as any)?.state,
-            codeChallenge: (request as any)?.codeChallenge,
-            codeChallengeMethod: (request as any)?.codeChallengeMethod,
-            url: (request as any)?.url,
-          }
-        : null,
+      requestUrl: (request as any)?.url ?? null,
+      requestClientId: mask((request as any)?.clientId ?? null),
+      requestRedirectUri: (request as any)?.redirectUri ?? null,
     });
   }, [request]);
 
@@ -314,85 +286,31 @@ const Login = () => {
     }
   };
 
-  // ====== RESPONSE HANDLER (KLUCZOWA POPRAWKA) ======
+  // ====== RESPONSE HANDLER (ID TOKEN) ======
   useEffect(() => {
     if (!response) return;
 
     logSection("GOOGLE DEBUG / RAW RESPONSE (FULL)", safeJson(response));
 
     if (response.type === "success") {
-      // ✅ U Ciebie Google już zwraca id_token w authentication/params
+      // w tym flow token dostajesz od razu:
       const idToken =
-        response.authentication?.idToken || (response as any)?.params?.id_token;
+        (response as any)?.authentication?.idToken ??
+        (response as any)?.params?.id_token ??
+        null;
 
-      logSection("GOOGLE DEBUG / SUCCESS", {
+      logSection("GOOGLE DEBUG / SUCCESS (ID TOKEN FLOW)", {
         time: now(),
-        hasAuthentication: !!response.authentication,
+        hasAuth: !!(response as any)?.authentication,
         idToken: mask(idToken),
-        code: mask((response as any)?.params?.code),
-        redirectUri: googleRedirectUri,
       });
 
-      if (idToken) {
-        // ✅ Najpewniejsza ścieżka: NIE robimy exchange, bo token już jest
-        loginWithGoogleOnBackend(idToken);
+      if (!idToken) {
+        Alert.alert("Błąd", "Google nie zwróciło id_token (sprawdź logi).");
         return;
       }
 
-      // ===== fallback (gdyby kiedyś id_token nie było) =====
-      const code = (response as any)?.params?.code;
-      if (!code || !request?.codeVerifier) {
-        Alert.alert("Błąd", "Brak id_token i brak danych do wymiany code.");
-        return;
-      }
-
-      (async () => {
-        try {
-          setLoading(true);
-
-          logSection("GOOGLE DEBUG / EXCHANGE START (FALLBACK)", {
-            time: now(),
-            clientId: mask(platformClientId),
-            redirectUri: googleRedirectUri,
-            hasCodeVerifier: !!request.codeVerifier,
-          });
-
-          const tokenRes = await AuthSession.exchangeCodeAsync(
-            {
-              clientId: platformClientId,
-              code,
-              redirectUri: googleRedirectUri,
-              extraParams: {
-                code_verifier: request.codeVerifier!,
-              },
-            },
-            discovery,
-          );
-
-          const idTokenFromExchange = (tokenRes as any)?.idToken;
-
-          logSection("GOOGLE DEBUG / EXCHANGE RESULT (FALLBACK)", {
-            time: now(),
-            idToken: mask(idTokenFromExchange),
-          });
-
-          if (!idTokenFromExchange) {
-            Alert.alert("Błąd", "Nie udało się uzyskać id_token (fallback).");
-            return;
-          }
-
-          await loginWithGoogleOnBackend(idTokenFromExchange);
-        } catch (e: any) {
-          console.log("❌ exchangeCodeAsync fallback error:", e);
-          Alert.alert(
-            "Błąd",
-            `Nie udało się wymienić code na token.\n${e?.message ?? ""}`,
-          );
-        } finally {
-          setLoading(false);
-        }
-      })();
-
+      loginWithGoogleOnBackend(idToken);
       return;
     }
 
@@ -405,10 +323,7 @@ const Login = () => {
         params: (response as any).params,
       });
 
-      Alert.alert(
-        "Błąd Google",
-        "Google zwróciło błąd. Sprawdź logi w konsoli.",
-      );
+      Alert.alert("Błąd Google", "Google zwróciło błąd. Sprawdź logi w konsoli.");
       return;
     }
 
@@ -417,20 +332,7 @@ const Login = () => {
       Alert.alert("Przerwano", "Użytkownik anulował logowanie");
       return;
     }
-
-    logSection("GOOGLE DEBUG / OTHER RESPONSE TYPE", {
-      time: now(),
-      type: response.type,
-      response,
-    });
-  }, [
-    response,
-    request,
-    discovery,
-    platformClientId,
-    googleRedirectUri,
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  ]);
+  }, [response]);
 
   // ====== APPLE LOGIN ======
   const handleAppleLogin = async () => {
@@ -488,10 +390,7 @@ const Login = () => {
   };
 
   // ====== GENDER FALLBACK ======
-  const fetchAndSetGenderIfMissing = async (
-    userId: number,
-    jwt?: string | null,
-  ) => {
+  const fetchAndSetGenderIfMissing = async (userId: number, jwt?: string | null) => {
     try {
       const res = await fetch(`${backend_URL}/api/users/${userId}`, {
         headers: jwt ? { Authorization: `Bearer ${jwt}` } : undefined,
@@ -545,12 +444,9 @@ const Login = () => {
       let hasActivities = false;
 
       try {
-        const interestsRes = await fetch(
-          `${backend_URL}/api/interests/${uid}`,
-          {
-            headers: jwt ? { Authorization: `Bearer ${jwt}` } : undefined,
-          },
-        );
+        const interestsRes = await fetch(`${backend_URL}/api/interests/${uid}`, {
+          headers: jwt ? { Authorization: `Bearer ${jwt}` } : undefined,
+        });
 
         const interests = interestsRes.ok ? await interestsRes.json() : [];
         hasActivities = Array.isArray(interests) && interests.length > 0;
@@ -595,15 +491,10 @@ const Login = () => {
 
       if (!res.ok) {
         const msg = text || "";
-        if (res.status === 422)
-          Alert.alert("Błąd", "Nieprawidłowe dane logowania");
-        else if (res.status === 401)
-          Alert.alert("Błąd", "Niepoprawny email lub hasło");
+        if (res.status === 422) Alert.alert("Błąd", "Nieprawidłowe dane logowania");
+        else if (res.status === 401) Alert.alert("Błąd", "Niepoprawny email lub hasło");
         else if (res.status === 403)
-          Alert.alert(
-            "Wymagana weryfikacja",
-            "Zweryfikuj e-mail przed zalogowaniem.",
-          );
+          Alert.alert("Wymagana weryfikacja", "Zweryfikuj e-mail przed zalogowaniem.");
         else Alert.alert("Coś poszło nie tak", `Status: ${res.status}\n${msg}`);
         return;
       }
@@ -627,19 +518,23 @@ const Login = () => {
       return;
     }
 
+    console.log("GOOGLE request url:", (request as any)?.url);
+    console.log("request.clientId:", (request as any)?.clientId);
+    console.log("request.redirectUri:", (request as any)?.redirectUri);
+
     logSection("GOOGLE DEBUG / PROMPT ASYNC START", {
       time: now(),
       platform: Platform.OS,
       isExpoGo,
-      redirectUri: googleRedirectUri,
-      note: "Jeśli Google zwraca id_token w response.authentication/params, NIE robimy exchangeCodeAsync.",
+      redirectUri: (request as any)?.redirectUri ?? null,
+      note: "Flow: ID TOKEN (bez exchangeCodeAsync).",
     });
 
     try {
-      await promptAsync();
+      await (promptAsync as any)({ preferEphemeralSession: true });
       logSection("GOOGLE DEBUG / PROMPT ASYNC END", { time: now() });
     } catch (e) {
-      logSection("GOOGLE DEBUG / PROMPT ASYNC THROW", e);
+      console.log("❌ promptAsync error:", e);
       Alert.alert("Błąd", "promptAsync rzucił wyjątek (zobacz logi).");
     }
   };
@@ -783,9 +678,7 @@ const Login = () => {
                   }}
                   resizeMode="contain"
                 />
-                <Text
-                  style={{ color: "#fff", fontWeight: "600", fontSize: 16 }}
-                >
+                <Text style={{ color: "#fff", fontWeight: "600", fontSize: 16 }}>
                   Zaloguj się przez Apple
                 </Text>
               </TouchableOpacity>
@@ -798,9 +691,7 @@ const Login = () => {
               style={styles.registerButton}
               disabled={loading}
             >
-              <Text
-                style={[styles.registerButtonText, loading && { opacity: 0.7 }]}
-              >
+              <Text style={[styles.registerButtonText, loading && { opacity: 0.7 }]}>
                 ZAREJESTRUJ SIĘ
               </Text>
             </TouchableOpacity>
@@ -836,30 +727,16 @@ const Login = () => {
                     padding: 18,
                   }}
                 >
-                  <Text
-                    style={{
-                      color: "#EAF6FF",
-                      fontSize: 18,
-                      fontWeight: "800",
-                    }}
-                  >
+                  <Text style={{ color: "#EAF6FF", fontSize: 18, fontWeight: "800" }}>
                     Reset hasła
                   </Text>
 
-                  <Text
-                    style={{ color: "#EAF6FF", opacity: 0.9, marginTop: 8 }}
-                  >
+                  <Text style={{ color: "#EAF6FF", opacity: 0.9, marginTop: 8 }}>
                     Podaj e-mail. Wyślemy link do ustawienia nowego hasła.
                   </Text>
 
                   <View style={{ marginTop: 14 }}>
-                    <Text
-                      style={{
-                        color: "#EAF6FF",
-                        fontWeight: "700",
-                        marginBottom: 6,
-                      }}
-                    >
+                    <Text style={{ color: "#EAF6FF", fontWeight: "700", marginBottom: 6 }}>
                       Email
                     </Text>
 
@@ -882,9 +759,7 @@ const Login = () => {
                     />
                   </View>
 
-                  <View
-                    style={{ flexDirection: "row", gap: 10, marginTop: 16 }}
-                  >
+                  <View style={{ flexDirection: "row", gap: 10, marginTop: 16 }}>
                     <TouchableOpacity
                       onPress={() => setForgotVisible(false)}
                       disabled={forgotSending}
@@ -898,9 +773,7 @@ const Login = () => {
                         opacity: forgotSending ? 0.6 : 1,
                       }}
                     >
-                      <Text style={{ color: "#EAF6FF", fontWeight: "800" }}>
-                        Anuluj
-                      </Text>
+                      <Text style={{ color: "#EAF6FF", fontWeight: "800" }}>Anuluj</Text>
                     </TouchableOpacity>
 
                     <TouchableOpacity
@@ -950,9 +823,7 @@ const Login = () => {
               }}
             >
               <ActivityIndicator size="large" color="#1E3A8A" />
-              <Text
-                style={{ color: "#EAF6FF", marginTop: 12, fontWeight: "600" }}
-              >
+              <Text style={{ color: "#EAF6FF", marginTop: 12, fontWeight: "600" }}>
                 Trwa logowanie…
               </Text>
             </View>

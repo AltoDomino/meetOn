@@ -2,7 +2,7 @@ import { UserRankTracker } from "@/components/PlayerStatus/UserRankTracker";
 import { fetchMyRatingStats } from "@/hooks/userRatings";
 import { Ionicons } from "@expo/vector-icons";
 import * as ImagePicker from "expo-image-picker";
-import { useFocusEffect } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -10,6 +10,7 @@ import {
   Image,
   Keyboard,
   KeyboardAvoidingView,
+  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -28,8 +29,14 @@ import { profileStyles as styles } from "../../styles/Profile.styles";
 const API_BASE = "https://meeton-backend-ffmo.onrender.com";
 
 export default function ProfileScreen() {
+  const router = useRouter();
+
+  // bierzemy co jest pewne + opcjonalnie logout (bez crasha jeśli nie istnieje)
+  const auth = useAuth() as any;
   const { userId, userName, avatar, description, setAvatar, setDescription } =
-    useAuth();
+    auth;
+  const logout = auth?.logout || auth?.signOut || auth?.handleLogout;
+
   const insets = useSafeAreaInsets();
 
   const [saving, setSaving] = useState(false);
@@ -44,6 +51,10 @@ export default function ProfileScreen() {
   const [tagsSummary, setTagsSummary] = useState<
     { tag: string; count: number }[]
   >([]);
+
+  // ===== Delete account =====
+  const [deleteModalVisible, setDeleteModalVisible] = useState(false);
+  const [deleting, setDeleting] = useState(false);
 
   const initials = useMemo(() => {
     const n = (userName || "U").trim();
@@ -176,6 +187,95 @@ export default function ProfileScreen() {
     }
   };
 
+const handleDeleteAccount = async () => {
+  console.log("🗑️ handleDeleteAccount start");
+  console.log("➡️ userId:", userId);
+  console.log("➡️ deleting:", deleting);
+
+  if (!userId) {
+    console.warn("⛔ Brak userId – abort");
+    return;
+  }
+  if (deleting) {
+    console.warn("⛔ deleting=true – abort");
+    return;
+  }
+
+  try {
+    setDeleting(true);
+
+    // token możesz zostawić (nie przeszkadza) albo wywalić
+    const token =
+      auth?.token ||
+      auth?.accessToken ||
+      auth?.jwt ||
+      auth?.sessionToken ||
+      auth?.user?.token;
+
+    console.log("🔐 token exists:", !!token);
+    if (token) {
+      console.log("🔐 token preview:", String(token).slice(0, 20) + "...");
+    }
+
+    // ✅ KLUCZ: userId idzie w URL
+    const url = `${API_BASE}/api/delete-account/account/${userId}`;
+    console.log("📡 DELETE:", url);
+
+    const res = await fetch(url, {
+      method: "DELETE",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      // body już niepotrzebne przy params
+    });
+
+    console.log("📨 status:", res.status);
+
+    const raw = await res.text();
+    console.log("📦 raw body:", raw);
+
+    let data: any = {};
+    try {
+      data = raw ? JSON.parse(raw) : {};
+    } catch (e) {
+      console.warn("⚠️ JSON parse fail:", e);
+    }
+
+    if (!res.ok) {
+      console.error("❌ delete failed:", res.status, data);
+      Alert.alert("Błąd", data?.error || data?.message || `HTTP ${res.status}`);
+      return;
+    }
+
+    console.log("✅ delete success:", data);
+
+    setDeleteModalVisible(false);
+
+    try {
+      console.log("🚪 logout...");
+      await logout?.();
+      console.log("✅ logout ok");
+    } catch (e) {
+      console.warn("⚠️ logout failed:", e);
+    }
+
+    console.log("➡️ redirect to login");
+    router.replace("/(main)/Login");
+    Alert.alert("Konto usunięte", "Twoje konto zostało trwale usunięte.");
+  } catch (e) {
+    console.error("❌ Delete exception:", e);
+    Alert.alert("Błąd", "Nie udało się połączyć z serwerem.");
+  } finally {
+    setDeleting(false);
+    console.log("🏁 deleting=false");
+  }
+};
+
+
+
+
+
   const descLen = description?.length ?? 0;
 
   return (
@@ -190,7 +290,7 @@ export default function ProfileScreen() {
             style={{ flex: 1 }}
             contentContainerStyle={[
               styles.content,
-              { paddingBottom: Math.max(insets.bottom, 12) + 18 },
+              { paddingBottom: Math.max(insets.bottom, 12) + 100 },
             ]}
             keyboardShouldPersistTaps="handled"
             keyboardDismissMode="on-drag"
@@ -333,10 +433,146 @@ export default function ProfileScreen() {
               />
 
               <Text style={styles.counter}>{descLen}/70</Text>
+              
             </View>
+                  <View
+
+      >
+        <TouchableOpacity
+
+          onPress={() => setDeleteModalVisible(true)}
+          style={local.deleteButton}
+        >
+          <Text style={local.deleteButtonText}>Usuń konto</Text>
+        </TouchableOpacity>
+      </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </Pressable>
+
+      {/* Sticky bottom: mały czerwony przycisk */}
+
+
+      {/* Modal potwierdzenia */}
+      <Modal
+        transparent
+        animationType="fade"
+        visible={deleteModalVisible}
+        onRequestClose={() => setDeleteModalVisible(false)}
+      >
+        <Pressable
+          style={local.modalOverlay}
+          onPress={() => setDeleteModalVisible(false)}
+        >
+          <Pressable style={local.modalCard} onPress={() => {}}>
+            <Text style={local.modalTitle}>
+              Czy na pewno chcesz trwale usunąć konto?
+            </Text>
+            <Text style={local.modalDesc}>Tej operacji nie da się cofnąć.</Text>
+
+            <View style={local.modalActions}>
+              <TouchableOpacity
+                onPress={() => setDeleteModalVisible(false)}
+                activeOpacity={0.85}
+                style={local.modalBtn}
+                disabled={deleting}
+              >
+                <Text style={local.modalBtnText}>Anuluj</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                onPress={handleDeleteAccount}
+                activeOpacity={0.85}
+                style={[local.modalBtnDanger, deleting && { opacity: 0.7 }]}
+                disabled={deleting}
+              >
+                <Text style={local.modalBtnDangerText}>
+                  {deleting ? "Usuwanie..." : "Usuń trwale"}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </Pressable>
+        </Pressable>
+      </Modal>
     </SafeAreaView>
   );
 }
+
+const local = {
+  deleteBar: {
+    position: "absolute" as const,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 16,
+    paddingTop: 10,
+    backgroundColor: "rgba(0,0,0,0.35)",
+  },
+  deleteButton: {
+    alignSelf: "center" as const,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 10,
+    backgroundColor: "#b91c1c",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.12)",
+  },
+  deleteButtonText: {
+    color: "#fff",
+    fontSize: 12,
+    fontWeight: "900" as const,
+    letterSpacing: 0.4,
+  },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: "rgba(0,0,0,0.65)",
+    justifyContent: "center" as const,
+    padding: 18,
+  },
+  modalCard: {
+    backgroundColor: "rgba(10,18,35,0.98)",
+    borderRadius: 16,
+    padding: 16,
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.10)",
+  },
+  modalTitle: {
+    color: "#fff",
+    fontSize: 16,
+    fontWeight: "900" as const,
+    marginBottom: 8,
+  },
+  modalDesc: {
+    color: "rgba(234,246,255,0.70)",
+    fontSize: 13,
+    marginBottom: 14,
+  },
+  modalActions: {
+    flexDirection: "row" as const,
+    gap: 10,
+    justifyContent: "flex-end" as const,
+  },
+  modalBtn: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: "rgba(255,255,255,0.08)",
+  },
+  modalBtnText: {
+    color: "#fff",
+    fontWeight: "800" as const,
+    fontSize: 13,
+  },
+  modalBtnDanger: {
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    borderRadius: 12,
+    backgroundColor: "#b91c1c",
+  },
+  modalBtnDangerText: {
+    color: "#fff",
+    fontWeight: "900" as const,
+    fontSize: 13,
+  },
+};
