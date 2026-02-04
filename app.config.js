@@ -5,11 +5,17 @@ module.exports = {
   expo: {
     name: "meetOn",
     slug: "meetOn",
-    version: "1.0.14",
+    version: "1.0.18",
     orientation: "portrait",
     icon: "./assets/images/ikonkameeton.png",
 
-    scheme: "meeton",
+    // ✅ WAŻNE: scheme jako TABLICA (iOS + Android + custom)
+    scheme: [
+      "meeton",
+      "com.googleusercontent.apps.547147710127-d4avsbe3ffoold6jiu22tfrkf3lbc1sp", // iOS base
+      "com.googleusercontent.apps.547147710127-v1edmllj1mlfmpq7dthquo8hohrae8bh", // Android base
+    ],
+
     userInterfaceStyle: "automatic",
 
     splash: {
@@ -23,7 +29,7 @@ module.exports = {
     // ================================
     android: {
       package: "com.domino96.meetOn",
-      versionCode: 8,
+      versionCode: 11,
       useNextNotificationsApi: true,
 
       adaptiveIcon: {
@@ -39,6 +45,7 @@ module.exports = {
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",
         "INTERNET",
+        "com.google.android.gms.permission.AD_ID", // ✅ DODANE (Advertising ID)
         "POST_NOTIFICATIONS",
         "READ_EXTERNAL_STORAGE",
         "WRITE_EXTERNAL_STORAGE",
@@ -59,13 +66,27 @@ module.exports = {
           category: ["BROWSABLE", "DEFAULT"],
         },
 
-        // ✅ GOOGLE native redirect scheme (MUSI PASOWAĆ DO ANDROID CLIENT ID)
+        // ✅ GOOGLE native redirect scheme (ANDROID)
         {
           action: "VIEW",
           data: [
             {
               scheme:
                 "com.googleusercontent.apps.547147710127-v1edmllj1mlfmpq7dthquo8hohrae8bh",
+              pathPrefix: "/oauthredirect",
+            },
+          ],
+          category: ["BROWSABLE", "DEFAULT"],
+        },
+
+        // ✅ (Opcjonalnie) GOOGLE native redirect scheme (iOS base)
+        // Nie jest wymagane dla Androida, ale nie szkodzi jeśli zostawisz.
+        {
+          action: "VIEW",
+          data: [
+            {
+              scheme:
+                "com.googleusercontent.apps.547147710127-d4avsbe3ffoold6jiu22tfrkf3lbc1sp",
               pathPrefix: "/oauthredirect",
             },
           ],
@@ -113,7 +134,7 @@ module.exports = {
     ios: {
       supportsTablet: true,
       bundleIdentifier: "com.domino96.meetOn",
-      buildNumber: "14",
+      buildNumber: "16",
       googleServicesFile: "./GoogleService-Info.plist",
 
       infoPlist: {
@@ -127,9 +148,8 @@ module.exports = {
           {
             CFBundleURLSchemes: [
               "meeton",
-
-              // ✅ TO MUSI PASOWAĆ DO iOS Client ID
               "com.googleusercontent.apps.547147710127-d4avsbe3ffoold6jiu22tfrkf3lbc1sp",
+              "com.googleusercontent.apps.547147710127-v1edmllj1mlfmpq7dthquo8hohrae8bh",
             ],
           },
         ],
@@ -198,7 +218,6 @@ module.exports = {
         },
       ],
 
-      // ✅ JEDYNE ŹRÓDŁO PRAWDY DLA ADMOB
       [
         "react-native-google-mobile-ads",
         {

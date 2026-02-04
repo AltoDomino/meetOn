@@ -12,7 +12,11 @@ import {
   TextInput,
   TouchableOpacity,
   View,
-} from "react-native";
+} from "react-native"
+import io from "socket.io-client";
+const socket = io("https://meeton-backend-ffmo.onrender.com", {
+  transports: ["websocket"],
+});
 
 type Friend = { id: number; userName: string };
 
@@ -21,18 +25,32 @@ type ChatMessage = {
   text: string;
   createdAt: number;
   fromMe: boolean;
+  sender?: string;
 };
 
 type Props = {
   visible: boolean;
   onClose: () => void;
   friend: Friend | null;
-
-  /** opcjonalnie: jak chcesz od razu podpinać backend */
   userId?: number | null;
+
+  // jeśli masz w AuthContext userName, przekaż go żeby "fromMe" działało idealnie
+  userName?: string | null;
 };
 
-export default function ChatModal({ visible, onClose, friend, userId }: Props) {
+// ✅ deterministyczny roomId dla DM (obie strony zawsze trafią do tego samego pokoju)
+const dmRoomId = (a: number, b: number) => {
+  const [x, y] = [a, b].sort((m, n) => m - n);
+  return `dm:${x}_${y}`;
+};
+
+export default function ChatModal({
+  visible,
+  onClose,
+  friend,
+  userId,
+  userName,
+}: Props) {
   const [text, setText] = useState("");
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const listRef = useRef<FlatList<ChatMessage>>(null);
@@ -42,18 +60,10 @@ export default function ChatModal({ visible, onClose, friend, userId }: Props) {
     return `czat z ${friend.userName}`;
   }, [friend]);
 
-  // Reset / wczytanie historii po zmianie znajomego
-  useEffect(() => {
-    if (!visible) return;
-    if (!friend) return;
-
-    setText("");
-    setMessages([]);
-
-    // TODO: pobierz historię czatu z backendu:
-    // fetch(`${BACKEND_URL}/api/chat/history?userId=${userId}&friendId=${friend.id}`)
-    //   .then(...)
-  }, [visible, friend, userId]);
+  const roomId = useMemo(() => {
+    if (!userId || !friend?.id) return null;
+    return dmRoomId(userId, friend.id);
+  }, [userId, friend?.id]);
 
   const scrollToEnd = () => {
     requestAnimationFrame(() => {
@@ -61,36 +71,105 @@ export default function ChatModal({ visible, onClose, friend, userId }: Props) {
     });
   };
 
+  // ✅ JOIN/LEAVE + LISTENERS
+  useEffect(() => {
+    if (!visible) return;
+    if (!friend) return;
+    if (!userId) return;
+    if (!roomId) return;
+
+    setText("");
+    setMessages([]);
+
+    // (opcjonalnie) upewnij się, że socket jest połączony
+    if (!socket.connected) socket.connect();
+
+    // 1) join do pokoju DM
+    socket.emit("joinRoom", roomId);
+
+    // 2) historia (serwer emituje "history" tylko do dołączającego)
+    const onHistory = ({
+      roomId: rid,
+      messages: hist,
+    }: {
+      roomId: string;
+      messages: any[];
+    }) => {
+      if (rid !== roomId) return;
+
+      const mapped: ChatMessage[] = (hist ?? []).map((m: any) => {
+        const senderStr = String(m.sender ?? "");
+        const mine = senderStr === (userName ?? String(userId));
+
+        return {
+          id: `srv:${m.timestamp ?? Date.now()}:${senderStr}:${Math.random()
+            .toString(16)
+            .slice(2)}`,
+          text: String(m.content ?? ""),
+          createdAt: m.timestamp ? new Date(m.timestamp).getTime() : Date.now(),
+          fromMe: mine,
+          sender: senderStr,
+        };
+      });
+
+      setMessages(mapped);
+    };
+
+    // 3) nowe wiadomości
+    const onMessage = (m: any) => {
+      if (m?.roomId !== roomId) return;
+
+      const senderStr = String(m.sender ?? "");
+      const mine = senderStr === (userName ?? String(userId));
+
+      const msg: ChatMessage = {
+        id: `srv:${m.timestamp ?? Date.now()}:${senderStr}:${Math.random()
+          .toString(16)
+          .slice(2)}`,
+        text: String(m.content ?? ""),
+        createdAt: m.timestamp ? new Date(m.timestamp).getTime() : Date.now(),
+        fromMe: mine,
+        sender: senderStr,
+      };
+
+      setMessages((prev) => [...prev, msg]);
+    };
+
+    socket.on("history", onHistory);
+    socket.on("message", onMessage);
+
+    return () => {
+      socket.off("history", onHistory);
+      socket.off("message", onMessage);
+      socket.emit("leaveRoom", roomId);
+    };
+  }, [visible, friend?.id, userId, roomId, userName]);
+
   useEffect(() => {
     if (!visible) return;
     scrollToEnd();
   }, [messages, visible]);
 
+  // ✅ wysyłka przez socket do pokoju DM
   const send = () => {
-    if (!friend) return;
+    if (!friend || !userId || !roomId) return;
+
     const trimmed = text.trim();
     if (!trimmed) return;
 
-    const msg: ChatMessage = {
-      id: `local:${Date.now()}`,
-      text: trimmed,
-      createdAt: Date.now(),
-      fromMe: true,
-    };
+    // serwer oczekuje { eventId, content, sender }
+    socket.emit("sendMessage", {
+      eventId: roomId,
+      content: trimmed,
+      sender: userName ?? String(userId), // musi być string
+    });
 
-    setMessages((prev) => [...prev, msg]);
     setText("");
-
-    // TODO: wyślij do backendu / socketa:
-    // socket.emit("dm:send", { toUserId: friend.id, text: trimmed, fromUserId: userId })
-    // albo fetch POST /api/chat/send
   };
 
   const renderItem = ({ item }: { item: ChatMessage }) => {
     const bubbleStyle = item.fromMe ? styles.bubbleMe : styles.bubbleOther;
-    const textStyle = item.fromMe
-      ? styles.bubbleTextMe
-      : styles.bubbleTextOther;
+    const textStyle = item.fromMe ? styles.bubbleTextMe : styles.bubbleTextOther;
     const rowStyle = item.fromMe ? styles.rowMe : styles.rowOther;
 
     return (
@@ -109,7 +188,6 @@ export default function ChatModal({ visible, onClose, friend, userId }: Props) {
       animationType="fade"
       onRequestClose={onClose}
     >
-      {/* tło (kliknięcie zamyka) */}
       <Pressable style={styles.backdrop} onPress={onClose} />
 
       <SafeAreaView style={styles.safe}>
@@ -119,7 +197,6 @@ export default function ChatModal({ visible, onClose, friend, userId }: Props) {
           keyboardVerticalOffset={Platform.OS === "ios" ? 10 : 0}
         >
           <View style={styles.card}>
-            {/* Header */}
             <View style={styles.header}>
               <Text style={styles.headerTitle} numberOfLines={1}>
                 {title}
@@ -134,7 +211,6 @@ export default function ChatModal({ visible, onClose, friend, userId }: Props) {
               </TouchableOpacity>
             </View>
 
-            {/* Lista wiadomości */}
             <FlatList
               ref={listRef}
               data={messages}
@@ -145,7 +221,6 @@ export default function ChatModal({ visible, onClose, friend, userId }: Props) {
               keyboardShouldPersistTaps="handled"
             />
 
-            {/* Input */}
             <View style={styles.inputBar}>
               <TextInput
                 value={text}
@@ -177,28 +252,23 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: "rgba(0,0,0,0.55)",
   },
-
-  // ✅ większy modal: szerzej, wyżej, mniej "ciasno"
   safe: {
     flex: 1,
-    justifyContent: "center", // ⬅️ środek pionowo
-    alignItems: "center", // ⬅️ środek poziomo
+    justifyContent: "center",
+    alignItems: "center",
     paddingHorizontal: 12,
   },
-
-  kav: {
-    width: "100%",
-  },
+  kav: { width: "100%" },
   card: {
     width: "100%",
-    height: "62%",
+     height: Platform.OS === "ios" ? "80%" : "60%",
     backgroundColor: "#0B1220",
     borderRadius: 16,
     borderWidth: 1,
     borderColor: "rgba(0,169,244,0.35)",
-    overflow: "hidden",
-  },
+      marginTop: Platform.OS === "android" ? -20 : 0,
 
+  },
   header: {
     paddingHorizontal: 16,
     paddingVertical: 14,
@@ -225,24 +295,15 @@ const styles = StyleSheet.create({
     alignItems: "center",
     justifyContent: "center",
   },
-
   listContent: {
     paddingHorizontal: 14,
     paddingVertical: 14,
     gap: 12,
     flexGrow: 1,
   },
-
-  msgRow: {
-    width: "100%",
-    flexDirection: "row",
-  },
-  rowMe: {
-    justifyContent: "flex-end",
-  },
-  rowOther: {
-    justifyContent: "flex-start",
-  },
+  msgRow: { width: "100%", flexDirection: "row" },
+  rowMe: { justifyContent: "flex-end" },
+  rowOther: { justifyContent: "flex-start" },
   bubble: {
     maxWidth: "82%",
     paddingHorizontal: 12,
@@ -260,18 +321,9 @@ const styles = StyleSheet.create({
     borderColor: "rgba(234,246,255,0.10)",
     borderTopLeftRadius: 6,
   },
-  bubbleText: {
-    fontSize: 13,
-    lineHeight: 18,
-    fontWeight: "700",
-  },
-  bubbleTextMe: {
-    color: "#EAF6FF",
-  },
-  bubbleTextOther: {
-    color: "rgba(234,246,255,0.9)",
-  },
-
+  bubbleText: { fontSize: 13, lineHeight: 18, fontWeight: "700" },
+  bubbleTextMe: { color: "#EAF6FF" },
+  bubbleTextOther: { color: "rgba(234,246,255,0.9)" },
   inputBar: {
     padding: 14,
     borderTopWidth: 1,

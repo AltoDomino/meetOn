@@ -4,9 +4,11 @@ import RateParticipantsModal from "@/components/RateParticipants";
 import { useEndEventListener } from "@/hooks/useEndEventListener";
 import { Ionicons } from "@expo/vector-icons";
 import { Stack, useLocalSearchParams, useRouter } from "expo-router";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   Alert,
+  AppState,
+  BackHandler,
   FlatList,
   Image,
   KeyboardAvoidingView,
@@ -20,10 +22,110 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import io from "socket.io-client";
 import { useAuth } from "../../context/AuthContext";
 import { styles } from "../../styles/EventScreenRoom.styles";
+import { useFocusEffect, useNavigation } from "@react-navigation/native";
 
 const socket = io("https://meeton-backend-ffmo.onrender.com", {
   transports: ["websocket"],
 });
+
+/** ✅ helper: czy event zakończony po endDate */
+function isEventFinishedByDates(event: any): boolean {
+  const end = event?.endDate ? new Date(event.endDate).getTime() : NaN;
+  if (!Number.isFinite(end)) return false;
+  return Date.now() >= end;
+}
+
+type TagCount = { tag: string; count: number };
+
+type RatingsUserRow = {
+  userId: number;
+  stars?: { average?: number; count?: number; distribution?: any };
+  tags?: Array<TagCount | string>;
+};
+
+type RatingsEntry = {
+  avg: number;
+  count: number;
+  tags: TagCount[];
+};
+
+function toNum(v: any): number | null {
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? n : null;
+}
+
+/** ✅ WYMUSZA HTTPS (kluczowe przy http:// z backendu) */
+function forceHttps(url?: string | null): string | null {
+  if (!url) return null;
+  if (typeof url !== "string") return null;
+  return url.startsWith("http://") ? url.replace("http://", "https://") : url;
+}
+
+/**
+ * ✅ KLUCZOWE: wyciąga PRAWDZIWE User.id z obiektu participant
+ */
+function resolveUserIdFromParticipant(p: any): number | null {
+  const candidates = [
+    p?.userId,
+    p?.user?.id,
+    p?.user?.userId,
+    p?.profile?.id,
+    p?.profile?.userId,
+    p?.participant?.userId,
+    p?.participant?.id,
+    p?.participant?.user?.id,
+    p?.participant?.user?.userId,
+    p?.id, // na końcu dopiero
+  ];
+
+  for (const c of candidates) {
+    const n = toNum(c);
+    if (n) return n;
+  }
+  return null;
+}
+
+function resolveUserNameFromParticipant(p: any): string {
+  return (
+    p?.userName ??
+    p?.username ??
+    p?.name ??
+    p?.login ??
+    p?.user?.userName ??
+    p?.user?.username ??
+    p?.user?.name ??
+    "Użytkownik"
+  );
+}
+
+function resolveAvatarFromParticipant(p: any): string | null {
+  const raw =
+    (p?.avatar ??
+      p?.avatarUrl ??
+      p?.photo ??
+      p?.photoUrl ??
+      p?.user?.avatar ??
+      p?.user?.avatarUrl ??
+      null) as string | null;
+
+  return forceHttps(raw);
+}
+
+function resolveAgeFromParticipant(p: any): number | null {
+  const a = p?.age ?? p?.user?.age;
+  return typeof a === "number" ? a : null;
+}
+
+function resolveDescriptionFromParticipant(p: any): string | null {
+  const d =
+    p?.description ??
+    p?.bio ??
+    p?.about ??
+    p?.user?.description ??
+    p?.user?.bio ??
+    null;
+  return typeof d === "string" ? d : null;
+}
 
 /** ⭐ Badge z oceną obok imienia */
 const RatingBadge = ({ avg, count }: { avg?: number; count?: number }) => {
@@ -62,83 +164,42 @@ const RatingBadge = ({ avg, count }: { avg?: number; count?: number }) => {
   );
 };
 
-type TagCount = { tag: string; count: number };
-
-type RatingsUserRow = {
-  userId: number;
-  stars?: { average?: number; count?: number; distribution?: any };
-  tags?: Array<TagCount | string>;
-};
-
-type RatingsEntry = {
-  avg: number;
-  count: number;
-  tags: TagCount[];
-};
-
-function toNum(v: any): number | null {
-  const n = Number(v);
-  return Number.isFinite(n) && n > 0 ? n : null;
-}
-
-/**
- * ✅ KLUCZOWE: wyciąga PRAWDZIWE User.id z obiektu participant
- * Bo często item.id bywa EventParticipant.id i wtedy wszystko się miesza.
- */
-function resolveUserIdFromParticipant(p: any): number | null {
-  const candidates = [
-    p?.userId,
-    p?.user?.id,
-    p?.user?.userId,
-    p?.participant?.userId,
-    p?.id, // na końcu dopiero
-  ];
-
-  for (const c of candidates) {
-    const n = toNum(c);
-    if (n) return n;
-  }
-  return null;
-}
-
-function resolveUserNameFromParticipant(p: any): string {
-  return (
-    p?.userName ??
-    p?.username ??
-    p?.name ??
-    p?.user?.userName ??
-    p?.user?.username ??
-    p?.user?.name ??
-    "Użytkownik"
-  );
-}
-
-function resolveAvatarFromParticipant(p: any): string | null {
-  return (p?.avatar ??
-    p?.avatarUrl ??
-    p?.user?.avatar ??
-    p?.user?.avatarUrl ??
-    null) as string | null;
-}
-
-function resolveAgeFromParticipant(p: any): number | null {
-  const a = p?.age ?? p?.user?.age;
-  return typeof a === "number" ? a : null;
-}
+const MeBadge = () => (
+  <View
+    style={{
+      marginLeft: 8,
+      backgroundColor: "rgba(30,58,138,0.12)",
+      paddingHorizontal: 8,
+      paddingVertical: 3,
+      borderRadius: 999,
+      borderWidth: 1,
+      borderColor: "rgba(30,58,138,0.25)",
+    }}
+  >
+    <Text style={{ marginLeft: 6 }}>👈🏻</Text>
+  </View>
+);
 
 const LocalEventRoom = () => {
   const insets = useSafeAreaInsets();
   const router = useRouter();
+  const navigation = useNavigation<any>();
   const params = useLocalSearchParams();
   const { userId, userName } = useAuth();
+
+  // ✅ stabilny number id użytkownika (żeby (Ty) zawsze działało)
+  const myId = useMemo(() => {
+    const n = Number(userId);
+    return Number.isFinite(n) ? n : null;
+  }, [userId]);
 
   const currentEventId = useMemo(() => {
     const raw = (params as any)?.eventId;
     return typeof raw === "string"
       ? raw
       : Array.isArray(raw)
-        ? raw[0]
-        : undefined;
+      ? raw[0]
+      : undefined;
   }, [params]);
 
   const [participants, setParticipants] = useState<any[]>([]);
@@ -148,7 +209,7 @@ const LocalEventRoom = () => {
   // ✅ Modal profilu
   const [detailsModalVisible, setDetailsModalVisible] = useState(false);
   const [selectedParticipant, setSelectedParticipant] = useState<any | null>(
-    null,
+    null
   );
   const [selectedRating, setSelectedRating] = useState<{
     avg: number;
@@ -163,33 +224,131 @@ const LocalEventRoom = () => {
     currentEventId,
   });
 
-  // ✅ MAPA OCEN Z EVENTU: userId -> {avg,count,tags[{tag,count}]}
+  // ✅ czy wydarzenie zakończone (na podstawie endDate)
+  const isEventFinished = useMemo(() => {
+    return isEventFinishedByDates(currentEvent);
+  }, [currentEvent]);
+
+  // =========================
+  // ✅ GATE NA OCENĘ PO END
+  // =========================
+  const [ratingRequired, setRatingRequired] = useState(false);
+  const [ratingCompleted, setRatingCompleted] = useState(false);
+
+  const autoOpenRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  const clearAutoOpen = useCallback(() => {
+    if (autoOpenRef.current) {
+      clearTimeout(autoOpenRef.current);
+      autoOpenRef.current = null;
+    }
+  }, []);
+
+  // 🔒 kiedy event się kończy -> wymagamy oceny i auto-otwieramy modal, jeśli user nie kliknie
+  useEffect(() => {
+    if (!isEventFinished) {
+      setRatingRequired(false);
+      clearAutoOpen();
+      return;
+    }
+
+    if (ratingCompleted) {
+      setRatingRequired(false);
+      clearAutoOpen();
+      return;
+    }
+
+    setRatingRequired(true);
+
+    if (showRatingModal) {
+      clearAutoOpen();
+      return;
+    }
+
+    clearAutoOpen();
+    autoOpenRef.current = setTimeout(() => {
+      setShowRatingModal(true);
+    }, 2000);
+
+    return () => clearAutoOpen();
+  }, [
+    isEventFinished,
+    ratingCompleted,
+    showRatingModal,
+    setShowRatingModal,
+    clearAutoOpen,
+  ]);
+
+  // 🔒 gdy app wraca z tła po endDate
+  useEffect(() => {
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") {
+        const finishedNow = isEventFinishedByDates(currentEvent);
+        if (finishedNow && !ratingCompleted) {
+          setRatingRequired(true);
+          if (!showRatingModal) setShowRatingModal(true);
+        }
+      }
+    });
+
+    return () => sub.remove();
+  }, [currentEvent, ratingCompleted, showRatingModal, setShowRatingModal]);
+
+  // 🔒 blokada Android BACK, dopóki ratingRequired
+  useEffect(() => {
+    if (!ratingRequired) return;
+
+    const sub = BackHandler.addEventListener("hardwareBackPress", () => {
+      Alert.alert(
+        "Dokończ ocenę",
+        "Aby wyjść z pokoju, musisz ocenić uczestników."
+      );
+      return true;
+    });
+
+    return () => sub.remove();
+  }, [ratingRequired]);
+
+  // 🔒 blokada iOS swipe-back / header-back / router back
+  useFocusEffect(
+    useCallback(() => {
+      if (!ratingRequired) return;
+
+      const unsub = navigation.addListener("beforeRemove", (e: any) => {
+        e.preventDefault();
+        Alert.alert(
+          "Dokończ ocenę",
+          "Aby wyjść z pokoju, musisz ocenić uczestników."
+        );
+      });
+
+      return unsub;
+    }, [navigation, ratingRequired])
+  );
+
+  // ✅ MAPA OCEN Z EVENTU
   const [eventRatingsMap, setEventRatingsMap] = useState<
     Record<number, RatingsEntry>
   >({});
+
+  // ✅ pełny profil twórcy
+  const [creatorProfile, setCreatorProfile] = useState<any | null>(null);
 
   const fetchEventDetails = useCallback(async () => {
     if (!currentEventId) return;
 
     try {
       const res = await fetch(
-        `https://meeton-backend-ffmo.onrender.com/api/event/${currentEventId}/details`,
+        `https://meeton-backend-ffmo.onrender.com/api/event/${currentEventId}/details`
       );
       const data = await res.json();
       setCurrentEvent(data);
       setParticipants(data.participants || []);
-
-      // ✅ log: sprawdź strukturę participants (raz na fetch)
-      console.log(
-        "[DETAILS] participants sample:",
-        (data.participants || [])?.[0],
-      );
     } catch (err) {
       console.error("Błąd pobierania szczegółów wydarzenia:", err);
     }
   }, [currentEventId]);
 
-  // ✅ pobierz ratingi + tagi(count) dla całego eventu
   const fetchEventRatings = useCallback(async () => {
     if (!currentEventId) return;
 
@@ -198,9 +357,6 @@ const LocalEventRoom = () => {
     try {
       const res = await fetch(url);
       const data = await res.json();
-
-      console.log("[event ratings] url:", url);
-      console.log("[event ratings] raw:", data);
 
       const users: RatingsUserRow[] = Array.isArray(data?.users)
         ? data.users
@@ -239,14 +395,6 @@ const LocalEventRoom = () => {
         };
       }
 
-      console.log("[event ratings] map keys:", Object.keys(nextMap));
-      const firstKey = Object.keys(nextMap)[0];
-      if (firstKey)
-        console.log(
-          "[event ratings] sample tags:",
-          nextMap[Number(firstKey)]?.tags,
-        );
-
       setEventRatingsMap(nextMap);
     } catch (e) {
       console.log("[event ratings] FAIL:", e);
@@ -259,13 +407,13 @@ const LocalEventRoom = () => {
     fetchEventRatings();
   }, [fetchEventDetails, fetchEventRatings]);
 
-  // ✅ po zakończeniu eventu / po ocenianiu – odśwież
   useEffect(() => {
     if (showRatingModal) {
       fetchEventDetails();
       fetchEventRatings();
+      clearAutoOpen();
     }
-  }, [showRatingModal, fetchEventDetails, fetchEventRatings]);
+  }, [showRatingModal, fetchEventDetails, fetchEventRatings, clearAutoOpen]);
 
   useEffect(() => {
     if (!currentEventId) return;
@@ -298,65 +446,15 @@ const LocalEventRoom = () => {
     });
   };
 
-  // ✅ otwieramy modal po kliknięciu w usera: używamy PRAWDZIWEGO User.id
-  const openUserDetailsModal = useCallback(
-    async (targetUserId: number) => {
-      try {
-        const profileRes = await fetch(
-          `https://meeton-backend-ffmo.onrender.com/api/user/profile/${targetUserId}`,
-        );
-        const profile = await profileRes.json();
-
-        const keyId =
-          toNum(profile?.id) ?? toNum(profile?.userId) ?? toNum(targetUserId);
-
-        const entry = keyId ? eventRatingsMap[keyId] : undefined;
-
-        setSelectedParticipant(profile);
-        setSelectedRating(
-          entry ? { avg: entry.avg, count: entry.count } : null,
-        );
-        setSelectedTags(entry?.tags ?? []);
-        setDetailsModalVisible(true);
-      } catch (err) {
-        console.error("Błąd pobierania danych użytkownika:", err);
-      }
+  const getUserEntry = useCallback(
+    (uid?: number | null) => {
+      if (!uid) return null;
+      return eventRatingsMap[uid] ?? null;
     },
-    [eventRatingsMap],
+    [eventRatingsMap]
   );
 
-  const handleLeave = async () => {
-    const numericEventId = Number(currentEventId);
-    if (!userId || !currentEventId || Number.isNaN(numericEventId)) return;
-
-    try {
-      const res = await fetch(
-        "https://meeton-backend-ffmo.onrender.com/api/leave",
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ userId, eventId: numericEventId }),
-        },
-      );
-
-      if (res.ok) {
-        socket.emit("participantLeft", currentEventId);
-        router.replace("/(auth)/Event");
-      } else {
-        const data = await res.json();
-        Alert.alert("Błąd", data.error || "Błąd opuszczania wydarzenia");
-      }
-    } catch (err) {
-      console.error("Błąd opuszczania:", err);
-      Alert.alert("Błąd", "Nie udało się połączyć z serwerem");
-    }
-  };
-
-  const handleSwitch = () => {
-    router.replace("./MyEvents");
-  };
-
-  // ✅ Creator info z eventu (to jest User.id)
+  // ✅ Creator info z eventu (User.id)
   const creatorId = useMemo(() => {
     const cands = [
       currentEvent?.creatorId,
@@ -373,24 +471,185 @@ const LocalEventRoom = () => {
     return null;
   }, [currentEvent]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    const run = async () => {
+      if (!creatorId) {
+        setCreatorProfile(null);
+        return;
+      }
+
+      try {
+        const res = await fetch(
+          `https://meeton-backend-ffmo.onrender.com/api/user/profile/${creatorId}`
+        );
+        const profile = await res.json();
+
+        if (cancelled) return;
+        if (profile?.error) {
+          setCreatorProfile(null);
+          return;
+        }
+
+        setCreatorProfile(profile);
+      } catch {
+        if (!cancelled) setCreatorProfile(null);
+      }
+    };
+
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [creatorId]);
+
   const creatorName =
+    creatorProfile?.userName ??
+    creatorProfile?.username ??
     currentEvent?.creator?.userName ??
     currentEvent?.creator?.username ??
     currentEvent?.creatorName ??
     "Twórca";
 
   const creatorAvatar =
-    currentEvent?.creator?.avatar ?? currentEvent?.creator?.avatarUrl ?? null;
+    creatorProfile?.avatar ??
+    creatorProfile?.avatarUrl ??
+    currentEvent?.creator?.avatar ??
+    currentEvent?.creator?.avatarUrl ??
+    null;
 
-  const getUserEntry = useCallback(
-    (uid?: number | null) => {
-      if (!uid) return null;
-      return eventRatingsMap[uid] ?? null;
+  // ✅ ważne: wymuś https na twórcy
+  const creatorAvatarSafe = forceHttps(creatorAvatar);
+
+  const buildFallbackProfileFromItem = useCallback((item: any) => {
+    const id = resolveUserIdFromParticipant(item);
+    const name = resolveUserNameFromParticipant(item);
+    const avatar = resolveAvatarFromParticipant(item);
+    const age = resolveAgeFromParticipant(item);
+    const desc = resolveDescriptionFromParticipant(item) ?? "";
+
+    return {
+      id,
+      userId: id,
+      userName: name,
+      username: name,
+      avatar: avatar,
+      avatarUrl: avatar,
+      age,
+      description: desc,
+    };
+  }, []);
+
+  const openUserDetailsModal = useCallback(
+    async (targetUserId: number, fallback?: any) => {
+      try {
+        const url = `https://meeton-backend-ffmo.onrender.com/api/user/profile/${targetUserId}`;
+        const profileRes = await fetch(url);
+        const rawText = await profileRes.text();
+
+        let profile: any = null;
+        try {
+          profile = JSON.parse(rawText);
+        } catch {}
+
+        const profileIsEmpty =
+          !profile ||
+          (typeof profile === "object" && Object.keys(profile).length === 0);
+        const profileHasError = !!profile?.error;
+
+        const finalProfile =
+          profileHasError || profileIsEmpty ? fallback : profile;
+
+        if (!finalProfile) return;
+
+        // ✅ dociśnij https na avatarze profilu, jeśli przyjdzie http
+        if (finalProfile?.avatarUrl)
+          finalProfile.avatarUrl = forceHttps(finalProfile.avatarUrl);
+        if (finalProfile?.avatar) finalProfile.avatar = forceHttps(finalProfile.avatar);
+
+        const keyId =
+          toNum(finalProfile?.id) ??
+          toNum(finalProfile?.userId) ??
+          toNum(targetUserId);
+
+        const entry = keyId ? eventRatingsMap[keyId] : undefined;
+
+        setSelectedParticipant(finalProfile);
+        setSelectedRating(entry ? { avg: entry.avg, count: entry.count } : null);
+        setSelectedTags(entry?.tags ?? []);
+        setDetailsModalVisible(true);
+      } catch {
+        if (fallback) {
+          const keyId =
+            toNum(fallback?.id) ??
+            toNum(fallback?.userId) ??
+            toNum(targetUserId);
+
+          const entry = keyId ? eventRatingsMap[keyId] : undefined;
+
+          // ✅ dociśnij https też na fallback
+          if (fallback?.avatarUrl) fallback.avatarUrl = forceHttps(fallback.avatarUrl);
+          if (fallback?.avatar) fallback.avatar = forceHttps(fallback.avatar);
+
+          setSelectedParticipant(fallback);
+          setSelectedRating(entry ? { avg: entry.avg, count: entry.count } : null);
+          setSelectedTags(entry?.tags ?? []);
+          setDetailsModalVisible(true);
+        }
+      }
     },
-    [eventRatingsMap],
+    [eventRatingsMap]
   );
 
-  // ✅ lista do oceniania: MUSI mieć User.id
+  const handleLeave = async () => {
+    // ✅ blokada wyjścia dopóki nie oceni
+    if (ratingRequired) {
+      Alert.alert(
+        "Dokończ ocenę",
+        "Aby wyjść z pokoju, musisz ocenić uczestników."
+      );
+      return;
+    }
+
+    const numericEventId = Number(currentEventId);
+    if (!myId || !currentEventId || Number.isNaN(numericEventId)) return;
+
+    try {
+      const res = await fetch(
+        "https://meeton-backend-ffmo.onrender.com/api/leave",
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ userId: myId, eventId: numericEventId }),
+        }
+      );
+
+      if (res.ok) {
+        socket.emit("participantLeft", currentEventId);
+        router.replace("/(auth)/Event");
+      } else {
+        const data = await res.json();
+        Alert.alert("Błąd", data.error || "Błąd opuszczania wydarzenia");
+      }
+    } catch (err) {
+      console.error("Błąd opuszczania:", err);
+      Alert.alert("Błąd", "Nie udało się połączyć z serwerem");
+    }
+  };
+
+  const handleSwitch = () => {
+    // ✅ blokada przejścia dopóki nie oceni
+    if (ratingRequired) {
+      Alert.alert(
+        "Dokończ ocenę",
+        "Aby wyjść z pokoju, musisz ocenić uczestników."
+      );
+      return;
+    }
+    router.replace("./MyEvents");
+  };
+
   const participantsForRating = useMemo(() => {
     const list: any[] = [];
 
@@ -399,7 +658,7 @@ const LocalEventRoom = () => {
       if (!uid) return;
 
       list.push({
-        id: uid, // ✅ TU JEST USER.ID
+        id: uid,
         userName: resolveUserNameFromParticipant(p),
         avatar: resolveAvatarFromParticipant(p),
         age: resolveAgeFromParticipant(p),
@@ -410,14 +669,14 @@ const LocalEventRoom = () => {
       list.push({
         id: creatorId,
         userName: creatorName,
-        avatar: creatorAvatar,
+        avatar: creatorAvatarSafe,
       });
     }
 
     const map = new Map<number, any>();
     for (const p of list) map.set(p.id, p);
     return Array.from(map.values());
-  }, [participants, creatorId, creatorName, creatorAvatar]);
+  }, [participants, creatorId, creatorName, creatorAvatarSafe]);
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: "#fff" }}>
@@ -433,6 +692,8 @@ const LocalEventRoom = () => {
             headerTintColor: "#fff",
             headerTitleAlign: "center",
             headerLeft: () => null,
+            // ✅ blokada gestu cofania na iOS dopóki ocena nie zakończona
+            gestureEnabled: !ratingRequired,
           }}
         />
 
@@ -440,10 +701,19 @@ const LocalEventRoom = () => {
           {/* HEADER */}
           <View style={styles.header}>
             <View style={[styles.eventInfo, { flex: 1 }]}>
-              {/* ✅ Twórca / miejsce / czas POD SOBĄ */}
               {creatorId ? (
                 <TouchableOpacity
-                  onPress={() => openUserDetailsModal(creatorId)}
+                  onPress={() => {
+                    const fallback = creatorProfile ?? {
+                      id: creatorId,
+                      userId: creatorId,
+                      userName: creatorName,
+                      avatar: creatorAvatarSafe,
+                      avatarUrl: creatorAvatarSafe,
+                      description: creatorProfile?.description ?? null,
+                    };
+                    openUserDetailsModal(creatorId, fallback);
+                  }}
                   activeOpacity={0.85}
                   style={{
                     alignSelf: "flex-start",
@@ -468,9 +738,9 @@ const LocalEventRoom = () => {
                       overflow: "hidden",
                     }}
                   >
-                    {creatorAvatar ? (
+                    {creatorAvatarSafe ? (
                       <Image
-                        source={{ uri: creatorAvatar }}
+                        source={{ uri: creatorAvatarSafe }}
                         style={{ width: 38, height: 38 }}
                       />
                     ) : (
@@ -493,6 +763,12 @@ const LocalEventRoom = () => {
                       ellipsizeMode="tail"
                     >
                       {creatorName}
+                      {myId != null && creatorId != null && myId === creatorId ? (
+                        <Text style={{ color: "#1E3A8A", fontWeight: "900" }}>
+                          {" "}
+                          (Ty)
+                        </Text>
+                      ) : null}
                     </Text>
 
                     {(() => {
@@ -548,7 +824,7 @@ const LocalEventRoom = () => {
               </Text>
             </View>
 
-            {/* ✅ Buttony pod sobą */}
+            {/* Buttony */}
             <View
               style={[
                 styles.buttonContainer,
@@ -604,58 +880,102 @@ const LocalEventRoom = () => {
                 </Text>
               </TouchableOpacity>
 
-              <TouchableOpacity
-                onPress={() => {
-                  if (!currentEventId) return;
-                  setShowRatingModal(true);
-                }}
-                disabled={!currentEventId}
-                style={{
-                  backgroundColor: "#517fc5ff",
-                  paddingVertical: 6,
-                  paddingHorizontal: 10,
-                  borderRadius: 8,
-                  opacity: currentEventId ? 1 : 0.5,
-                }}
-              >
-                <Text
-                  style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}
+              <View style={{ alignItems: "flex-end" }}>
+                <TouchableOpacity
+                  onPress={() => {
+                    if (!currentEventId) return;
+
+                    if (!isEventFinished) {
+                      Alert.alert(
+                        "Ocenianie zablokowane",
+                        "Możesz ocenić uczestników dopiero po zakończeniu wydarzenia."
+                      );
+                      return;
+                    }
+
+                    setShowRatingModal(true);
+                  }}
+                  disabled={!currentEventId}
+                  style={{
+                    backgroundColor: isEventFinished
+                      ? "#517fc5ff"
+                      : "rgba(81,127,197,0.35)",
+                    paddingVertical: 6,
+                    paddingHorizontal: 10,
+                    borderRadius: 8,
+                    opacity: currentEventId ? 1 : 0.5,
+                  }}
                 >
-                  Oceny
-                </Text>
-              </TouchableOpacity>
+                  <Text style={{ color: "#fff", fontWeight: "700", fontSize: 12 }}>
+                    Oceny
+                  </Text>
+                </TouchableOpacity>
+
+                {!isEventFinished && (
+                  <Text
+                    style={{
+                      color: "#6b7280",
+                      fontSize: 11,
+                      marginTop: 6,
+                      textAlign: "right",
+                    }}
+                  >
+                    Ocenisz po zakończeniu
+                  </Text>
+                )}
+
+                {isEventFinished && ratingRequired && (
+                  <Text
+                    style={{
+                      color: "#6b7280",
+                      fontSize: 11,
+                      marginTop: 6,
+                      textAlign: "right",
+                    }}
+                  >
+                    Ocena wymagana przed wyjściem
+                  </Text>
+                )}
+              </View>
             </View>
 
             {isExpanded && (
               <FlatList
                 data={participants}
-                keyExtractor={(item) => String(item?.id ?? Math.random())}
+                keyExtractor={(item) => String(item?.id ?? item?.userId ?? Math.random())}
                 ListEmptyComponent={
                   <Text style={styles.emptyText}>Brak uczestników</Text>
                 }
                 renderItem={({ item }) => {
                   const uid = resolveUserIdFromParticipant(item);
-
-                  // ✅ debug: zobacz jakie id ma participant
-                  console.log("[LIST] participant raw:", item);
-                  console.log("[LIST] resolved uid:", uid);
-
                   const e = uid ? getUserEntry(uid) : null;
+
+                  const isMe = myId != null && uid != null && Number(uid) === myId;
+
+                  const avatar = resolveAvatarFromParticipant(item);
 
                   return (
                     <TouchableOpacity
                       onPress={() => {
                         if (!uid) return;
-                        openUserDetailsModal(uid);
+                        const fallback = buildFallbackProfileFromItem(item);
+                        openUserDetailsModal(uid, fallback);
                       }}
-                      style={styles.participantCard}
+                      style={[
+                        styles.participantCard,
+                        isMe
+                          ? {
+                              borderWidth: 1,
+                              borderColor: "rgba(30,58,138,0.25)",
+                              backgroundColor: "rgba(234,246,255,0.55)",
+                            }
+                          : null,
+                      ]}
                     >
                       <View style={styles.avatar}>
-                        {resolveAvatarFromParticipant(item) ? (
+                        {avatar ? (
                           <Image
-                            source={{
-                              uri: resolveAvatarFromParticipant(item)!,
-                            }}
+                            source={{ uri: avatar }}
                             style={{ width: 40, height: 40, borderRadius: 20 }}
                           />
                         ) : (
@@ -668,12 +988,13 @@ const LocalEventRoom = () => {
                       </View>
 
                       <View style={{ flexDirection: "column", marginLeft: 10 }}>
-                        <View
-                          style={{ flexDirection: "row", alignItems: "center" }}
-                        >
+                        <View style={{ flexDirection: "row", alignItems: "center" }}>
                           <Text style={styles.userName}>
                             {resolveUserNameFromParticipant(item)}
                           </Text>
+
+                          {isMe ? <MeBadge /> : null}
+
                           <RatingBadge avg={e?.avg} count={e?.count} />
                         </View>
 
@@ -690,12 +1011,7 @@ const LocalEventRoom = () => {
             )}
           </View>
 
-          <View
-            style={[
-              styles.chatContainer,
-              { flex: 1, justifyContent: "flex-end" },
-            ]}
-          >
+          <View style={[styles.chatContainer, { flex: 1, justifyContent: "flex-end" }]}>
             <ChatBox messages={messages} onSend={handleSendMessage} />
           </View>
 
@@ -703,14 +1019,28 @@ const LocalEventRoom = () => {
           <RateParticipantsModal
             visible={showRatingModal}
             eventId={currentEventId ?? ""}
-            onClose={() => {
+            onSubmitted={() => {
+              setRatingCompleted(true);
+              setRatingRequired(false);
               setShowRatingModal(false);
-              // ✅ po zapisaniu ocen od razu odśwież mapę eventową
+              router.replace("/(auth)/Event");
+            }}
+            onClose={() => {
+              if (isEventFinished && ratingRequired) {
+                Alert.alert(
+                  "Dokończ ocenę",
+                  "Aby wyjść z pokoju, musisz wysłać oceny."
+                );
+                return;
+              }
+
+              setShowRatingModal(false);
               fetchEventRatings();
             }}
             participants={participantsForRating}
-            excludeUserId={typeof userId === "number" ? userId : undefined}
+            excludeUserId={myId ?? undefined}
             eventTitle={currentEvent?.location || "Wydarzenie"}
+            isEventFinished={isEventFinished}
           />
 
           {/* MODAL PROFILU */}
@@ -724,7 +1054,8 @@ const LocalEventRoom = () => {
             }}
             participant={selectedParticipant}
             rating={selectedRating}
-            tags={selectedTags} // ✅ [{tag,count}]
+            tags={selectedTags}
+            participants={participants}
           />
         </View>
       </KeyboardAvoidingView>

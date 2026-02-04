@@ -45,34 +45,6 @@ const normalizeGender = (g: any): Gender => {
   return null;
 };
 
-// ====== DEBUG HELPERS ======
-const now = () => new Date().toISOString();
-
-const mask = (val?: string | null, keep = 18) => {
-  if (!val) return null;
-  if (val.length <= keep) return `${val}…`;
-  return `${val.slice(0, keep)}…(${val.length} chars)`;
-};
-
-const safeJson = (obj: any) => {
-  try {
-    return JSON.stringify(obj, null, 2);
-  } catch {
-    return String(obj);
-  }
-};
-
-const logSection = (title: string, payload?: any) => {
-  // eslint-disable-next-line no-console
-  console.log(`\n================ ${title} ================\n`);
-  if (payload !== undefined) {
-    // eslint-disable-next-line no-console
-    console.log(payload);
-  }
-  // eslint-disable-next-line no-console
-  console.log(`\n================ END ${title} ================\n`);
-};
-
 // ✅ FEATURE FLAG: tymczasowo wyłączona weryfikacja telefonu
 const ENABLE_PHONE_VERIFICATION = false;
 
@@ -124,24 +96,10 @@ const Login = () => {
     try {
       setForgotSending(true);
 
-      logSection("FORGOT PASSWORD / REQUEST", {
-        time: now(),
-        endpoint: url,
-        email,
-      });
-
       const res = await fetch(url, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email }),
-      });
-
-      const text = await res.text().catch(() => "");
-      logSection("FORGOT PASSWORD / RESPONSE", {
-        time: now(),
-        status: res.status,
-        ok: res.ok,
-        bodyText: text?.slice(0, 2000),
       });
 
       if (!res.ok) {
@@ -156,39 +114,21 @@ const Login = () => {
         "Sprawdź skrzynkę",
         "Jeśli konto istnieje, wysłaliśmy link do zresetowania hasła.",
       );
-    } catch (e) {
-      logSection("FORGOT PASSWORD / ERROR", e);
+    } catch {
       Alert.alert("Błąd połączenia", "Nie udało się połączyć z serwerem.");
     } finally {
       setForgotSending(false);
     }
   };
 
-  // ====== ENV / BUILD DEBUG ======
+  // ====== ENV / BUILD ======
   const isExpoGo =
     Constants.appOwnership === "expo" ||
     (Constants as any).executionEnvironment === "storeClient";
 
-  const buildInfo = useMemo(
-    () => ({
-      time: now(),
-      platform: Platform.OS,
-      isExpoGo,
-      appOwnership: Constants.appOwnership,
-      executionEnvironment: (Constants as any)?.executionEnvironment,
-      schemeFromConfig: (Constants as any)?.expoConfig?.scheme,
-      androidPackage: (Constants as any)?.expoConfig?.android?.package,
-      iosBundleId: (Constants as any)?.expoConfig?.ios?.bundleIdentifier,
-      owner: (Constants as any)?.expoConfig?.owner,
-      slug: (Constants as any)?.expoConfig?.slug,
-      version: (Constants as any)?.expoConfig?.version,
-    }),
-    [isExpoGo],
-  );
-
   useEffect(() => {
-    logSection("APP / BUILD INFO", buildInfo);
-  }, [buildInfo]);
+    // bez logów
+  }, [isExpoGo]);
 
   /**
    * ✅ Redirect URI dla Google native
@@ -207,21 +147,11 @@ const Login = () => {
       preferLocalhost: false,
     });
 
-    logSection("GOOGLE DEBUG / REDIRECT URI (native)", {
-      time: now(),
-      platform: Platform.OS,
-      platformClientId: mask(platformClientId),
-      scheme,
-      redirectUri: uri,
-      expectedPattern: `${scheme}:/oauthredirect`,
-    });
-
     return uri;
   }, []);
 
   /**
-   * ✅ Najważniejsza zmiana:
-   * zamiast code+exchange, prosimy od razu o ID TOKEN (bez token exchange)
+   * ✅ ID TOKEN flow
    */
   const [request, response, promptAsync] = Google.useIdTokenAuthRequest({
     androidClientId: process.env.EXPO_PUBLIC_GOOGLE_ANDROID_CLIENT_ID!,
@@ -231,26 +161,10 @@ const Login = () => {
     redirectUri: googleRedirectUri,
   });
 
-  useEffect(() => {
-    logSection("GOOGLE DEBUG / REQUEST OBJECT (ID TOKEN FLOW)", {
-      time: now(),
-      requestExists: !!request,
-      requestUrl: (request as any)?.url ?? null,
-      requestClientId: mask((request as any)?.clientId ?? null),
-      requestRedirectUri: (request as any)?.redirectUri ?? null,
-    });
-  }, [request]);
-
   // ====== BACKEND GOOGLE ======
   const loginWithGoogleOnBackend = async (idToken: string) => {
     try {
       setLoading(true);
-
-      logSection("GOOGLE DEBUG / SENDING ID_TOKEN TO BACKEND", {
-        time: now(),
-        endpoint: `${backend_URL}/api/login/google`,
-        idToken: mask(idToken),
-      });
 
       const res = await fetch(`${backend_URL}/api/login/google`, {
         method: "POST",
@@ -259,27 +173,14 @@ const Login = () => {
       });
 
       const text = await res.text().catch(() => "");
-      logSection("GOOGLE DEBUG / BACKEND RAW RESPONSE", {
-        time: now(),
-        status: res.status,
-        ok: res.ok,
-        bodyText: text?.slice(0, 2000),
-      });
-
       if (!res.ok) {
-        Alert.alert(
-          "Błąd logowania (backend)",
-          `Status: ${res.status}\nZobacz logi w konsoli.`,
-        );
+        Alert.alert("Błąd logowania (backend)", `Status: ${res.status}`);
         return;
       }
 
       const data = text ? JSON.parse(text) : {};
-      logSection("GOOGLE DEBUG / BACKEND PARSED JSON", data);
-
       await afterAuthSuccess(data, "google");
-    } catch (e) {
-      console.error("❌ Google backend error:", e);
+    } catch {
       Alert.alert("Błąd", "Nie udało się zalogować przez Google");
     } finally {
       setLoading(false);
@@ -290,23 +191,14 @@ const Login = () => {
   useEffect(() => {
     if (!response) return;
 
-    logSection("GOOGLE DEBUG / RAW RESPONSE (FULL)", safeJson(response));
-
     if (response.type === "success") {
-      // w tym flow token dostajesz od razu:
       const idToken =
         (response as any)?.authentication?.idToken ??
         (response as any)?.params?.id_token ??
         null;
 
-      logSection("GOOGLE DEBUG / SUCCESS (ID TOKEN FLOW)", {
-        time: now(),
-        hasAuth: !!(response as any)?.authentication,
-        idToken: mask(idToken),
-      });
-
       if (!idToken) {
-        Alert.alert("Błąd", "Google nie zwróciło id_token (sprawdź logi).");
+        Alert.alert("Błąd", "Google nie zwróciło id_token.");
         return;
       }
 
@@ -315,20 +207,11 @@ const Login = () => {
     }
 
     if (response.type === "error") {
-      logSection("GOOGLE DEBUG / ERROR DETAILS", {
-        time: now(),
-        error: (response as any).error,
-        errorCode: (response as any).error?.code,
-        errorDesc: (response as any).error?.description,
-        params: (response as any).params,
-      });
-
-      Alert.alert("Błąd Google", "Google zwróciło błąd. Sprawdź logi w konsoli.");
+      Alert.alert("Błąd Google", "Google zwróciło błąd.");
       return;
     }
 
     if (response.type === "dismiss") {
-      logSection("GOOGLE DEBUG / DISMISSED", { time: now() });
       Alert.alert("Przerwano", "Użytkownik anulował logowanie");
       return;
     }
@@ -337,21 +220,11 @@ const Login = () => {
   // ====== APPLE LOGIN ======
   const handleAppleLogin = async () => {
     try {
-      logSection("APPLE DEBUG / START", { time: now() });
-
       const credential = await AppleAuthentication.signInAsync({
         requestedScopes: [
-          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
           AppleAuthentication.AppleAuthenticationScope.EMAIL,
+          AppleAuthentication.AppleAuthenticationScope.FULL_NAME,
         ],
-      });
-
-      logSection("APPLE DEBUG / CREDENTIAL", {
-        user: credential.user,
-        email: credential.email,
-        fullName: credential.fullName,
-        authorizationCode: mask(credential.authorizationCode),
-        identityToken: mask(credential.identityToken),
       });
 
       if (!credential.identityToken) {
@@ -366,25 +239,15 @@ const Login = () => {
       });
 
       const text = await res.text().catch(() => "");
-      logSection("APPLE DEBUG / BACKEND RAW RESPONSE", {
-        time: now(),
-        status: res.status,
-        ok: res.ok,
-        bodyText: text?.slice(0, 2000),
-      });
-
       if (!res.ok) {
         Alert.alert("Błąd logowania", "Nie udało się zweryfikować konta Apple");
         return;
       }
 
       const data = text ? JSON.parse(text) : {};
-      logSection("APPLE DEBUG / BACKEND PARSED JSON", data);
-
       await afterAuthSuccess(data, "apple");
     } catch (err: any) {
       if (err?.code === "ERR_CANCELED" || err?.code === "CANCELED") return;
-      console.error("❌ Apple login failed:", err);
       Alert.alert("Błąd", "Nie udało się zalogować przez Apple");
     }
   };
@@ -398,8 +261,7 @@ const Login = () => {
 
       if (!res.ok) return;
 
-      const text = await res.text().catch(() => "");
-      const profile = text ? JSON.parse(text) : {};
+      const profile = await res.json().catch(() => null);
       const g = normalizeGender(profile?.gender);
       await setGender(g);
     } catch {}
@@ -408,15 +270,15 @@ const Login = () => {
   // ====== POST AUTH ======
   const afterAuthSuccess = async (data: any, provider: AuthProvider) => {
     try {
-      const jwt = data.token ?? null;
-      const uid = data.userId ?? null;
+      const jwt = data?.token ?? null;
+      const uid = data?.userId ?? null;
 
       await setToken(jwt);
-      await setUserName(data.userName ?? "");
+      await setUserName(data?.userName ?? "");
       await setUserId(uid);
 
-      await setAvatar(data.avatar || data.avatarUrl || null);
-      await setDescription(data.description || "");
+      await setAvatar(data?.avatar || data?.avatarUrl || null);
+      await setDescription(data?.description || "");
 
       const gFromLogin = normalizeGender(data?.gender);
       await setGender(gFromLogin);
@@ -426,12 +288,17 @@ const Login = () => {
       }
 
       const isPhoneVerified = data?.isPhoneVerified;
-      const isRegistrationComplete = data?.isRegistrationComplete;
 
-      if (
-        (provider === "google" || provider === "apple") &&
-        isRegistrationComplete === false
-      ) {
+      // ✅ NORMALIZACJA isRegistrationComplete (żeby Apple/Google były spójne)
+      const regRaw =
+        data?.isRegistrationComplete ??
+        data?.registrationComplete ??
+        data?.is_complete ??
+        null;
+
+      const regComplete = regRaw === true || regRaw === "true" || regRaw === 1;
+
+      if ((provider === "google" || provider === "apple") && !regComplete) {
         router.replace("/(main)/CompleteRegistration");
         return;
       }
@@ -462,8 +329,7 @@ const Login = () => {
       }
 
       router.replace("/(main)/HomeScreen");
-    } catch (e) {
-      logSection("AUTH DEBUG / afterAuthSuccess ERROR", e);
+    } catch {
       Alert.alert("Błąd", "Nie udało się dokończyć logowania.");
     }
   };
@@ -482,12 +348,6 @@ const Login = () => {
       });
 
       const text = await res.text().catch(() => "");
-      logSection("EMAIL LOGIN / BACKEND RAW", {
-        time: now(),
-        status: res.status,
-        ok: res.ok,
-        bodyText: text?.slice(0, 2000),
-      });
 
       if (!res.ok) {
         const msg = text || "";
@@ -500,11 +360,8 @@ const Login = () => {
       }
 
       const data = text ? JSON.parse(text) : {};
-      logSection("EMAIL LOGIN / BACKEND PARSED", data);
-
       await afterAuthSuccess(data, "email");
-    } catch (error) {
-      console.log("❌ Login email error:", error);
+    } catch {
       Alert.alert("Błąd połączenia", "Nie udało się połączyć z serwerem.");
     } finally {
       setLoading(false);
@@ -518,24 +375,10 @@ const Login = () => {
       return;
     }
 
-    console.log("GOOGLE request url:", (request as any)?.url);
-    console.log("request.clientId:", (request as any)?.clientId);
-    console.log("request.redirectUri:", (request as any)?.redirectUri);
-
-    logSection("GOOGLE DEBUG / PROMPT ASYNC START", {
-      time: now(),
-      platform: Platform.OS,
-      isExpoGo,
-      redirectUri: (request as any)?.redirectUri ?? null,
-      note: "Flow: ID TOKEN (bez exchangeCodeAsync).",
-    });
-
     try {
       await (promptAsync as any)({ preferEphemeralSession: true });
-      logSection("GOOGLE DEBUG / PROMPT ASYNC END", { time: now() });
-    } catch (e) {
-      console.log("❌ promptAsync error:", e);
-      Alert.alert("Błąd", "promptAsync rzucił wyjątek (zobacz logi).");
+    } catch {
+      Alert.alert("Błąd", "Nie udało się uruchomić logowania Google.");
     }
   };
 

@@ -1,7 +1,6 @@
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-  ImageBackground,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -34,21 +33,14 @@ export default function Home() {
     router.replace("/Login");
   };
 
-  // ile miejsca od góry zostawiamy na logo (responsywnie)
-  const CONTENT_TOP = Math.max(insets.top + 280, 320);
-
   return (
     <KeyboardAvoidingView
       behavior={Platform.OS === "ios" ? "padding" : "height"}
-      style={{ flex: 1 }}
+      style={styles.screen}
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <ImageBackground
-          source={require("@/assets/images/meetOn.png")}
-          style={styles.backgroundImage}
-          imageStyle={styles.backgroundImageInner}
-        >
-          {/* 🔥 LOGOUT BUTTON */}
+        <View style={styles.screen}>
+          {/* 🔥 LOGOUT BUTTON (opcjonalnie) */}
           <View
             style={{
               position: "absolute",
@@ -57,7 +49,7 @@ export default function Home() {
               zIndex: 10,
             }}
           >
-            <TouchableOpacity
+            {/* <TouchableOpacity
               onPress={handleLogout}
               style={{
                 backgroundColor: "rgba(0,0,0,0.6)",
@@ -69,18 +61,47 @@ export default function Home() {
               <Text style={{ color: "#fff", fontWeight: "600", fontSize: 14 }}>
                 Wyloguj
               </Text>
-            </TouchableOpacity>
+            </TouchableOpacity> */}
           </View>
 
-          <View style={[styles.overlay, { paddingTop: CONTENT_TOP }]}>
-            <Text style={styles.greeting}>Hej</Text>
+          {/* ✅ WYŚRODKOWANY OVERLAY */}
+          <View
+            style={[
+              styles.overlay,
+              {
+                justifyContent: "center",
+                flex: 1,
+                marginTop: 0, // 👈 kasujemy stare przesunięcie
+              },
+            ]}
+          >
+            <Text style={styles.greeting}>Cześć</Text>
             <Text style={styles.greetingUser}>{userName}! 👋</Text>
+
             <Text style={styles.header}>Włącz aktywność</Text>
 
-            <Text style={styles.description}>
-              meetOn pomoże Ci znaleźć ludzi, którzy chcą spędzać wolny czas tak
-              jak Ty — planszówki, siatkówka, karaoke czy może bilard?
-            </Text>
+            <View style={{ width: "100%", gap: 10 }}>
+              <Text style={styles.description}>
+                meetOn pomoże Ci znaleźć ludzi, którzy chcą spędzać wolny czas
+                tak jak Ty 🎯
+              </Text>
+
+              <Text style={styles.description}>
+                🎲 Planszówki • 🏐 siatkówka • 🎤 karaoke • 🎱 bilard — wybór
+                należy do Ciebie!
+              </Text>
+
+              <Text style={styles.description}>
+                ❌ Ktoś wypadł z ekipy?{"\n"}meetOn błyskawicznie znajdzie
+                kogoś na zastępstwo ⚡
+              </Text>
+
+              <Text style={styles.description}>
+                🌍 Podróżujesz lub jesteś w nowym mieście?{"\n"}
+                 Znajdź kompanów do wspólnych aktywności i poznawaj ludzi w
+                naturalny sposób.
+              </Text>
+            </View>
 
             <TouchableOpacity style={styles.button} onPress={handleActivity}>
               <Text style={styles.buttonText}>Przeglądaj aktywności</Text>
@@ -103,13 +124,16 @@ export default function Home() {
                   Twoimi preferencjami.
                 </Text>
 
-                <Pressable onPress={handleModalConfirm} style={styles.modalButton}>
+                <Pressable
+                  onPress={handleModalConfirm}
+                  style={styles.modalButton}
+                >
                   <Text style={styles.modalButtonText}>Rozumiem</Text>
                 </Pressable>
               </View>
             </View>
           </Modal>
-        </ImageBackground>
+        </View>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );

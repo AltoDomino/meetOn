@@ -324,7 +324,7 @@ console.log(`płeć to ${gender}`)
             />
           </View>
 
-          <BottomButton title="Zatwierdź wydarzenie" onPress={handleSubmit} />
+          <BottomButton title="ZATWIERDŹ WYDARZENIE" onPress={handleSubmit} />
         </>
       )}
     </View>

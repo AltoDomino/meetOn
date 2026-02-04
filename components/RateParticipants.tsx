@@ -1,7 +1,6 @@
 import { backend_URL } from "@/backendURL";
 import { useAuth } from "@/context/AuthContext";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { StarRating } from "./StarRating";
 import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
@@ -13,6 +12,7 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
+import { StarRating } from "./StarRating";
 
 type Participant = {
   id: number;
@@ -48,17 +48,23 @@ type Props = {
   onClose: () => void;
   eventId: string | number;
   participants: any[];
+  onSubmitted?: () => void;
   eventTitle?: string;
   excludeUserId?: number;
+
+  // ✅ NOWE: czy event zakończony (blokujemy ocenianie do końca)
+  isEventFinished?: boolean;
 };
 
 const RateParticipantsModal = ({
   visible,
   onClose,
   eventId,
+  onSubmitted,
   participants,
   eventTitle = "",
   excludeUserId,
+  isEventFinished = false,
 }: Props) => {
   const { userId } = useAuth();
 
@@ -216,6 +222,15 @@ const RateParticipantsModal = ({
   };
 
   const handleSubmit = async () => {
+    // ✅ blokada oceniania do końca wydarzenia (UX + bezpieczeństwo)
+    if (!isEventFinished) {
+      Alert.alert(
+        "Za wcześnie",
+        "Możesz ocenić uczestników dopiero po zakończeniu wydarzenia.",
+      );
+      return;
+    }
+
     const eventIdNum = Number(eventIdStr);
     if (Number.isNaN(eventIdNum) || eventIdNum <= 0) {
       Alert.alert("Błąd", "Nieprawidłowe ID wydarzenia.");
@@ -267,6 +282,16 @@ const RateParticipantsModal = ({
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       });
+      if (res.ok) {
+        // ✅ sukces -> oznacz lokalnie że już ocenił event
+        if (storageKey) await AsyncStorage.setItem(storageKey, "1");
+        setAlreadyRatedEvent(true);
+
+        // ✅ callback (u Ciebie robi router.replace na Event.tsx)
+        onSubmitted?.();
+
+        return;
+      }
 
       const text = await res.text();
       console.log("📥 [ratings] STATUS:", res.status);
@@ -321,7 +346,7 @@ const RateParticipantsModal = ({
       (Array.isArray(participants) && participants.length === 0));
 
   const submitDisabled =
-    submitting || alreadyRatedEvent || checkingAlreadyRated;
+    submitting || alreadyRatedEvent || checkingAlreadyRated || !isEventFinished; // ✅ NOWE
 
   return (
     <Modal
@@ -369,20 +394,6 @@ const RateParticipantsModal = ({
                 </Text>
               )}
             </View>
-
-            <TouchableOpacity
-              onPress={() => {
-                if (!submitting) onClose();
-              }}
-              style={{
-                paddingHorizontal: 12,
-                paddingVertical: 8,
-                borderRadius: 10,
-                backgroundColor: "rgba(255,255,255,0.12)",
-              }}
-            >
-              <Text style={{ color: "#fff", fontWeight: "700" }}>Zamknij</Text>
-            </TouchableOpacity>
           </View>
 
           {/* ✅ banner jeśli już ocenił */}
@@ -404,6 +415,27 @@ const RateParticipantsModal = ({
               </Text>
               <Text style={{ color: "#cfe8ff", marginTop: 4, opacity: 0.9 }}>
                 Możesz wystawić ocenę tylko raz na całe wydarzenie.
+              </Text>
+            </View>
+          ) : null}
+
+          {/* ✅ NOWE: banner gdy event jeszcze trwa */}
+          {!alreadyRatedEvent && !checkingAlreadyRated && !isEventFinished ? (
+            <View
+              style={{
+                backgroundColor: "rgba(255,255,255,0.10)",
+                borderRadius: 12,
+                padding: 10,
+                marginBottom: 10,
+                borderWidth: 1,
+                borderColor: "rgba(255,255,255,0.18)",
+              }}
+            >
+              <Text style={{ color: "#cfe8ff", fontWeight: "800" }}>
+                Ocenianie będzie dostępne po zakończeniu wydarzenia.
+              </Text>
+              <Text style={{ color: "#cfe8ff", marginTop: 4, opacity: 0.9 }}>
+                Wystawisz oceny dopiero, gdy wydarzenie się zakończy.
               </Text>
             </View>
           ) : null}
@@ -451,7 +483,8 @@ const RateParticipantsModal = ({
                         marginBottom: 12,
                         flexDirection: "row",
                         alignItems: "flex-start",
-                        opacity: alreadyRatedEvent ? 0.6 : 1,
+                        opacity:
+                          alreadyRatedEvent || !isEventFinished ? 0.6 : 1,
                       }}
                     >
                       <View
@@ -488,15 +521,12 @@ const RateParticipantsModal = ({
                           }}
                         >
                           {item.userName}
-                          {typeof item.age === "number"
-                            ? `, ${item.age} lat`
-                            : ""}
                         </Text>
 
                         <StarRating
                           value={currentRating.stars}
                           onChange={(v: number) => {
-                            if (alreadyRatedEvent) return;
+                            if (alreadyRatedEvent || !isEventFinished) return;
                             handleStarChange(item.id, v);
                           }}
                         />
@@ -516,7 +546,8 @@ const RateParticipantsModal = ({
                                 <TouchableOpacity
                                   key={tag}
                                   onPress={() => {
-                                    if (alreadyRatedEvent) return;
+                                    if (alreadyRatedEvent || !isEventFinished)
+                                      return;
                                     toggleTag(item.id, tag);
                                   }}
                                   style={{
@@ -580,6 +611,12 @@ const RateParticipantsModal = ({
                       Zapisywanie…
                     </Text>
                   </View>
+                ) : !isEventFinished ? (
+                  <Text
+                    style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}
+                  >
+                    Dostępne po zakończeniu
+                  </Text>
                 ) : alreadyRatedEvent ? (
                   <Text
                     style={{ color: "#fff", fontWeight: "700", fontSize: 16 }}

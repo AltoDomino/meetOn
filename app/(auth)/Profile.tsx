@@ -7,7 +7,6 @@ import React, { useEffect, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
-  Image,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
@@ -23,10 +22,14 @@ import {
   SafeAreaView,
   useSafeAreaInsets,
 } from "react-native-safe-area-context";
+import { Image as ExpoImage } from "expo-image";
 import { useAuth } from "../../context/AuthContext";
 import { profileStyles as styles } from "../../styles/Profile.styles";
 
 const API_BASE = "https://meeton-backend-ffmo.onrender.com";
+
+// Prosty blurhash placeholder (może zostać taki sam wszędzie)
+const AVATAR_BLURHASH = "LEHV6nWB2yk8pyo0adR*.7kCMdnj";
 
 export default function ProfileScreen() {
   const router = useRouter();
@@ -52,6 +55,10 @@ export default function ProfileScreen() {
     { tag: string; count: number }[]
   >([]);
 
+  // Avatar: stabilne ładowanie + fallback
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const [avatarError, setAvatarError] = useState(false);
+
   // ===== Delete account =====
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -60,6 +67,11 @@ export default function ProfileScreen() {
     const n = (userName || "U").trim();
     return n.charAt(0).toUpperCase();
   }, [userName]);
+
+  // Reset błędu avatara gdy zmieni się URL
+  useEffect(() => {
+    setAvatarError(false);
+  }, [avatar]);
 
   // ===== Rank =====
   useEffect(() => {
@@ -114,50 +126,67 @@ export default function ProfileScreen() {
       return () => {
         isMounted = false;
       };
-    }, [userId]),
+    }, [userId])
   );
 
-  const pickImage = async () => {
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ImagePicker.MediaTypeOptions.Images,
-      quality: 0.75,
-      allowsEditing: true,
-      aspect: [1, 1],
+const pickImage = async () => {
+  // 🔁 compat: działa na starym i nowym expo-image-picker
+  const mediaTypesCompat =
+    // @ts-ignore – MediaType istnieje tylko w nowszych wersjach
+    ImagePicker.MediaType?.Images ?? ImagePicker.MediaTypeOptions.Images;
+
+  const result = await ImagePicker.launchImageLibraryAsync({
+    mediaTypes: mediaTypesCompat,
+    quality: 0.75,
+    allowsEditing: true,
+    aspect: [1, 1],
+  });
+
+  if (result.canceled) return;
+
+  const image = result.assets[0];
+  const formData = new FormData();
+
+  formData.append("avatar", {
+    uri: image.uri,
+    name: "avatar.jpg",
+    type: "image/jpeg",
+  } as any);
+
+  formData.append("userId", userId?.toString() || "");
+
+  try {
+    setAvatarLoading(true);
+
+    const response = await fetch(`${API_BASE}/api/avatar`, {
+      method: "POST",
+      body: formData,
+      headers: { "Content-Type": "multipart/form-data" },
     });
 
-    if (result.canceled) return;
+    const data = await response.json();
 
-    const image = result.assets[0];
-    const formData = new FormData();
+    if (response.ok) {
+      const url = String(data.avatarUrl || "");
+      const busted = url
+        ? `${url}${url.includes("?") ? "&" : "?"}v=${Date.now()}`
+        : "";
 
-    formData.append("avatar", {
-      uri: image.uri,
-      name: "avatar.jpg",
-      type: "image/jpeg",
-    } as any);
+      setAvatar(busted);
+      setAvatarError(false);
 
-    formData.append("userId", userId?.toString() || "");
-
-    try {
-      const response = await fetch(`${API_BASE}/api/avatar`, {
-        method: "POST",
-        body: formData,
-        headers: { "Content-Type": "multipart/form-data" },
-      });
-
-      const data = await response.json();
-
-      if (response.ok) {
-        setAvatar(data.avatarUrl);
-        Alert.alert("Sukces", "Avatar zapisany!");
-      } else {
-        Alert.alert("Błąd", data.error || "Coś poszło nie tak.");
-      }
-    } catch (error) {
-      console.error("❌ Błąd przesyłania avatara:", error);
-      Alert.alert("Błąd", "Nie udało się wysłać avatara.");
+      Alert.alert("Sukces", "Avatar zapisany!");
+    } else {
+      Alert.alert("Błąd", data.error || "Coś poszło nie tak.");
     }
-  };
+  } catch (error) {
+    Alert.alert("Błąd", "Nie udało się wysłać avatara.");
+  } finally {
+    setAvatarLoading(false);
+  }
+};
+
+
 
   const handleSave = async () => {
     if (saving) return;
@@ -187,94 +216,87 @@ export default function ProfileScreen() {
     }
   };
 
-const handleDeleteAccount = async () => {
-  console.log("🗑️ handleDeleteAccount start");
-  console.log("➡️ userId:", userId);
-  console.log("➡️ deleting:", deleting);
+  const handleDeleteAccount = async () => {
+    console.log("🗑️ handleDeleteAccount start");
+    console.log("➡️ userId:", userId);
+    console.log("➡️ deleting:", deleting);
 
-  if (!userId) {
-    console.warn("⛔ Brak userId – abort");
-    return;
-  }
-  if (deleting) {
-    console.warn("⛔ deleting=true – abort");
-    return;
-  }
-
-  try {
-    setDeleting(true);
-
-    // token możesz zostawić (nie przeszkadza) albo wywalić
-    const token =
-      auth?.token ||
-      auth?.accessToken ||
-      auth?.jwt ||
-      auth?.sessionToken ||
-      auth?.user?.token;
-
-    console.log("🔐 token exists:", !!token);
-    if (token) {
-      console.log("🔐 token preview:", String(token).slice(0, 20) + "...");
+    if (!userId) {
+      console.warn("⛔ Brak userId – abort");
+      return;
     }
-
-    // ✅ KLUCZ: userId idzie w URL
-    const url = `${API_BASE}/api/delete-account/account/${userId}`;
-    console.log("📡 DELETE:", url);
-
-    const res = await fetch(url, {
-      method: "DELETE",
-      headers: {
-        "Content-Type": "application/json",
-        ...(token ? { Authorization: `Bearer ${token}` } : {}),
-      },
-      // body już niepotrzebne przy params
-    });
-
-    console.log("📨 status:", res.status);
-
-    const raw = await res.text();
-    console.log("📦 raw body:", raw);
-
-    let data: any = {};
-    try {
-      data = raw ? JSON.parse(raw) : {};
-    } catch (e) {
-      console.warn("⚠️ JSON parse fail:", e);
-    }
-
-    if (!res.ok) {
-      console.error("❌ delete failed:", res.status, data);
-      Alert.alert("Błąd", data?.error || data?.message || `HTTP ${res.status}`);
+    if (deleting) {
+      console.warn("⛔ deleting=true – abort");
       return;
     }
 
-    console.log("✅ delete success:", data);
-
-    setDeleteModalVisible(false);
-
     try {
-      console.log("🚪 logout...");
-      await logout?.();
-      console.log("✅ logout ok");
+      setDeleting(true);
+
+      const token =
+        auth?.token ||
+        auth?.accessToken ||
+        auth?.jwt ||
+        auth?.sessionToken ||
+        auth?.user?.token;
+
+      console.log("🔐 token exists:", !!token);
+      if (token) {
+        console.log("🔐 token preview:", String(token).slice(0, 20) + "...");
+      }
+
+      const url = `${API_BASE}/api/delete-account/account/${userId}`;
+      console.log("📡 DELETE:", url);
+
+      const res = await fetch(url, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+      });
+
+      console.log("📨 status:", res.status);
+
+      const raw = await res.text();
+      console.log("📦 raw body:", raw);
+
+      let data: any = {};
+      try {
+        data = raw ? JSON.parse(raw) : {};
+      } catch (e) {
+        console.warn("⚠️ JSON parse fail:", e);
+      }
+
+      if (!res.ok) {
+        console.error("❌ delete failed:", res.status, data);
+        Alert.alert("Błąd", data?.error || data?.message || `HTTP ${res.status}`);
+        return;
+      }
+
+      console.log("✅ delete success:", data);
+
+      setDeleteModalVisible(false);
+
+      try {
+        console.log("🚪 logout...");
+        await logout?.();
+        console.log("✅ logout ok");
+      } catch (e) {
+        console.warn("⚠️ logout failed:", e);
+      }
+
+      console.log("➡️ redirect to login");
+      router.replace("/(main)/Login");
+      Alert.alert("Konto usunięte", "Twoje konto zostało trwale usunięte.");
     } catch (e) {
-      console.warn("⚠️ logout failed:", e);
+      console.error("❌ Delete exception:", e);
+      Alert.alert("Błąd", "Nie udało się połączyć z serwerem.");
+    } finally {
+      setDeleting(false);
+      console.log("🏁 deleting=false");
     }
-
-    console.log("➡️ redirect to login");
-    router.replace("/(main)/Login");
-    Alert.alert("Konto usunięte", "Twoje konto zostało trwale usunięte.");
-  } catch (e) {
-    console.error("❌ Delete exception:", e);
-    Alert.alert("Błąd", "Nie udało się połączyć z serwerem.");
-  } finally {
-    setDeleting(false);
-    console.log("🏁 deleting=false");
-  }
-};
-
-
-
-
+  };
 
   const descLen = description?.length ?? 0;
 
@@ -324,10 +346,48 @@ const handleDeleteAccount = async () => {
                   activeOpacity={0.85}
                   style={styles.avatarWrap}
                 >
-                  {avatar ? (
-                    <Image source={{ uri: avatar }} style={styles.avatarImg} />
+                  {avatar && !avatarError ? (
+                    <View style={{ width: "100%", height: "100%" }}>
+                      {/* ✅ expo-image: lepszy cache + stabilniejsze ładowanie */}
+                      <ExpoImage
+                        source={{ uri: avatar }}
+                        style={styles.avatarImg}
+                        cachePolicy="disk"
+                        placeholder={{ blurhash: AVATAR_BLURHASH }}
+                        transition={180}
+                        onLoadStart={() => setAvatarLoading(true)}
+                        onLoadEnd={() => setAvatarLoading(false)}
+                        onError={() => {
+                          setAvatarLoading(false);
+                          setAvatarError(true);
+                        }}
+                      />
+
+                      {/* loader na wierzchu avatara */}
+                      {avatarLoading ? (
+                        <View
+                          style={{
+                            position: "absolute",
+                            inset: 0,
+                            alignItems: "center",
+                            justifyContent: "center",
+                          }}
+                        >
+                          <ActivityIndicator color="#1E3A8A" />
+                        </View>
+                      ) : null}
+                    </View>
                   ) : (
-                    <Text style={styles.avatarFallbackText}>{initials}</Text>
+                    <View
+                      style={{
+                        width: "100%",
+                        height: "100%",
+                        alignItems: "center",
+                        justifyContent: "center",
+                      }}
+                    >
+                      <Text style={styles.avatarFallbackText}>{initials}</Text>
+                    </View>
                   )}
                 </TouchableOpacity>
 
@@ -361,9 +421,7 @@ const handleDeleteAccount = async () => {
               ) : (
                 <>
                   <View style={styles.ratingValueRow}>
-                    <Text style={styles.ratingValue}>
-                      {avgStars.toFixed(1)}
-                    </Text>
+                    <Text style={styles.ratingValue}>{avgStars.toFixed(1)}</Text>
                     <Text
                       style={{
                         color: "#fbbf24",
@@ -433,25 +491,20 @@ const handleDeleteAccount = async () => {
               />
 
               <Text style={styles.counter}>{descLen}/70</Text>
-              
             </View>
-                  <View
 
-      >
-        <TouchableOpacity
-
-          onPress={() => setDeleteModalVisible(true)}
-          style={local.deleteButton}
-        >
-          <Text style={local.deleteButtonText}>Usuń konto</Text>
-        </TouchableOpacity>
-      </View>
+            {/* Usuń konto (mały czerwony) */}
+            <View>
+              <TouchableOpacity
+                onPress={() => setDeleteModalVisible(true)}
+                style={local.deleteButton}
+              >
+                <Text style={local.deleteButtonText}>Usuń konto</Text>
+              </TouchableOpacity>
+            </View>
           </ScrollView>
         </KeyboardAvoidingView>
       </Pressable>
-
-      {/* Sticky bottom: mały czerwony przycisk */}
-
 
       {/* Modal potwierdzenia */}
       <Modal
